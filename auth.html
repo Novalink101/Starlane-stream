@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#050508" />
+<meta name="description" content="Sign in or create your free Starlane Stream account." />
+<title>Sign in · Starlane Stream</title>
+
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<style>
+:root{
+  --red:#E50914;--red-hover:#FF3B4E;--red-dark:#B20710;
+  --red-soft:rgba(229,9,20,.12);
+  --red-border:rgba(229,9,20,.25);
+
+  --bg:#050508;--bg-2:#0A0A0F;
+  --surface:rgba(20,20,28,.85);
+  --border:rgba(255,255,255,.08);
+  --border-2:rgba(255,255,255,.14);
+
+  --text:#FFFFFF;
+  --text-2:rgba(255,255,255,.75);
+  --text-3:rgba(255,255,255,.5);
+  --text-muted:rgba(255,255,255,.35);
+
+  --green:#10B981;
+  --danger:#EF4444;
+
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:22px;--r-full:999px;
+  --ease:cubic-bezier(.25,.8,.25,1);
+  --ease-out:cubic-bezier(.22,.9,.3,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font);font-size:14px;line-height:1.55;
+  color:var(--text);background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  overflow-x:hidden;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--red);color:#fff}
+.hidden{display:none!important}
+
+/* Starfield */
+.starfield{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(229,9,20,.08) 0%, transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(229,9,20,.05) 0%, transparent 50%),
+    linear-gradient(180deg, #050508 0%, #0A0A14 100%);
+}
+.starfield::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.8), transparent 100%),
+    radial-gradient(1px 1px at 87% 32%, rgba(255,255,255,.6), transparent 100%),
+    radial-gradient(1.5px 1.5px at 34% 78%, rgba(255,255,255,.7), transparent 100%),
+    radial-gradient(1px 1px at 67% 12%, rgba(255,255,255,.5), transparent 100%),
+    radial-gradient(1.5px 1.5px at 92% 82%, rgba(255,255,255,.75), transparent 100%),
+    radial-gradient(1px 1px at 8% 62%, rgba(255,255,255,.55), transparent 100%);
+  animation:twinkle 8s ease-in-out infinite;
+}
+@keyframes twinkle{0%,100%{opacity:.85}50%{opacity:.4}}
+
+/* Nav (minimal) */
+.nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(5,5,8,.85);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:1240px;margin:0 auto;
+  padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+}
+.nav-brand{display:inline-flex;align-items:center;gap:11px;flex-shrink:0}
+.nav-brand svg{width:28px;height:34px;display:block}
+.nav-brand b{font-weight:900;font-size:17px;letter-spacing:-.01em;color:#fff}
+.nav-brand b span{color:var(--red)}
+.nav-back{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 14px;border-radius:var(--r-full);
+  font-size:13px;font-weight:800;
+  color:var(--text-2);
+  border:1px solid var(--border-2);
+  transition:all .2s var(--ease);
+}
+.nav-back:hover{color:#fff;border-color:var(--red);background:var(--red-soft)}
+.nav-back svg{width:15px;height:15px}
+@media (max-width:560px){
+  .nav-inner{padding:12px 16px}
+  .nav-brand b{font-size:15px}
+  .nav-brand svg{width:24px;height:30px}
+  .nav-back .lbl{display:none}
+}
+
+/* Main */
+main{
+  flex:1;
+  display:flex;align-items:center;justify-content:center;
+  padding:48px 24px 64px;
+}
+@media (max-width:560px){main{padding:32px 16px 48px}}
+
+/* Card */
+.auth-card{
+  width:100%;max-width:440px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  padding:36px 32px;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  box-shadow:0 32px 80px rgba(0,0,0,.5);
+  position:relative;overflow:hidden;
+}
+.auth-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg, transparent, var(--red), transparent);
+}
+@media (max-width:480px){
+  .auth-card{padding:28px 22px;border-radius:var(--r-lg)}
+}
+
+.auth-logo{
+  display:flex;justify-content:center;margin-bottom:24px;
+}
+.auth-logo svg{width:44px;height:54px}
+
+.auth-title{
+  font-size:24px;font-weight:900;
+  text-align:center;margin-bottom:8px;
+  letter-spacing:-.025em;
+  color:#fff;
+}
+.auth-sub{
+  font-size:13.5px;
+  color:var(--text-3);
+  text-align:center;
+  margin-bottom:28px;
+  line-height:1.5;
+  font-weight:500;
+}
+
+/* Tabs */
+.tabs{
+  display:flex;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:4px;
+  gap:2px;
+  margin-bottom:24px;
+}
+.tabs button{
+  flex:1;
+  padding:10px 14px;
+  border-radius:var(--r-sm);
+  font-size:13.5px;font-weight:800;
+  color:var(--text-3);
+  transition:all .22s var(--ease);
+  font-family:inherit;
+}
+.tabs button.active{
+  background:var(--red);
+  color:#fff;
+  box-shadow:0 4px 12px rgba(229,9,20,.35);
+}
+.tabs button:hover:not(.active){color:#fff}
+
+/* Form */
+.field{margin-bottom:16px}
+.field label{
+  display:block;
+  font-size:11.5px;font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--text-3);
+  margin-bottom:8px;
+}
+.field input{
+  width:100%;
+  padding:13px 16px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border-2);
+  border-radius:var(--r-md);
+  font-size:14.5px;
+  color:#fff;
+  transition:all .2s var(--ease);
+  font-family:inherit;
+}
+.field input::placeholder{color:var(--text-muted)}
+.field input:focus{
+  outline:none;
+  border-color:var(--red);
+  background:rgba(255,255,255,.06);
+  box-shadow:0 0 0 3px rgba(229,9,20,.15);
+}
+.field input.is-error{
+  border-color:var(--danger);
+  background:rgba(239,68,68,.06);
+}
+.field-error{
+  font-size:12px;
+  color:var(--danger);
+  font-weight:700;
+  margin-top:6px;
+  display:none;
+}
+.field-error.show{display:block}
+
+/* Password toggle */
+.field-pw{position:relative}
+.field-pw .pw-toggle{
+  position:absolute;
+  right:12px;top:50%;
+  transform:translateY(-50%);
+  width:32px;height:32px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-3);
+  border-radius:var(--r-sm);
+  transition:all .2s var(--ease);
+}
+.field-pw .pw-toggle:hover{color:#fff;background:rgba(255,255,255,.06)}
+.field-pw .pw-toggle svg{width:16px;height:16px}
+.field-pw input{padding-right:48px}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  padding:13px 20px;
+  border-radius:var(--r-md);
+  font-size:14.5px;font-weight:900;
+  transition:all .22s var(--ease);
+  font-family:inherit;
+  border:1px solid transparent;
+  width:100%;
+  min-height:50px;
+  line-height:1;cursor:pointer;
+}
+.btn svg{width:17px;height:17px;flex-shrink:0}
+.btn-primary{
+  background:linear-gradient(135deg,var(--red),#FF2A3D);
+  color:#fff;
+  box-shadow:0 8px 22px rgba(229,9,20,.4);
+}
+.btn-primary:hover:not(:disabled){
+  transform:translateY(-2px);
+  box-shadow:0 14px 32px rgba(229,9,20,.55);
+}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-ghost{
+  background:rgba(255,255,255,.04);
+  color:#fff;
+  border-color:var(--border-2);
+}
+.btn-ghost:hover:not(:disabled){
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.28);
+}
+.btn-google{
+  background:#fff;
+  color:#1f2937;
+  font-weight:800;
+}
+.btn-google:hover:not(:disabled){
+  background:#f3f4f6;
+  transform:translateY(-1px);
+  box-shadow:0 8px 20px rgba(0,0,0,.25);
+}
+.btn-google svg{width:18px;height:18px}
+
+/* Divider */
+.divider{
+  display:flex;align-items:center;gap:14px;
+  margin:22px 0;
+  color:var(--text-muted);
+  font-size:11.5px;font-weight:800;
+  letter-spacing:.12em;text-transform:uppercase;
+}
+.divider::before,.divider::after{
+  content:'';flex:1;height:1px;
+  background:var(--border);
+}
+
+/* Footer note */
+.auth-note{
+  text-align:center;
+  font-size:12.5px;
+  color:var(--text-muted);
+  margin-top:24px;
+  line-height:1.6;
+  font-weight:500;
+}
+.auth-note a{
+  color:var(--red);
+  font-weight:800;
+}
+.auth-note a:hover{text-decoration:underline}
+
+/* Spinner */
+.spinner{
+  width:16px;height:16px;
+  border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  display:inline-block;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Toast */
+#toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(140%);
+  background:#fff;color:#050508;
+  font-size:13.5px;font-weight:800;
+  padding:13px 22px;border-radius:var(--r-full);
+  box-shadow:0 20px 48px rgba(0,0,0,.6);
+  transition:transform .4s var(--ease-out);
+  z-index:200;max-width:90vw;text-align:center;
+  display:flex;align-items:center;gap:10px;
+  pointer-events:none;
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast svg{width:16px;height:16px;flex-shrink:0}
+#toast.success{background:var(--green);color:#fff}
+#toast.error{background:var(--danger);color:#fff}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    transition-duration:.01ms!important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="starfield" aria-hidden="true"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand" aria-label="Starlane Stream home">
+      <svg viewBox="0 0 60 74" aria-hidden="true">
+        <defs>
+          <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#E50914"/>
+            <stop offset="100%" stop-color="#FF5566"/>
+          </linearGradient>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <path d="M10 60 Q 22 32 44 20" stroke="url(#starGrad)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+        <path d="M16 62 Q 26 40 46 26" stroke="url(#starGrad)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+        <circle cx="46" cy="18" r="5" fill="#fff" filter="url(#glow)"/>
+        <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
+      </svg>
+      <b>STAR<span>LANE</span></b>
+    </a>
+    <a href="index.html" class="nav-back">
+      <i data-lucide="arrow-left"></i>
+      <span class="lbl">Back to home</span>
+    </a>
+  </div>
+</nav>
+
+<main>
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <svg viewBox="0 0 60 74" aria-hidden="true">
+        <defs>
+          <linearGradient id="authGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#E50914"/>
+            <stop offset="100%" stop-color="#FF5566"/>
+          </linearGradient>
+          <filter id="authGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <path d="M10 60 Q 22 32 44 20" stroke="url(#authGrad)" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.95"/>
+        <path d="M16 62 Q 26 40 46 26" stroke="url(#authGrad)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+        <circle cx="46" cy="18" r="6" fill="#fff" filter="url(#authGlow)"/>
+        <circle cx="46" cy="18" r="3" fill="#E50914"/>
+      </svg>
+    </div>
+
+    <h1 class="auth-title" id="authTitle">Welcome to Starlane</h1>
+    <p class="auth-sub" id="authSub">Sign in to your account or create a new one — it takes 30 seconds.</p>
+
+    <div class="tabs" role="tablist">
+      <button type="button" id="tabSignin" role="tab" aria-selected="true">Sign in</button>
+      <button type="button" id="tabSignup" role="tab" aria-selected="false">Create account</button>
+    </div>
+
+    <button type="button" class="btn btn-google" id="googleBtn">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      <span id="googleLabel">Sign in with Google</span>
+    </button>
+
+    <div class="divider">or</div>
+
+    <form id="authForm" novalidate>
+
+      <div class="field hidden" id="nameField">
+        <label for="nameInput">Full name</label>
+        <input type="text" id="nameInput" placeholder="Nathan Nyl" autocomplete="name" maxlength="60" />
+        <div class="field-error" id="nameError">Please enter your full name.</div>
+      </div>
+
+      <div class="field">
+        <label for="emailInput">Email address</label>
+        <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="email" required />
+        <div class="field-error" id="emailError">Please enter a valid email address.</div>
+      </div>
+
+      <div class="field field-pw">
+        <label for="pwInput">Password</label>
+        <input type="password" id="pwInput" placeholder="At least 6 characters" autocomplete="current-password" required minlength="6" />
+        <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password">
+          <i data-lucide="eye"></i>
+        </button>
+        <div class="field-error" id="pwError">Password must be at least 6 characters.</div>
+      </div>
+
+      <div class="hidden" id="forgotWrap" style="text-align:right;margin-bottom:16px;">
+        <button type="button" id="forgotBtn" style="font-size:12.5px;color:var(--text-3);font-weight:800;">
+          Forgot password?
+        </button>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="submitBtn">
+        <span id="submitLabel">Sign in</span>
+      </button>
+
+    </form>
+
+    <p class="auth-note">
+      By continuing, you agree to our
+      <a href="legal.html#terms">Terms</a> and
+      <a href="legal.html#privacy">Privacy Policy</a>.
+    </p>
+
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════════
+   FIREBASE CONFIG — starlane-stream
+   ═══════════════════════════════════════════════════════════════ */
+var firebaseConfig = {
+  apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+  authDomain: "starlane-stream.firebaseapp.com",
+  projectId: "starlane-stream",
+  storageBucket: "starlane-stream.firebasestorage.app",
+  messagingSenderId: "115625325145",
+  appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+};
+
+var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
+var auth = null;
+var db = null;
+
+if (firebaseReady && !firebase.apps.length){
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db = firebase.firestore();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════════════════════ */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
+function getParam(n){ try { return new URLSearchParams(location.search).get(n); } catch(e){ return null; } }
+
+function toast(msg, type, ms){
+  type = type || 'info'; ms = ms || 3000;
+  var t = $('toast');
+  var ic = type === 'error' ? 'alert-circle' : (type === 'success' ? 'check-circle' : 'info');
+  t.className = type;
+  t.innerHTML = '<i data-lucide="'+ic+'"></i><span>' + esc(msg) + '</span>';
+  refreshIcons();
+  requestAnimationFrame(function(){ t.classList.add('show'); });
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ t.classList.remove('show'); }, ms);
+}
+
+function showError(fieldId, errId, msg){
+  var f = $(fieldId), e = $(errId);
+  if (f) f.classList.add('is-error');
+  if (e){ if (msg) e.textContent = msg; e.classList.add('show'); }
+}
+function clearError(fieldId, errId){
+  var f = $(fieldId), e = $(errId);
+  if (f) f.classList.remove('is-error');
+  if (e) e.classList.remove('show');
+}
+function clearAllErrors(){
+  ['nameError','emailError','pwError'].forEach(function(e){ var el=$(e); if(el)el.classList.remove('show'); });
+  ['nameInput','emailInput','pwInput'].forEach(function(f){ var el=$(f); if(el)el.classList.remove('is-error'); });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════ */
+var mode = 'signin';
+var redirectUrl = null;
+var selectedPlan = null;
+
+/* ═══════════════════════════════════════════════════════════════
+   MODE SWITCHING
+   ═══════════════════════════════════════════════════════════════ */
+function setMode(newMode){
+  mode = newMode;
+  clearAllErrors();
+
+  if (mode === 'signup'){
+    $('tabSignup').classList.add('active');
+    $('tabSignin').classList.remove('active');
+    $('tabSignup').setAttribute('aria-selected', 'true');
+    $('tabSignin').setAttribute('aria-selected', 'false');
+
+    $('authTitle').textContent = 'Create your account';
+    $('authSub').textContent = 'Start free in 30 seconds. No card required.';
+    $('submitLabel').textContent = 'Create account';
+    $('googleLabel').textContent = 'Sign up with Google';
+    $('nameField').classList.remove('hidden');
+    $('forgotWrap').classList.add('hidden');
+    $('pwInput').setAttribute('autocomplete', 'new-password');
+  } else {
+    $('tabSignin').classList.add('active');
+    $('tabSignup').classList.remove('active');
+    $('tabSignin').setAttribute('aria-selected', 'true');
+    $('tabSignup').setAttribute('aria-selected', 'false');
+
+    $('authTitle').textContent = 'Welcome back';
+    $('authSub').textContent = 'Sign in to continue watching.';
+    $('submitLabel').textContent = 'Sign in';
+    $('googleLabel').textContent = 'Sign in with Google';
+    $('nameField').classList.add('hidden');
+    $('forgotWrap').classList.remove('hidden');
+    $('pwInput').setAttribute('autocomplete', 'current-password');
+  }
+  refreshIcons();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FORM VALIDATION
+   ═══════════════════════════════════════════════════════════════ */
+function validate(){
+  clearAllErrors();
+  var ok = true;
+  var firstBad = null;
+
+  var name = ($('nameInput').value || '').trim();
+  var email = ($('emailInput').value || '').trim();
+  var pw = $('pwInput').value || '';
+
+  if (mode === 'signup'){
+    if (!name || name.length < 2){
+      showError('nameInput','nameError');
+      ok = false;
+      if (!firstBad) firstBad = $('nameInput');
+    }
+  }
+
+  if (!email || email.indexOf('@') === -1 || email.indexOf('.') === -1){
+    showError('emailInput','emailError');
+    ok = false;
+    if (!firstBad) firstBad = $('emailInput');
+  }
+
+  if (!pw || pw.length < 6){
+    showError('pwInput','pwError');
+    ok = false;
+    if (!firstBad) firstBad = $('pwInput');
+  }
+
+  if (firstBad) firstBad.focus();
+  return ok;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTH ACTIONS
+   ═══════════════════════════════════════════════════════════════ */
+function goToRedirect(){
+  var dest = redirectUrl || 'index.html';
+  window.location.href = dest;
+}
+
+function submitForm(e){
+  e.preventDefault();
+  if (!validate()) return;
+
+  if (!firebaseReady){
+    toast('Firebase not configured yet. Add your config.', 'error', 5000);
+    return;
+  }
+
+  var btn = $('submitBtn');
+  var orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Please wait…';
+
+  var email = $('emailInput').value.trim();
+  var pw = $('pwInput').value;
+  var name = ($('nameInput').value || '').trim();
+
+  if (mode === 'signup'){
+    auth.createUserWithEmailAndPassword(email, pw)
+      .then(function(cred){
+        if (db && name){
+          return db.collection('users').doc(cred.user.uid).set({
+            email: email,
+            displayName: name,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        }
+      })
+      .then(function(){
+        toast('Account created! Welcome to Starlane.', 'success', 3500);
+        setTimeout(goToRedirect, 800);
+      })
+      .catch(function(err){
+        console.error('[signup]', err);
+        toast(err.message || 'Sign up failed.', 'error', 5000);
+        btn.disabled = false;
+        btn.innerHTML = orig;
+        refreshIcons();
+      });
+  } else {
+    auth.signInWithEmailAndPassword(email, pw)
+      .then(function(){
+        toast('Signed in. Welcome back!', 'success', 2500);
+        setTimeout(goToRedirect, 700);
+      })
+      .catch(function(err){
+        console.error('[signin]', err);
+        var msg = err.message || 'Sign in failed.';
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'){
+          msg = 'Email or password is incorrect.';
+        }
+        toast(msg, 'error', 5000);
+        btn.disabled = false;
+        btn.innerHTML = orig;
+        refreshIcons();
+      });
+  }
+}
+
+function googleSignin(){
+  if (!firebaseReady){
+    toast('Firebase not configured yet.', 'error', 5000);
+    return;
+  }
+  var btn = $('googleBtn');
+  var orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Please wait…';
+
+  var provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+
+  auth.signInWithPopup(provider)
+    .then(function(cred){
+      if (db){
+        return db.collection('users').doc(cred.user.uid).set({
+          email: cred.user.email || '',
+          displayName: cred.user.displayName || '',
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      }
+    })
+    .then(function(){
+      toast('Signed in with Google!', 'success', 2500);
+      setTimeout(goToRedirect, 700);
+    })
+    .catch(function(err){
+      console.error('[google]', err);
+      if (err.code !== 'auth/popup-closed-by-user'){
+        toast(err.message || 'Google sign-in failed.', 'error', 5000);
+      }
+      btn.disabled = false;
+      btn.innerHTML = orig;
+      refreshIcons();
+    });
+}
+
+function forgotPassword(){
+  var email = ($('emailInput').value || '').trim();
+  if (!email || email.indexOf('@') === -1){
+    toast('Enter your email first, then tap Forgot password.', 'error', 4000);
+    $('emailInput').focus();
+    return;
+  }
+  if (!firebaseReady){
+    toast('Firebase not configured yet.', 'error', 5000);
+    return;
+  }
+  auth.sendPasswordResetEmail(email)
+    .then(function(){
+      toast('Reset link sent to ' + email, 'success', 5000);
+    })
+    .catch(function(err){
+      console.error('[forgot]', err);
+      toast(err.message || 'Could not send reset link.', 'error', 5000);
+    });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function(){
+  refreshIcons();
+
+  redirectUrl = getParam('redirect') || null;
+  selectedPlan = getParam('plan') || null;
+
+  // FIXED: var initialTab was on its own line
+  var initialTab = getParam('tab') || (selectedPlan ? 'signup' : 'signin');
+  setMode(initialTab === 'signup' ? 'signup' : 'signin');
+
+  $('tabSignin').addEventListener('click', function(){ setMode('signin'); });
+  $('tabSignup').addEventListener('click', function(){ setMode('signup'); });
+
+  var pwToggle = $('pwToggle');
+  pwToggle.addEventListener('click', function(){
+    var inp = $('pwInput');
+    var isHidden = inp.type === 'password';
+    inp.type = isHidden ? 'text' : 'password';
+    pwToggle.innerHTML = '<i data-lucide="' + (isHidden ? 'eye-off' : 'eye') + '"></i>';
+    refreshIcons();
+  });
+
+  $('authForm').addEventListener('submit', submitForm);
+  $('googleBtn').addEventListener('click', googleSignin);
+  $('forgotBtn').addEventListener('click', forgotPassword);
+
+  ['nameInput','emailInput','pwInput'].forEach(function(id, i){
+    var errId = ['nameError','emailError','pwError'][i];
+    var el = $(id);
+    if (el) el.addEventListener('input', function(){ clearError(id, errId); });
+  });
+
+  if (firebaseReady && auth){
+    auth.onAuthStateChanged(function(user){
+      if (user && !redirectUrl){
+        window.location.href = 'index.html';
+      }
+    });
+  }
+});
+
+})();
+</script>
+
+</body>
+</html>initialTab === 'signup' ? 'signup' : 'signin');
+
+  // Tab clicks
+  $('tabSignin').addEventListener('click', function(){ setMode('signin'); });
+  $('tabSignup').addEventListener('click', function(){ setMode('signup'); });
+
+  // Password visibility toggle
+  var pwToggle = $('pwToggle');
+  pwToggle.addEventListener('click', function(){
+    var inp = $('pwInput');
+    var isHidden = inp.type === 'password';
+    inp.type = isHidden ? 'text' : 'password';
+    pwToggle.innerHTML = '<i data-lucide="' + (isHidden ? 'eye-off' : 'eye') + '"></i>';
+    refreshIcons();
+  });
+
+  // Form submit
+  $('authForm').addEventListener('submit', submitForm);
+
+  // Google sign-in
+  $('googleBtn').addEventListener('click', googleSignin);
+
+  // Forgot password
+  $('forgotBtn').addEventListener('click', forgotPassword);
+
+  // Clear errors on input
+  ['nameInput','emailInput','pwInput'].forEach(function(id, i){
+    var errId = ['nameError','emailError','pwError'][i];
+    var el = $(id);
+    if (el) el.addEventListener('input', function(){ clearError(id, errId); });
+  });
+
+  // If already signed in, redirect immediately
+  if (firebaseReady && auth){
+    auth.onAuthStateChanged(function(user){
+      if (user && !redirectUrl){
+        // Already signed in, go home
+        window.location.href = 'index.html';
+      }
+    });
+  }
+});
+
+})();
+</script>
+
+</body>
+</html>

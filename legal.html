@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#050508" />
+<meta name="description" content="Starlane Stream terms, privacy, and POPIA notice." />
+<meta name="robots" content="index, follow" />
+<title>Legal · Starlane Stream</title>
+
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+
+<style>
+:root{
+  --red:#E50914;--red-hover:#FF3B4E;--red-dark:#B20710;
+  --red-soft:rgba(229,9,20,.12);
+  --red-border:rgba(229,9,20,.25);
+
+  --bg:#050508;--bg-2:#0A0A0F;
+  --surface:rgba(20,20,28,.75);
+  --surface-2:rgba(30,30,40,.6);
+  --border:rgba(255,255,255,.08);
+  --border-2:rgba(255,255,255,.14);
+
+  --text:#FFFFFF;
+  --text-2:rgba(255,255,255,.75);
+  --text-3:rgba(255,255,255,.5);
+  --text-muted:rgba(255,255,255,.35);
+
+  --green:#10B981;
+
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:22px;--r-full:999px;
+  --ease:cubic-bezier(.25,.8,.25,1);
+  --ease-out:cubic-bezier(.22,.9,.3,1);
+  --container:900px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font);font-size:14px;line-height:1.7;
+  color:var(--text);background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;flex-direction:column;
+  overflow-x:hidden;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{line-height:1.2;font-weight:900;letter-spacing:-.02em;color:#fff}
+::selection{background:var(--red);color:#fff}
+.hidden{display:none!important}
+
+.container{max-width:var(--container);margin:0 auto;padding:0 24px;width:100%}
+@media (max-width:560px){.container{padding:0 16px}}
+
+/* Starfield */
+.starfield{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(229,9,20,.05) 0%, transparent 55%),
+    linear-gradient(180deg, #050508 0%, #0A0A14 100%);
+}
+.starfield::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.6), transparent 100%),
+    radial-gradient(1px 1px at 87% 32%, rgba(255,255,255,.4), transparent 100%),
+    radial-gradient(1.5px 1.5px at 34% 78%, rgba(255,255,255,.5), transparent 100%),
+    radial-gradient(1px 1px at 67% 12%, rgba(255,255,255,.35), transparent 100%),
+    radial-gradient(1.5px 1.5px at 92% 82%, rgba(255,255,255,.55), transparent 100%),
+    radial-gradient(1px 1px at 8% 62%, rgba(255,255,255,.4), transparent 100%);
+  animation:twinkle 8s ease-in-out infinite;
+}
+@keyframes twinkle{0%,100%{opacity:.85}50%{opacity:.4}}
+
+/* Nav */
+.nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(5,5,8,.85);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:var(--container);margin:0 auto;
+  padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+}
+.nav-brand{display:inline-flex;align-items:center;gap:11px;flex-shrink:0}
+.nav-brand svg{width:28px;height:34px;display:block}
+.nav-brand b{font-weight:900;font-size:17px;letter-spacing:-.01em;color:#fff}
+.nav-brand b span{color:var(--red)}
+.nav-back{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 14px;border-radius:var(--r-full);
+  font-size:13px;font-weight:800;
+  color:var(--text-2);
+  border:1px solid var(--border-2);
+  transition:all .2s var(--ease);
+}
+.nav-back:hover{color:#fff;border-color:var(--red);background:var(--red-soft)}
+.nav-back svg{width:15px;height:15px}
+@media (max-width:560px){
+  .nav-inner{padding:12px 16px}
+  .nav-brand b{font-size:15px}
+  .nav-brand svg{width:24px;height:30px}
+  .nav-back .lbl{display:none}
+}
+
+/* Main */
+main{flex:1;padding:48px 0 80px}
+@media (max-width:640px){main{padding:32px 0 56px}}
+
+/* Page header */
+.page-head{margin-bottom:36px}
+.page-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 14px;
+  background:rgba(229,9,20,.1);
+  border:1px solid var(--red-border);
+  border-radius:var(--r-full);
+  font-size:11px;font-weight:900;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--red);
+  margin-bottom:18px;
+}
+.page-tag svg{width:13px;height:13px}
+.page-head h1{
+  font-size:clamp(1.8rem,4vw,2.6rem);
+  margin-bottom:12px;
+  letter-spacing:-.03em;
+}
+.page-head p{
+  font-size:15px;
+  color:var(--text-2);
+  max-width:640px;
+  line-height:1.6;
+}
+.page-head .meta{
+  margin-top:16px;
+  display:flex;gap:18px;flex-wrap:wrap;
+  font-size:12.5px;
+  color:var(--text-3);
+  font-weight:600;
+}
+.page-head .meta strong{color:#fff;font-weight:800}
+
+/* Tabs */
+.tabs{
+  display:flex;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:4px;
+  gap:2px;
+  margin-bottom:28px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{
+  flex:1;
+  min-width:120px;
+  padding:11px 18px;
+  border-radius:var(--r-sm);
+  font-size:13.5px;font-weight:800;
+  color:var(--text-3);
+  transition:all .22s var(--ease);
+  font-family:inherit;
+  white-space:nowrap;
+}
+.tabs button.active{
+  background:var(--red);
+  color:#fff;
+  box-shadow:0 4px 12px rgba(229,9,20,.35);
+}
+.tabs button:hover:not(.active){color:#fff}
+
+/* Legal card */
+.legal-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  padding:44px 40px;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  box-shadow:0 32px 80px rgba(0,0,0,.5);
+  position:relative;
+  overflow:hidden;
+}
+.legal-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg, transparent, var(--red), transparent);
+}
+@media (max-width:640px){
+  .legal-card{padding:28px 22px;border-radius:var(--r-lg)}
+}
+
+.legal-section{display:none}
+.legal-section.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.legal-head{
+  margin-bottom:32px;
+  padding-bottom:22px;
+  border-bottom:1px solid var(--border);
+}
+.legal-head h2{
+  font-size:clamp(1.5rem,3vw,2rem);
+  margin-bottom:8px;
+}
+.legal-head p{
+  color:var(--text-3);
+  font-size:13.5px;
+  font-weight:500;
+}
+
+.legal-card h3{
+  font-size:1.15rem;
+  margin:32px 0 12px;
+  padding-top:20px;
+  border-top:1px dashed var(--border);
+  color:#fff;
+}
+.legal-card h3:first-of-type{border-top:none;padding-top:0;margin-top:8px}
+
+.legal-card h4{
+  font-size:1rem;
+  margin:20px 0 8px;
+  color:var(--text-2);
+  font-weight:800;
+  letter-spacing:-.01em;
+}
+
+.legal-card p{
+  font-size:14.5px;
+  color:var(--text-2);
+  margin-bottom:14px;
+  line-height:1.7;
+}
+.legal-card strong{color:#fff;font-weight:800}
+.legal-card em{color:var(--text-3);font-style:italic}
+
+.legal-card ul,.legal-card ol{
+  margin:12px 0 18px 22px;
+  color:var(--text-2);
+  font-size:14.5px;
+}
+.legal-card li{
+  margin-bottom:8px;
+  line-height:1.65;
+}
+.legal-card li::marker{color:var(--red)}
+
+.legal-card code{
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:1px 6px;
+  font-family:var(--mono);
+  font-size:13px;
+  color:var(--red);
+}
+
+.legal-card a{
+  color:var(--red);
+  font-weight:800;
+  transition:color .2s;
+}
+.legal-card a:hover{color:var(--red-hover);text-decoration:underline}
+
+.callout{
+  background:var(--red-soft);
+  border:1px solid var(--red-border);
+  border-radius:var(--r-md);
+  padding:16px 18px;
+  margin:20px 0;
+  font-size:13.5px;
+  color:var(--text-2);
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  line-height:1.65;
+}
+.callout svg{
+  width:18px;height:18px;
+  color:var(--red);
+  flex-shrink:0;
+  margin-top:2px;
+}
+
+.notice-box{
+  background:rgba(245,158,11,.1);
+  border:1px solid rgba(245,158,11,.3);
+  color:#FCD34D;
+  border-radius:var(--r-md);
+  padding:16px 18px;
+  margin:20px 0;
+  font-size:13.5px;
+  line-height:1.65;
+}
+.notice-box strong{color:#FEF3C7}
+
+/* Footer */
+.footer{
+  background:#020204;
+  border-top:1px solid var(--border);
+  padding:32px 0 24px;
+  margin-top:auto;
+}
+.footer-inner{
+  max-width:var(--container);margin:0 auto;padding:0 24px;
+  display:flex;justify-content:space-between;
+  align-items:center;flex-wrap:wrap;gap:14px;
+  font-size:12.5px;color:var(--text-muted);
+}
+.footer-links{display:flex;gap:18px;flex-wrap:wrap}
+.footer-links a{color:var(--text-3);transition:color .2s}
+.footer-links a:hover{color:var(--red)}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    transition-duration:.01ms!important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="starfield" aria-hidden="true"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     NAV
+     ═══════════════════════════════════════════════════════════════ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand" aria-label="Starlane Stream home">
+      <svg viewBox="0 0 60 74" aria-hidden="true">
+        <defs>
+          <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#E50914"/>
+            <stop offset="100%" stop-color="#FF5566"/>
+          </linearGradient>
+        </defs>
+        <path d="M10 60 Q 22 32 44 20" stroke="url(#starGrad)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+        <path d="M16 62 Q 26 40 46 26" stroke="url(#starGrad)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+        <circle cx="46" cy="18" r="5" fill="#fff"/>
+        <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
+      </svg>
+      <b>STAR<span>LANE</span></b>
+    </a>
+    <a href="index.html" class="nav-back">
+      <i data-lucide="arrow-left"></i>
+      <span class="lbl">Back to home</span>
+    </a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MAIN
+     ═══════════════════════════════════════════════════════════════ -->
+<main>
+  <div class="container">
+
+    <div class="page-head">
+      <span class="page-tag">
+        <i data-lucide="file-text"></i>
+        Legal
+      </span>
+      <h1>Legal & privacy.</h1>
+      <p>Everything you need to know about using Starlane Stream, your privacy rights, and how we protect your data.</p>
+      <div class="meta">
+        <span><strong>Effective:</strong> 20 October 2026</span>
+        <span><strong>Version:</strong> 1.0</span>
+        <span><strong>Jurisdiction:</strong> South Africa</span>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button type="button" class="active" data-tab="terms">Terms of Service</button>
+      <button type="button" data-tab="privacy">Privacy Policy</button>
+      <button type="button" data-tab="popia">POPIA Notice</button>
+    </div>
+
+    <!-- Card -->
+    <div class="legal-card">
+
+      <!-- ═══════════════ TERMS ═══════════════ -->
+      <section class="legal-section active" id="tab-terms">
+        <div class="legal-head">
+          <h2>Terms of Service</h2>
+          <p>These Terms govern your use of Starlane Stream and your subscription.</p>
+        </div>
+
+        <h3>1. Who we are</h3>
+        <p>Starlane Stream ("we", "us", "our") is operated by <strong>Starlane Stream Pty Ltd</strong>, registered in the Republic of South Africa.</p>
+        <p>Starlane Stream is a subscription streaming platform offering live TV, movies, sports, and on-demand content. You can browse our catalogue for free and upgrade to a paid plan at any time.</p>
+
+        <h3>2. Your account</h3>
+        <p>You may create an account using Google sign-in or an email and password. You agree to:</p>
+        <ul>
+          <li>Provide accurate, current, and complete information when registering.</li>
+          <li>Keep your login credentials secure and confidential.</li>
+          <li>Accept responsibility for all activity that occurs under your account.</li>
+          <li>Notify us immediately at <a href="mailto:support@starlanestream.com">support@starlanestream.com</a> if you suspect unauthorised access.</li>
+        </ul>
+        <p>You must be at least 18 years old to subscribe to a paid plan. Free viewers under 18 may use the platform with parental supervision.</p>
+
+        <h3>3. Subscription plans and billing</h3>
+        <p>Starlane Stream offers the following plans:</p>
+        <ul>
+          <li><strong>Free</strong> — R0/month, ad-supported, 480p, 1 device.</li>
+          <li><strong>Starter</strong> — R90/month, no ads, 720p, 1 device.</li>
+          <li><strong>Standard</strong> — R180/month, no ads, 1080p, 2 devices.</li>
+          <li><strong>Premium</strong> — R300/month, no ads, 4K, 3 devices.</li>
+          <li><strong>Elite</strong> — R490/month, no ads, 4K, 4 devices, family profiles.</li>
+        </ul>
+
+        <h4>Billing</h4>
+        <ul>
+          <li>Paid subscriptions are billed <strong>monthly in advance</strong> unless you choose annual billing.</li>
+          <li>Payment is processed via <strong>Yoco</strong> — a PCI-DSS-compliant South African payment provider.</li>
+          <li>Your subscription <strong>renews automatically</strong> at the end of each billing period unless you cancel beforehand.</li>
+          <li>We do not store your full card details. Payment information is handled entirely by Yoco.</li>
+        </ul>
+
+        <h4>Cancellation</h4>
+        <ul>
+          <li>You may cancel at any time from your account page.</li>
+          <li>Cancellation takes effect at the <strong>end of your current billing period</strong>. You keep access until then.</li>
+          <li>We do not offer partial refunds for unused time.</li>
+        </ul>
+
+        <h3>4. Free tier and ads</h3>
+        <p>The Free plan is ad-supported. Ads may play before, during, or after streams. You cannot skip ads on the Free plan.</p>
+        <p>Upgrading to any paid plan removes all ads immediately.</p>
+
+        <h3>5. Device limits</h3>
+        <p>Each plan includes a maximum number of <strong>simultaneous devices</strong> that can stream at the same time:</p>
+        <ul>
+          <li>Free / Starter: <strong>1 device</strong></li>
+          <li>Standard: <strong>2 devices</strong></li>
+          <li>Premium: <strong>3 devices</strong></li>
+          <li>Elite: <strong>4 devices</strong></li>
+        </ul>
+        <p>You may sign in on as many devices as you like — but only the specified number can <em>stream at once</em>. If you exceed the limit, the newest device will be blocked until another stops.</p>
+        <p>Account sharing with people outside your household is not permitted. We may suspend accounts that repeatedly exceed reasonable use.</p>
+
+        <h3>6. Content and intellectual property</h3>
+        <p>All content on Starlane Stream — including videos, graphics, logos, and interface — is owned by Starlane Stream or its licensors and is protected by copyright law.</p>
+        <p>You may not:</p>
+        <ul>
+          <li>Download, record, or redistribute any content without written permission.</li>
+          <li>Bypass any geographic, subscription, or access control.</li>
+          <li>Use automation (bots, scrapers) against the platform.</li>
+          <li>Attempt to reverse-engineer, decompile, or hack the service.</li>
+        </ul>
+
+        <div class="callout">
+          <i data-lucide="info"></i>
+          <span>Streams played on paid plans are watermarked with your account email. This deters piracy and lets us trace leaked content back to the source.</span>
+        </div>
+
+        <h3>7. Refunds</h3>
+        <p>If the service is broken and we cannot fix it within a reasonable time, we will refund you <strong>within 7 days of your payment</strong>.</p>
+        <p>Refunds are not issued for:</p>
+        <ul>
+          <li>Change of mind after subscribing.</li>
+          <li>Failure to use the service during your subscription period.</li>
+          <li>Device compatibility issues listed on our supported devices page.</li>
+          <li>Content you expected but which is not available on the platform.</li>
+        </ul>
+        <p>Contact <a href="mailto:support@starlanestream.com">support@starlanestream.com</a> to request a refund.</p>
+
+        <h3>8. Service availability</h3>
+        <p>We aim for 99% uptime but do not guarantee uninterrupted service. Scheduled maintenance, third-party outages, and content licensing changes may interrupt streams.</p>
+
+        <h3>9. Limitation of liability</h3>
+        <p>To the maximum extent permitted by law, Starlane Stream is not liable for:</p>
+        <ul>
+          <li>Indirect, incidental, or consequential damages.</li>
+          <li>Loss of data, revenue, or business opportunity.</li>
+          <li>Interruption of service caused by events outside our control.</li>
+        </ul>
+        <p>Where liability cannot be excluded, our total liability is limited to the amount you paid us in the 3 months preceding the claim.</p>
+
+        <h3>10. Termination</h3>
+        <p>We may suspend or terminate your account if you breach these Terms, if we are legally required to, or if we reasonably believe your use creates risk. You may delete your account at any time.</p>
+
+        <h3>11. Governing law</h3>
+        <p>These Terms are governed by the laws of the Republic of South Africa. Disputes fall under the exclusive jurisdiction of the courts of South Africa.</p>
+
+        <h3>12. Changes to these Terms</h3>
+        <p>We may update these Terms from time to time. Material changes will be published on this page with a new effective date and, where appropriate, notified by email.</p>
+
+        <h3>13. Contact</h3>
+        <ul>
+          <li><strong>Starlane Stream Pty Ltd</strong></li>
+          <li>Email: <a href="mailto:support@starlanestream.com">support@starlanestream.com</a></li>
+          <li>Johannesburg, South Africa</li>
+        </ul>
+      </section>
+
+      <!-- ═══════════════ PRIVACY ═══════════════ -->
+      <section class="legal-section" id="tab-privacy">
+        <div class="legal-head">
+          <h2>Privacy Policy</h2>
+          <p>How Starlane Stream collects, uses, and protects your personal information.</p>
+        </div>
+
+        <h3>1. Who we are</h3>
+        <p>Starlane Stream Pty Ltd is the <strong>Responsible Party</strong> for personal information collected through the Platform, as defined by the Protection of Personal Information Act 4 of 2013 ("POPIA").</p>
+
+        <h3>2. What we collect</h3>
+        <p>We collect the following categories of personal information:</p>
+        <ul>
+          <li><strong>Account info</strong> — name, email address, password (encrypted), profile photo (if Google sign-in).</li>
+          <li><strong>Subscription info</strong> — plan tier, start date, expiry, payment reference.</li>
+          <li><strong>Payment info</strong> — payment reference, amount, timestamp. <em>We never store full card numbers.</em></li>
+          <li><strong>Device data</strong> — device ID, browser type, IP address (hashed) for concurrent-stream tracking.</li>
+          <li><strong>Watch history</strong> — which channels and streams you've watched, timestamps.</li>
+          <li><strong>Communications</strong> — support emails and messages you send us.</li>
+        </ul>
+
+        <h3>3. How we use your information</h3>
+        <ul>
+          <li>Create and manage your account.</li>
+          <li>Process subscription payments and manage billing.</li>
+          <li>Enforce device limits and prevent account sharing.</li>
+          <li>Send transaction emails (payment confirmations, plan changes).</li>
+          <li>Detect and prevent fraud, abuse, and piracy.</li>
+          <li>Comply with legal obligations.</li>
+          <li>Improve the service using aggregated, de-identified analytics.</li>
+        </ul>
+        <p>We <strong>do not sell</strong> your personal information to third parties.</p>
+
+        <h3>4. Lawful basis (POPIA)</h3>
+        <ul>
+          <li><strong>Consent</strong> — where you have given us clear permission.</li>
+          <li><strong>Contract</strong> — to perform the subscription agreement you entered into.</li>
+          <li><strong>Legal obligation</strong> — to comply with tax, consumer protection, and other laws.</li>
+          <li><strong>Legitimate interest</strong> — to prevent fraud and secure the platform.</li>
+        </ul>
+
+        <h3>5. Who we share information with</h3>
+        <ul>
+          <li><strong>Firebase (Google LLC)</strong> — authentication and database hosting. Located in the United States.</li>
+          <li><strong>Yoco</strong> — payment processing. Located in South Africa.</li>
+          <li><strong>EmailJS</strong> — transactional email delivery. Located in the United States.</li>
+          <li><strong>Render</strong> — static site hosting. Located in the United States.</li>
+          <li><strong>Law enforcement</strong> — where required by law or court order.</li>
+        </ul>
+
+        <h3>6. How long we keep it</h3>
+        <ul>
+          <li><strong>Account data</strong> — while your account is active, plus 30 days after deletion.</li>
+          <li><strong>Subscription records</strong> — 5 years (tax/financial law).</li>
+          <li><strong>Watch history</strong> — 24 months.</li>
+          <li><strong>Support messages</strong> — 24 months.</li>
+          <li><strong>Technical logs</strong> — 90 days.</li>
+        </ul>
+
+        <h3>7. Security</h3>
+        <p>We take reasonable technical and organisational measures to protect your data, including:</p>
+        <ul>
+          <li>Encryption in transit (HTTPS/TLS) on all connections.</li>
+          <li>Password hashing and secure authentication via Firebase.</li>
+          <li>Firestore security rules restricting access by role.</li>
+          <li>Payment data handled entirely by Yoco (PCI-DSS compliant).</li>
+        </ul>
+        <p>If we become aware of a data breach that poses a risk to your rights, we will notify you and the Information Regulator as required by Section 22 of POPIA.</p>
+
+        <h3>8. Cross-border transfers</h3>
+        <p>Because we use Firebase and EmailJS (both located in the US), some of your information is transferred outside South Africa. Section 72 of POPIA allows such transfers where the recipient provides adequate protection. We rely on Google's and EmailJS's standard contractual clauses.</p>
+
+        <h3>9. Cookies and local storage</h3>
+        <ul>
+          <li><strong>Essential cookies</strong> — required to keep you signed in (Firebase Authentication).</li>
+          <li><strong>Local storage</strong> — device ID for concurrent-stream tracking. Stays on your device.</li>
+        </ul>
+        <p>We do not use advertising or third-party tracking cookies.</p>
+
+        <h3>10. Your rights</h3>
+        <p>Under POPIA you have the right to:</p>
+        <ul>
+          <li>Access the personal information we hold about you.</li>
+          <li>Correct inaccurate or outdated information.</li>
+          <li>Request deletion (subject to legal retention obligations).</li>
+          <li>Object to processing on reasonable grounds.</li>
+          <li>Withdraw consent at any time.</li>
+          <li>Lodge a complaint with the Information Regulator of South Africa.</li>
+        </ul>
+        <p>See our <a href="#popia">POPIA Notice</a> for how to exercise these rights.</p>
+
+        <h3>11. Children</h3>
+        <p>You must be at least 18 to create a paid subscription. Free viewers under 18 may use the platform with parental supervision. We do not knowingly collect information from children.</p>
+
+        <h3>12. Changes to this policy</h3>
+        <p>We may update this Privacy Policy from time to time. Material changes will be published on this page with a new effective date.</p>
+
+        <h3>13. Contact</h3>
+        <ul>
+          <li><strong>Information Officer:</strong> [Name TBA]</li>
+          <li><strong>Email:</strong> <a href="mailto:privacy@starlanestream.com">privacy@starlanestream.com</a></li>
+          <li><strong>Address:</strong> Johannesburg, South Africa</li>
+        </ul>
+      </section>
+
+      <!-- ═══════════════ POPIA ═══════════════ -->
+      <section class="legal-section" id="tab-popia">
+        <div class="legal-head">
+          <h2>POPIA Notice</h2>
+          <p>Your rights under the Protection of Personal Information Act 4 of 2013.</p>
+        </div>
+
+        <div class="callout">
+          <i data-lucide="info"></i>
+          <span>This notice summarises your rights under POPIA in plain language. For full detail of what we collect and why, read our <a href="#privacy">Privacy Policy</a>.</span>
+        </div>
+
+        <h3>1. Who is the Responsible Party</h3>
+        <p><strong>Starlane Stream Pty Ltd</strong><br />
+        Johannesburg, South Africa.</p>
+        <p>We are the Responsible Party for the personal information you provide when using Starlane Stream. This means we decide why and how your information is processed, and we are accountable for protecting it.</p>
+
+        <h3>2. What personal information we process</h3>
+        <ul>
+          <li><strong>Identity & contact:</strong> name, email address.</li>
+          <li><strong>Subscription:</strong> plan tier, start date, expiry, payment reference.</li>
+          <li><strong>Technical:</strong> device ID, browser, hashed IP address, timestamps.</li>
+          <li><strong>Usage:</strong> channels and streams you've watched.</li>
+        </ul>
+        <p>We do not process special personal information (health, race, religion, political views, trade union membership, sexual orientation, criminal record) as defined in Section 26 of POPIA.</p>
+
+        <h3>3. Why we process it</h3>
+        <ul>
+          <li>To give you an account and let you sign in securely.</li>
+          <li>To bill you correctly and manage your subscription.</li>
+          <li>To enforce device limits and prevent account sharing.</li>
+          <li>To send transactional emails about your account.</li>
+          <li>To process payments and manage refunds.</li>
+          <li>To prevent fraud and secure the platform.</li>
+          <li>To comply with tax and consumer protection laws.</li>
+        </ul>
+
+        <h3>4. Who receives your information</h3>
+        <ul>
+          <li>Firebase (Google LLC) — auth + database</li>
+          <li>Yoco — payment processing</li>
+          <li>EmailJS — transactional email</li>
+          <li>Render — static hosting</li>
+          <li>Law enforcement — where legally required</li>
+        </ul>
+
+        <h3>5. Cross-border transfers</h3>
+        <p>Firebase and EmailJS operate in the United States. Section 72 of POPIA permits such transfers where the recipient is subject to adequate protection laws. We rely on standard contractual clauses provided by these providers.</p>
+
+        <h3>6. How long we keep it</h3>
+        <ul>
+          <li>Account data: while active + 30 days.</li>
+          <li>Subscription records: 5 years (tax).</li>
+          <li>Watch history: 24 months.</li>
+          <li>Technical logs: 90 days.</li>
+        </ul>
+
+        <h3>7. Your rights under POPIA</h3>
+        <ul>
+          <li><strong>Right to access</strong> (Section 23) — request a copy of the personal information we hold.</li>
+          <li><strong>Right to correction</strong> (Section 24) — ask us to correct or delete inaccurate information.</li>
+          <li><strong>Right to deletion</strong> — request deletion, subject to legal retention obligations.</li>
+          <li><strong>Right to object</strong> (Section 11(3)) — object to processing on reasonable grounds.</li>
+          <li><strong>Right to withdraw consent</strong> — where processing is based on consent.</li>
+          <li><strong>Right to lodge a complaint</strong> — with the Information Regulator.</li>
+        </ul>
+
+        <h4>How to exercise these rights</h4>
+        <p>Email <a href="mailto:privacy@starlanestream.com">privacy@starlanestream.com</a> with:</p>
+        <ul>
+          <li>Your full name and the email address on your account.</li>
+          <li>What right you want to exercise.</li>
+          <li>Any supporting detail.</li>
+        </ul>
+        <p>We will respond within <strong>30 days</strong>, as required by POPIA. There is no fee for reasonable requests.</p>
+
+        <h3>8. Security safeguards</h3>
+        <ul>
+          <li>Encryption in transit (HTTPS/TLS).</li>
+          <li>Password hashing and secure authentication.</li>
+          <li>Role-based access on our database.</li>
+          <li>Payment card details handled only by Yoco (PCI-DSS compliant).</li>
+        </ul>
+
+        <h3>9. Data breaches</h3>
+        <p>If we become aware of a security compromise that poses a risk to your personal information, we will notify both you and the Information Regulator as soon as reasonably possible, as required by Section 22 of POPIA.</p>
+
+        <h3>10. Information Officer</h3>
+        <p>The person responsible for POPIA compliance at Starlane Stream is:</p>
+        <ul>
+          <li><strong>Name:</strong> [Information Officer Name TBA]</li>
+          <li><strong>Email:</strong> <a href="mailto:privacy@starlanestream.com">privacy@starlanestream.com</a></li>
+          <li><strong>Address:</strong> Johannesburg, South Africa</li>
+        </ul>
+
+        <h3>11. The Information Regulator</h3>
+        <p>If you are not satisfied with how we handled your personal information, you have the right to complain to the Information Regulator of South Africa:</p>
+        <ul>
+          <li><strong>Body:</strong> Information Regulator of South Africa</li>
+          <li><strong>Address:</strong> JD House, 27 Stiemens Street, Braamfontein, Johannesburg, 2001</li>
+          <li><strong>Email:</strong> <a href="mailto:complaints.IR@justice.gov.za">complaints.IR@justice.gov.za</a></li>
+          <li><strong>Phone:</strong> 010 023 5200</li>
+          <li><strong>Website:</strong> <a href="https://inforegulator.org.za" target="_blank" rel="noopener">inforegulator.org.za</a></li>
+        </ul>
+
+        <h3>12. Changes to this notice</h3>
+        <p>We may update this POPIA notice from time to time. The current version will always be available on this page with its effective date.</p>
+
+        <div class="notice-box">
+          <strong>This document is not legal advice.</strong> It's a starting point drafted for a South African streaming platform. Before taking real money, have it reviewed by a South African attorney familiar with consumer protection and POPIA.
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <span>© <span id="year"></span> Starlane Stream. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="streams.html">Channels</a>
+      <a href="plans.html">Plans</a>
+      <a href="legal.html">Legal</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+'use strict';
+
+function $(id){ return document.getElementById(id); }
+function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
+
+document.addEventListener('DOMContentLoaded', function(){
+  var yearEl = $('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+  refreshIcons();
+
+  // Tabs
+  var tabs = document.querySelectorAll('.tabs button');
+  var sections = document.querySelectorAll('.legal-section');
+
+  function activateTab(name){
+    tabs.forEach(function(t){
+      t.classList.toggle('active', t.dataset.tab === name);
+    });
+    sections.forEach(function(s){
+      s.classList.toggle('active', s.id === 'tab-' + name);
+    });
+    // Update URL hash without jump
+    if (history.replaceState){
+      history.replaceState(null, '', '#' + name);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  tabs.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      activateTab(btn.dataset.tab);
+    });
+  });
+
+  // Deep-link from URL hash
+  function checkHash(){
+    var hash = (location.hash || '').replace('#', '');
+    if (hash && ['terms','privacy','popia'].indexOf(hash) !== -1){
+      activateTab(hash);
+    }
+  }
+
+  checkHash();
+  window.addEventListener('hashchange', checkHash);
+});
+
+})();
+</script>
+
+</body>
+</html>

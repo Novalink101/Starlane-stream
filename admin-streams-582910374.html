@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#050508" />
+<meta name="robots" content="noindex, nofollow, noarchive" />
+<meta name="referrer" content="no-referrer" />
+<title>Streams · Starlane Admin</title>
+
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<style>
+:root{
+  --red:#E50914;--red-hover:#FF3B4E;--red-dark:#B20710;
+  --red-soft:rgba(229,9,20,.12);
+  --red-border:rgba(229,9,20,.25);
+
+  --bg:#050508;--bg-2:#0A0A0F;
+  --surface:rgba(20,20,28,.75);
+  --surface-2:rgba(30,30,40,.6);
+  --border:rgba(255,255,255,.08);
+  --border-2:rgba(255,255,255,.14);
+
+  --text:#FFFFFF;
+  --text-2:rgba(255,255,255,.75);
+  --text-3:rgba(255,255,255,.5);
+  --text-muted:rgba(255,255,255,.35);
+
+  --green:#10B981;
+  --yellow:#F59E0B;
+  --danger:#EF4444;
+  --purple:#8B5CF6;
+
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:22px;--r-full:999px;
+  --ease:cubic-bezier(.25,.8,.25,1);
+  --ease-out:cubic-bezier(.22,.9,.3,1);
+  --container:1480px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font);font-size:14px;line-height:1.55;
+  color:var(--text);background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;flex-direction:column;
+  overflow-x:hidden;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{line-height:1.15;font-weight:900;letter-spacing:-.02em;color:#fff}
+::selection{background:var(--red);color:#fff}
+.hidden{display:none!important}
+
+.container{max-width:var(--container);margin:0 auto;padding:0 24px;width:100%}
+@media (max-width:560px){.container{padding:0 16px}}
+
+.starfield{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(229,9,20,.05) 0%, transparent 55%),
+    linear-gradient(180deg, #050508 0%, #0A0A14 100%);
+}
+.starfield::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.5), transparent 100%),
+    radial-gradient(1px 1px at 87% 32%, rgba(255,255,255,.35), transparent 100%),
+    radial-gradient(1.5px 1.5px at 34% 78%, rgba(255,255,255,.4), transparent 100%);
+  animation:twinkle 8s ease-in-out infinite;
+}
+@keyframes twinkle{0%,100%{opacity:.85}50%{opacity:.4}}
+
+.nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(5,5,8,.9);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:var(--container);margin:0 auto;
+  padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+}
+.nav-brand{display:inline-flex;align-items:center;gap:11px;flex-shrink:0}
+.nav-brand svg{width:28px;height:34px;display:block}
+.nav-brand b{font-weight:900;font-size:17px;letter-spacing:-.01em;color:#fff}
+.nav-brand b span{color:var(--red)}
+.admin-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 11px;
+  background:var(--red-soft);
+  border:1px solid var(--red-border);
+  color:var(--red);
+  font-size:10px;font-weight:900;
+  letter-spacing:.12em;text-transform:uppercase;
+  border-radius:var(--r-full);
+  margin-left:8px;
+}
+.admin-tag svg{width:11px;height:11px}
+.nav-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+@media (max-width:640px){
+  .nav-inner{padding:12px 16px;gap:10px}
+  .nav-brand b{font-size:15px}
+  .nav-brand svg{width:24px;height:30px}
+  .admin-tag{display:none}
+}
+
+.nav-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 14px;border-radius:var(--r-full);
+  font-size:12.5px;font-weight:800;
+  transition:all .2s var(--ease);
+  white-space:nowrap;text-decoration:none;
+  font-family:inherit;cursor:pointer;
+  border:1px solid transparent;line-height:1;
+}
+.nav-btn svg{width:14px;height:14px;flex-shrink:0}
+.nav-btn.ghost{background:transparent;color:var(--text-2);border-color:var(--border-2)}
+.nav-btn.ghost:hover{color:#fff;border-color:var(--red);background:var(--red-soft)}
+@media (max-width:640px){
+  .nav-btn .lbl{display:none}
+  .nav-btn{padding:9px 11px}
+}
+
+main{flex:1;padding:24px 0 80px}
+@media (max-width:640px){main{padding:16px 0 56px}}
+
+.page-head{margin-bottom:24px}
+.page-head h1{
+  font-size:clamp(1.5rem,3.2vw,2rem);
+  margin-bottom:6px;
+  letter-spacing:-.03em;
+}
+.page-head p{
+  font-size:14px;
+  color:var(--text-3);
+  font-weight:500;
+  max-width:680px;
+}
+
+.split{
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) 480px;
+  gap:24px;
+  align-items:start;
+}
+@media (max-width:1024px){
+  .split{grid-template-columns:1fr;gap:18px}
+}
+.col-left{min-width:0}
+.col-right{
+  position:sticky;
+  top:88px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+@media (max-width:1024px){.col-right{position:static}}
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  padding:22px;
+  backdrop-filter:blur(12px);
+  box-shadow:0 24px 60px rgba(0,0,0,.3);
+}
+@media (max-width:560px){.card{padding:18px}}
+
+.card-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--border);
+}
+.card-title{
+  font-size:12.5px;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--red);
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+}
+.card-title svg{width:15px;height:15px}
+.card-title .count{
+  font-size:11px;
+  font-family:var(--mono);
+  color:var(--text-3);
+  padding:2px 8px;
+  background:rgba(255,255,255,.04);
+  border-radius:var(--r-full);
+  letter-spacing:0;
+}
+
+.form-group{margin-bottom:16px}
+.form-group label{
+  display:block;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--text-3);
+  margin-bottom:8px;
+}
+.form-group label .req{color:var(--red)}
+.form-group input,
+.form-group select,
+.form-group textarea{
+  width:100%;
+  padding:12px 14px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border-2);
+  border-radius:var(--r-md);
+  font-size:14px;
+  color:#fff;
+  transition:all .2s var(--ease);
+  font-family:inherit;
+}
+.form-group input::placeholder,
+.form-group textarea::placeholder{color:var(--text-muted)}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus{
+  outline:none;
+  border-color:var(--red);
+  background:rgba(255,255,255,.06);
+  box-shadow:0 0 0 3px rgba(229,9,20,.15);
+}
+.form-group textarea{
+  resize:vertical;
+  min-height:70px;
+  line-height:1.55;
+}
+.form-group select{
+  appearance:none;
+  -webkit-appearance:none;
+  padding-right:38px;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7787' stroke-width='3'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 14px center;
+  background-size:12px;
+  cursor:pointer;
+}
+.form-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+@media (max-width:520px){.form-row{grid-template-columns:1fr}}
+
+.form-divider{
+  margin:20px 0 16px;
+  padding-top:16px;
+  border-top:1px dashed var(--border);
+  font-size:10.5px;
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--text-muted);
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.form-divider svg{width:13px;height:13px}
+
+.hint{
+  font-size:11.5px;
+  color:var(--text-muted);
+  margin-top:6px;
+  line-height:1.5;
+  font-style:italic;
+}
+
+.tier-picker{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:8px;
+}
+@media (max-width:480px){.tier-picker{grid-template-columns:1fr}}
+
+.tier-opt{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:11px 14px;
+  border:1.5px solid var(--border);
+  background:rgba(255,255,255,.02);
+  border-radius:var(--r-md);
+  cursor:pointer;
+  transition:all .2s var(--ease);
+  font-family:inherit;
+  text-align:left;
+  font-size:13px;
+  color:var(--text-2);
+  font-weight:700;
+}
+.tier-opt:hover{
+  border-color:var(--red-border);
+  background:rgba(229,9,20,.04);
+  color:#fff;
+}
+.tier-opt.active{
+  border-color:var(--red);
+  background:var(--red-soft);
+  color:#fff;
+  box-shadow:0 0 0 3px rgba(229,9,20,.15);
+}
+.tier-opt.inherit{
+  grid-column:1/-1;
+  background:rgba(139,92,246,.06);
+  border-color:rgba(139,92,246,.3);
+}
+.tier-opt.inherit:hover{
+  border-color:var(--purple);
+  background:rgba(139,92,246,.1);
+}
+.tier-opt.inherit.active{
+  border-color:var(--purple);
+  background:rgba(139,92,246,.15);
+  box-shadow:0 0 0 3px rgba(139,92,246,.15);
+}
+.tier-opt .dot{
+  width:14px;height:14px;
+  border-radius:50%;
+  border:2px solid var(--border-2);
+  flex-shrink:0;
+  transition:all .2s var(--ease);
+}
+.tier-opt.active .dot{
+  border-color:var(--red);
+  background:var(--red);
+  box-shadow:inset 0 0 0 2px var(--bg);
+}
+.tier-opt.inherit.active .dot{
+  border-color:var(--purple);
+  background:var(--purple);
+}
+.tier-opt .tier-name{
+  flex:1;
+  min-width:0;
+}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 18px;
+  border-radius:var(--r-md);
+  font-size:13px;font-weight:900;
+  transition:all .22s var(--ease);
+  text-decoration:none;
+  border:1px solid transparent;
+  font-family:inherit;cursor:pointer;
+  line-height:1;min-height:42px;
+  white-space:nowrap;
+}
+.btn svg{width:15px;height:15px;flex-shrink:0}
+.btn.primary{
+  background:linear-gradient(135deg,var(--red),#FF2A3D);
+  color:#fff;
+  box-shadow:0 8px 22px rgba(229,9,20,.4);
+}
+.btn.primary:hover:not(:disabled){
+  transform:translateY(-2px);
+  box-shadow:0 14px 32px rgba(229,9,20,.55);
+}
+.btn.primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn.ghost{
+  background:rgba(255,255,255,.04);
+  color:#fff;
+  border-color:var(--border-2);
+}
+.btn.ghost:hover{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.28);
+}
+.btn.danger{
+  background:rgba(239,68,68,.1);
+  color:var(--danger);
+  border-color:rgba(239,68,68,.35);
+}
+.btn.danger:hover{
+  background:var(--danger);
+  color:#fff;
+  border-color:var(--danger);
+}
+.btn.sm{padding:8px 12px;font-size:12px;min-height:36px}
+.btn.block{width:100%}
+
+.st-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.st-item{
+  display:flex;
+  gap:14px;
+  align-items:center;
+  padding:14px 16px;
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  transition:all .2s var(--ease);
+}
+.st-item:hover{
+  border-color:var(--red-border);
+  background:rgba(229,9,20,.04);
+}
+@media (max-width:560px){.st-item{flex-wrap:wrap}}
+
+.st-thumb{
+  width:80px;
+  aspect-ratio:16/9;
+  border-radius:var(--r-sm);
+  background:linear-gradient(135deg, #0A0A14, #1A0A14);
+  border:1px solid var(--border);
+  flex-shrink:0;
+  background-size:cover;
+  background-position:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-muted);
+}
+.st-thumb svg{width:24px;height:24px;opacity:.5}
+
+.st-info{flex:1;min-width:0}
+.st-title{
+  font-size:14.5px;
+  font-weight:800;
+  color:#fff;
+  margin-bottom:4px;
+  letter-spacing:-.01em;
+  word-break:break-word;
+}
+.st-meta{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  font-size:11.5px;
+  color:var(--text-3);
+  font-weight:600;
+  align-items:center;
+}
+.st-meta .badge{
+  padding:3px 8px;
+  border-radius:var(--r-full);
+  font-size:9.5px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.st-meta .badge.live{
+  background:rgba(16,185,129,.2);
+  color:var(--green);
+  border:1px solid rgba(16,185,129,.4);
+}
+.st-meta .badge.upcoming{
+  background:rgba(245,158,11,.2);
+  color:var(--yellow);
+  border:1px solid rgba(245,158,11,.4);
+}
+.st-meta .badge.ended{
+  background:rgba(107,119,135,.2);
+  color:var(--text-3);
+  border:1px solid rgba(107,119,135,.3);
+}
+.st-meta .badge.free{
+  background:rgba(16,185,129,.15);
+  color:var(--green);
+  border:1px solid rgba(16,185,129,.35);
+}
+.st-meta .badge.paid{
+  background:rgba(229,9,20,.15);
+  color:var(--red);
+  border:1px solid var(--red-border);
+}
+.st-meta .badge.inherit{
+  background:rgba(139,92,246,.15);
+  color:var(--purple);
+  border:1px solid rgba(139,92,246,.35);
+}
+
+.st-actions{
+  display:flex;
+  gap:6px;
+  flex-shrink:0;
+}
+@media (max-width:560px){
+  .st-actions{width:100%;justify-content:flex-end}
+}
+
+.empty-block{
+  text-align:center;
+  padding:48px 24px;
+}
+.empty-block svg{
+  width:44px;height:44px;
+  margin:0 auto 14px;
+  color:var(--text-muted);
+  opacity:.5;
+}
+.empty-block h3{
+  font-size:15px;
+  font-weight:900;
+  color:#fff;
+  margin-bottom:6px;
+}
+.empty-block p{
+  font-size:13px;
+  color:var(--text-3);
+  line-height:1.6;
+  max-width:320px;
+  margin:0 auto;
+}
+
+.access-screen{
+  max-width:520px;
+  margin:80px auto;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  padding:48px 32px;
+  text-align:center;
+  backdrop-filter:blur(12px);
+}
+.access-screen .ico{
+  width:64px;height:64px;
+  border-radius:50%;
+  background:rgba(239,68,68,.1);
+  border:1px solid rgba(239,68,68,.3);
+  color:var(--danger);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;
+}
+.access-screen .ico svg{width:30px;height:30px}
+.access-screen h2{
+  font-size:1.3rem;font-weight:900;
+  color:#fff;
+  margin-bottom:10px;
+}
+.access-screen p{
+  font-size:13.5px;
+  color:var(--text-3);
+  line-height:1.6;
+  margin-bottom:22px;
+}
+
+.spinner{
+  width:16px;height:16px;
+  border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  display:inline-block;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toolbar{
+  display:flex;
+  gap:10px;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+.toolbar input{
+  flex:1;
+  min-width:180px;
+  padding:10px 14px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border-2);
+  border-radius:var(--r-md);
+  font-size:13.5px;
+  color:#fff;
+  font-family:inherit;
+}
+.toolbar input:focus{
+  outline:none;
+  border-color:var(--red);
+  background:rgba(255,255,255,.06);
+  box-shadow:0 0 0 3px rgba(229,9,20,.15);
+}
+.toolbar select{
+  padding:10px 32px 10px 14px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border-2);
+  border-radius:var(--r-md);
+  font-size:13px;
+  color:#fff;
+  font-family:inherit;
+  appearance:none;
+  -webkit-appearance:none;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7787' stroke-width='3'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  background-size:11px;
+  cursor:pointer;
+  min-width:140px;
+}
+.toolbar select:focus{
+  outline:none;
+  border-color:var(--red);
+  box-shadow:0 0 0 3px rgba(229,9,20,.15);
+}
+
+.platform-hint{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 10px;
+  border-radius:var(--r-full);
+  font-size:10.5px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  margin-top:6px;
+}
+.platform-hint.detected{
+  background:rgba(16,185,129,.15);
+  color:var(--green);
+  border:1px solid rgba(16,185,129,.35);
+}
+.platform-hint.unknown{
+  background:rgba(245,158,11,.15);
+  color:var(--yellow);
+  border:1px solid rgba(245,158,11,.35);
+}
+.platform-hint svg{width:11px;height:11px}
+
+.footer{
+  background:#020204;
+  border-top:1px solid var(--border);
+  padding:28px 0 22px;
+  margin-top:auto;
+}
+.footer-inner{
+  max-width:var(--container);margin:0 auto;padding:0 24px;
+  display:flex;justify-content:space-between;
+  align-items:center;flex-wrap:wrap;gap:14px;
+  font-size:12.5px;color:var(--text-muted);
+}
+
+#toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(140%);
+  background:#fff;color:#050508;
+  font-size:13.5px;font-weight:800;
+  padding:13px 22px;border-radius:var(--r-full);
+  box-shadow:0 20px 48px rgba(0,0,0,.6);
+  transition:transform .4s var(--ease-out);
+  z-index:200;max-width:90vw;text-align:center;
+  display:flex;align-items:center;gap:10px;
+  pointer-events:none;
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast svg{width:16px;height:16px;flex-shrink:0}
+#toast.success{background:var(--green);color:#fff}
+#toast.error{background:var(--danger);color:#fff}
+</style>
+</head>
+<body>
+
+<div class="starfield" aria-hidden="true"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <svg viewBox="0 0 60 74" aria-hidden="true">
+        <defs>
+          <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#E50914"/>
+            <stop offset="100%" stop-color="#FF5566"/>
+          </linearGradient>
+        </defs>
+        <path d="M10 60 Q 22 32 44 20" stroke="url(#starGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M16 62 Q 26 40 46 26" stroke="url(#starGrad)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+        <circle cx="46" cy="18" r="5" fill="#fff"/>
+        <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
+      </svg>
+      <b>STAR<span>LANE</span></b>
+      <span class="admin-tag">
+        <i data-lucide="shield-check"></i>
+        Admin
+      </span>
+    </a>
+    <div class="nav-actions">
+      <a href="admin-618472935.html" class="nav-btn ghost">
+        <i data-lucide="layout-dashboard"></i>
+        <span class="lbl">Dashboard</span>
+      </a>
+      <a href="admin-channels-294817365.html" class="nav-btn ghost">
+        <i data-lucide="tv"></i>
+        <span class="lbl">Channels</span>
+      </a>
+      <a href="streams.html" class="nav-btn ghost">
+        <i data-lucide="external-link"></i>
+        <span class="lbl">Public site</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="container">
+
+    <div id="loadingState" style="text-align:center;padding:80px 0;">
+      <div class="spinner" style="width:36px;height:36px;border-width:3px;margin:0 auto 16px;"></div>
+      <p style="color:var(--text-3);font-size:14px;">Loading streams…</p>
+    </div>
+
+    <div id="accessDenied" class="access-screen hidden">
+      <div class="ico"><i data-lucide="shield-x"></i></div>
+      <h2>Admin access only</h2>
+      <p>This page is restricted to Starlane administrators.</p>
+      <a href="index.html" class="btn primary">
+        <i data-lucide="home"></i>
+        Back to home
+      </a>
+    </div>
+
+    <div id="signinRequired" class="access-screen hidden">
+      <div class="ico" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);color:var(--yellow);">
+        <i data-lucide="lock"></i>
+      </div>
+      <h2>Sign in required</h2>
+      <p>Sign in with your admin account to manage streams.</p>
+      <a href="auth.html?redirect=/admin-streams-582910374.html" class="btn primary">
+        <i data-lucide="log-in"></i>
+        Sign in
+      </a>
+    </div>
+
+    <div id="contentState" class="hidden">
+
+      <div class="page-head">
+        <h1>Streams</h1>
+        <p>Create streams and assign them to channels. Override the channel's access tier per stream if needed.</p>
+      </div>
+
+      <div class="split">
+
+        <div class="col-left">
+          <div class="card">
+            <div class="card-head">
+              <h2 class="card-title">
+                <i data-lucide="list"></i>
+                All streams
+                <span class="count" id="stCount">0</span>
+              </h2>
+            </div>
+
+            <div class="toolbar">
+              <input type="text" id="searchInput" placeholder="Search streams…" />
+              <select id="channelFilter">
+                <option value="">All channels</option>
+              </select>
+            </div>
+
+            <div class="st-list" id="stList">
+              <div class="empty-block">
+                <i data-lucide="video-off"></i>
+                <h3>No streams yet</h3>
+                <p>Create your first stream using the form on the right.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-right">
+          <div class="card" id="editorCard">
+            <div class="card-head">
+              <h2 class="card-title">
+                <i data-lucide="plus-circle"></i>
+                <span id="editorTitle">Create stream</span>
+              </h2>
+              <button type="button" class="btn ghost sm hidden" id="cancelEditBtn">
+                <i data-lucide="x"></i>
+                Cancel
+              </button>
+            </div>
+
+            <div class="form-group">
+              <label for="stChannel">Channel <span class="req">*</span></label>
+              <select id="stChannel">
+                <option value="">Choose channel…</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="stTitle">Stream title <span class="req">*</span></label>
+              <input type="text" id="stTitle" placeholder="e.g. Premier League Highlights" maxlength="120" />
+            </div>
+
+            <div class="form-group">
+              <label for="stUrl">Stream URL <span class="req">*</span></label>
+              <input type="url" id="stUrl" placeholder="https://… or .m3u8 or YouTube link" />
+              <div id="platformHint" class="platform-hint unknown hidden">
+                <i data-lucide="help-circle"></i>
+                <span id="platformHintText">Waiting for URL…</span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="stDate">Start date <span class="req">*</span></label>
+                <input type="date" id="stDate" />
+              </div>
+              <div class="form-group">
+                <label for="stTime">Start time <span class="req">*</span></label>
+                <input type="time" id="stTime" value="18:00" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="stDuration">Duration (mins)</label>
+                <input type="number" id="stDuration" min="1" max="1440" value="90" />
+              </div>
+              <div class="form-group">
+                <label for="stActive">Status</label>
+                <select id="stActive">
+                  <option value="true">Active</option>
+                  <option value="false">Hidden</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-divider">
+              <i data-lucide="lock"></i>
+              Access control
+            </div>
+
+            <div class="form-group">
+              <label>Who can watch this stream?</label>
+              <div class="tier-picker" id="tierPicker">
+                <button type="button" class="tier-opt inherit active" data-tier="inherit">
+                  <span class="dot"></span>
+                  <span class="tier-name">Inherit from channel</span>
+                </button>
+                <button type="button" class="tier-opt" data-tier="free">
+                  <span class="dot"></span>
+                  <span class="tier-name">Free — everyone</span>
+                </button>
+                <button type="button" class="tier-opt" data-tier="starter">
+                  <span class="dot"></span>
+                  <span class="tier-name">Starter+</span>
+                </button>
+                <button type="button" class="tier-opt" data-tier="standard">
+                  <span class="dot"></span>
+                  <span class="tier-name">Standard+</span>
+                </button>
+                <button type="button" class="tier-opt" data-tier="premium">
+                  <span class="dot"></span>
+                  <span class="tier-name">Premium+</span>
+                </button>
+                <button type="button" class="tier-opt" data-tier="elite">
+                  <span class="dot"></span>
+                  <span class="tier-name">Elite only</span>
+                </button>
+              </div>
+              <div class="hint">
+                "Inherit from channel" means this stream uses whatever access tier the channel is set to.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="stDesc">Description (optional)</label>
+              <textarea id="stDesc" placeholder="What viewers will see…" maxlength="500"></textarea>
+            </div>
+
+            <button type="button" class="btn primary block" id="saveBtn">
+              <i data-lucide="save"></i>
+              <span id="saveLabel">Create stream</span>
+            </button>
+
+            <div class="hint" style="text-align:center;margin-top:14px;">
+              <span id="editorHint">Ready to create</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span>© <span id="year"></span> Starlane Stream Admin. All rights reserved.</span>
+  </div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════════
+   FIREBASE CONFIG — starlane-stream
+   ═══════════════════════════════════════════════════════════════ */
+var firebaseConfig = {
+  apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+  authDomain: "starlane-stream.firebaseapp.com",
+  projectId: "starlane-stream",
+  storageBucket: "starlane-stream.firebasestorage.app",
+  messagingSenderId: "115625325145",
+  appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+};
+
+var ADMIN_EMAILS = [
+  'nylnathan340@gmail.com',
+  'customerservicesnovalink@gmail.com'
+];
+
+var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
+var db = null;
+var auth = null;
+var currentUser = null;
+
+if (firebaseReady && !firebase.apps.length){
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  auth = firebase.auth();
+}
+
+var allStreams = [];
+var allChannels = [];
+var editingId = null;
+var selectedTier = 'inherit';
+var unsubStreams = null;
+var unsubChannels = null;
+var searchQuery = '';
+var channelFilter = '';
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
+
+function toast(msg, type, ms){
+  type = type || 'info'; ms = ms || 3000;
+  var t = $('toast');
+  var ic = type === 'error' ? 'alert-circle' : (type === 'success' ? 'check-circle' : 'info');
+  t.className = type;
+  t.innerHTML = '<i data-lucide="'+ic+'"></i><span>' + esc(msg) + '</span>';
+  refreshIcons();
+  requestAnimationFrame(function(){ t.classList.add('show'); });
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ t.classList.remove('show'); }, ms);
+}
+
+function isAdmin(user){
+  if (!user || !user.email) return false;
+  var e = String(user.email).toLowerCase().trim();
+  return ADMIN_EMAILS.some(function(a){ return a.toLowerCase() === e; });
+}
+
+function prettyDate(dateStr, timeStr){
+  if (!dateStr) return 'Date TBA';
+  try {
+    var d = new Date(dateStr + 'T' + (timeStr || '00:00'));
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  } catch(e){ return dateStr; }
+}
+
+function today(){
+  var d = new Date();
+  return d.toISOString().slice(0, 10);
+}
+
+function detectPlatform(url){
+  if (!url) return null;
+  var u = String(url).toLowerCase().trim();
+  if (u.indexOf('youtube.com') !== -1 || u.indexOf('youtu.be') !== -1) return 'youtube';
+  if (u.indexOf('twitch.tv') !== -1) return 'twitch';
+  if (u.indexOf('vimeo.com') !== -1) return 'vimeo';
+  if (u.indexOf('facebook.com') !== -1 || u.indexOf('fb.watch') !== -1) return 'facebook';
+  if (u.indexOf('kick.com') !== -1) return 'kick';
+  if (u.indexOf('.m3u8') !== -1) return 'hls';
+  if (u.indexOf('.mpd') !== -1) return 'dash';
+  if (/\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(u)) return 'video';
+  return 'custom';
+}
+
+function platformLabel(p){
+  return {
+    youtube: 'YouTube',
+    twitch: 'Twitch',
+    vimeo: 'Vimeo',
+    facebook: 'Facebook',
+    kick: 'Kick',
+    hls: 'HLS Stream (.m3u8)',
+    dash: 'DASH Stream (.mpd)',
+    video: 'Direct video file',
+    custom: 'Custom embed'
+  }[p] || 'Unknown';
+}
+
+function platformFromStream(s){
+  if (s.streamPlatform) return s.streamPlatform;
+  return detectPlatform(s.streamUrl || s.hlsUrl || '');
+}
+
+function renderTierPicker(){
+  document.querySelectorAll('#tierPicker .tier-opt').forEach(function(btn){
+    btn.classList.toggle('active', btn.dataset.tier === selectedTier);
+  });
+}
+
+document.querySelectorAll('#tierPicker .tier-opt').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    selectedTier = btn.dataset.tier || 'inherit';
+    renderTierPicker();
+  });
+});
+
+function populateChannelDropdowns(){
+  var formSelect = $('stChannel');
+  var filterSelect = $('channelFilter');
+
+  var currentFormValue = formSelect.value;
+  formSelect.innerHTML = '<option value="">Choose channel…</option>';
+  allChannels.forEach(function(ch){
+    var opt = document.createElement('option');
+    opt.value = ch.id;
+    opt.textContent = ch.name || 'Untitled Channel';
+    formSelect.appendChild(opt);
+  });
+  if (currentFormValue && allChannels.some(function(c){ return c.id === currentFormValue; })){
+    formSelect.value = currentFormValue;
+  }
+
+  var currentFilterValue = filterSelect.value;
+  filterSelect.innerHTML = '<option value="">All channels</option>';
+  allChannels.forEach(function(ch){
+    var opt = document.createElement('option');
+    opt.value = ch.id;
+    opt.textContent = ch.name || 'Untitled Channel';
+    filterSelect.appendChild(opt);
+  });
+  if (currentFilterValue && allChannels.some(function(c){ return c.id === currentFilterValue; })){
+    filterSelect.value = currentFilterValue;
+  }
+}
+
+function streamStatus(s){
+  if (!s.startDate) return 'upcoming';
+  var startMs = new Date(s.startDate + 'T' + (s.startTime || '00:00') + ':00').getTime();
+  var durMin = parseInt(s.durationMinutes, 10) || 90;
+  var endMs = startMs + durMin * 60000;
+  var now = Date.now();
+  if (now < startMs) return 'upcoming';
+  if (now <= endMs) return 'live';
+  return 'ended';
+}
+
+function tierBadge(s){
+  var tiers = s.accessTiers;
+  if (!tiers || (tiers.length === 1 && tiers[0] === 'inherit')){
+    return { cls: 'inherit', label: 'Channel tier' };
+  }
+  if (tiers.indexOf('free') !== -1){
+    return { cls: 'free', label: 'Free' };
+  }
+  var minTier = tiers[0];
+  tiers.forEach(function(t){
+    var order = ['free', 'starter', 'standard', 'premium', 'elite'];
+    if (order.indexOf(t) < order.indexOf(minTier)) minTier = t;
+  });
+  return { cls: 'paid', label: minTier.charAt(0).toUpperCase() + minTier.slice(1) + '+' };
+}
+
+function renderStreams(){
+  var list = $('stList');
+  var q = searchQuery.toLowerCase();
+
+  var filtered = allStreams.filter(function(s){
+    if (channelFilter && s.channelId !== channelFilter) return false;
+    if (q){
+      var title = String(s.streamTitle || s.eventName || '').toLowerCase();
+      if (title.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+
+  $('stCount').textContent = filtered.length + (filtered.length === 1 ? ' stream' : ' streams');
+
+  if (!filtered.length){
+    list.innerHTML =
+      '<div class="empty-block">' +
+        '<i data-lucide="video-off"></i>' +
+        '<h3>No streams found</h3>' +
+        '<p>' + (searchQuery || channelFilter ? 'Try clearing filters.' : 'Create your first stream on the right.') + '</p>' +
+      '</div>';
+    refreshIcons();
+    return;
+  }
+
+  var order = { live: 0, upcoming: 1, ended: 2 };
+  filtered.sort(function(a, b){
+    var sa = streamStatus(a), sb = streamStatus(b);
+    if (order[sa] !== order[sb]) return order[sa] - order[sb];
+    return String(b.startDate || '').localeCompare(String(a.startDate || ''));
+  });
+
+  list.innerHTML = '';
+  filtered.forEach(function(s){
+    list.appendChild(buildStreamItem(s));
+  });
+  refreshIcons();
+}
+
+function buildStreamItem(s){
+  var el = document.createElement('div');
+  el.className = 'st-item';
+
+  var status = streamStatus(s);
+  var title = s.streamTitle || s.eventName || 'Untitled Stream';
+  var channel = allChannels.find(function(c){ return c.id === s.channelId; });
+  var channelName = channel ? (channel.name || 'Channel') : '—';
+  var tier = tierBadge(s);
+  var platform = platformFromStream(s);
+
+  var thumbStyle = s.heroImage
+    ? "background-image:url('" + esc(s.heroImage) + "');background-size:cover;background-position:center;"
+    : '';
+
+  var thumbHTML = s.heroImage
+    ? '<div class="st-thumb" style="' + thumbStyle + '"></div>'
+    : '<div class="st-thumb"><i data-lucide="video"></i></div>';
+
+  var statusLabel = { live: 'Live', upcoming: 'Upcoming', ended: 'Ended' }[status];
+
+  el.innerHTML =
+    thumbHTML +
+    '<div class="st-info">' +
+      '<div class="st-title">' + esc(title) + '</div>' +
+      '<div class="st-meta">' +
+        '<span class="badge ' + status + '">' + statusLabel + '</span>' +
+        '<span class="badge ' + tier.cls + '">' + esc(tier.label) + '</span>' +
+        '<span>' + esc(channelName) + '</span>' +
+        '<span>' + esc(prettyDate(s.startDate, s.startTime)) + '</span>' +
+        '<span>' + esc(platformLabel(platform)) + '</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="st-actions">' +
+      '<button type="button" class="btn ghost sm" data-action="edit" data-id="' + esc(s.id) + '" title="Edit">' +
+        '<i data-lucide="pencil"></i>' +
+      '</button>' +
+      '<button type="button" class="btn ghost sm" data-action="preview" data-id="' + esc(s.id) + '" title="Preview">' +
+        '<i data-lucide="external-link"></i>' +
+      '</button>' +
+      '<button type="button" class="btn danger sm" data-action="delete" data-id="' + esc(s.id) + '" title="Delete">' +
+        '<i data-lucide="trash-2"></i>' +
+      '</button>' +
+    '</div>';
+
+  el.querySelectorAll('[data-action]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var action = this.dataset.action;
+      var id = this.dataset.id;
+      if (action === 'edit') startEdit(id);
+      else if (action === 'delete') deleteStream(id);
+      else if (action === 'preview'){
+        window.open('watch-847291563.html?id=' + encodeURIComponent(id), '_blank');
+      }
+    });
+  });
+
+  return el;
+}
+
+function startEdit(id){
+  var s = allStreams.find(function(x){ return x.id === id; });
+  if (!s) return;
+
+  editingId = id;
+
+  $('editorTitle').textContent = 'Edit stream';
+  $('saveLabel').textContent = 'Save changes';
+  $('editorHint').textContent = 'Editing ' + (s.streamTitle || 'stream');
+  $('cancelEditBtn').classList.remove('hidden');
+
+  $('stChannel').value = s.channelId || '';
+  $('stTitle').value = s.streamTitle || s.eventName || '';
+  $('stUrl').value = s.streamUrl || s.hlsUrl || '';
+  $('stDate').value = s.startDate || today();
+  $('stTime').value = s.startTime || '18:00';
+  $('stDuration').value = s.durationMinutes || 90;
+  $('stActive').value = String(s.active !== false);
+  $('stDesc').value = s.eventDescription || s.streamDescription || '';
+
+  var tiers = s.accessTiers;
+  if (!tiers || (tiers.length === 1 && tiers[0] === 'inherit')){
+    selectedTier = 'inherit';
+  } else if (tiers.length === 1){
+    selectedTier = tiers[0];
+  } else {
+    var order = ['free', 'starter', 'standard', 'premium', 'elite'];
+    var min = tiers[0];
+    tiers.forEach(function(t){
+      if (order.indexOf(t) < order.indexOf(min)) min = t;
+    });
+    selectedTier = min;
+  }
+
+  renderTierPicker();
+  updatePlatformHint();
+
+  $('editorCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function resetEditor(){
+  editingId = null;
+  selectedTier = 'inherit';
+
+  $('editorTitle').textContent = 'Create stream';
+  $('saveLabel').textContent = 'Create stream';
+  $('editorHint').textContent = 'Ready to create';
+  $('cancelEditBtn').classList.add('hidden');
+
+  $('stChannel').value = '';
+  $('stTitle').value = '';
+  $('stUrl').value = '';
+  $('stDate').value = today();
+  $('stTime').value = '18:00';
+  $('stDuration').value = 90;
+  $('stActive').value = 'true';
+  $('stDesc').value = '';
+
+  renderTierPicker();
+  updatePlatformHint();
+}
+
+function updatePlatformHint(){
+  var url = ($('stUrl').value || '').trim();
+  var hint = $('platformHint');
+  var text = $('platformHintText');
+
+  if (!url){
+    hint.classList.add('hidden');
+    return;
+  }
+
+  var p = detectPlatform(url);
+  hint.classList.remove('hidden');
+  hint.className = 'platform-hint detected';
+  text.textContent = 'Detected: ' + platformLabel(p);
+}
+
+function saveStream(){
+  var channelId = $('stChannel').value;
+  var title = ($('stTitle').value || '').trim();
+  var url = ($('stUrl').value || '').trim();
+  var date = $('stDate').value;
+  var time = $('stTime').value;
+  var duration = parseInt($('stDuration').value, 10) || 90;
+  var active = $('stActive').value === 'true';
+  var desc = ($('stDesc').value || '').trim();
+
+  if (!channelId){
+    toast('Please choose a channel.', 'error');
+    $('stChannel').focus();
+    return;
+  }
+  if (!title){
+    toast('Stream title is required.', 'error');
+    $('stTitle').focus();
+    return;
+  }
+  if (!url){
+    toast('Stream URL is required.', 'error');
+    $('stUrl').focus();
+    return;
+  }
+  if (!date){
+    toast('Start date is required.', 'error');
+    $('stDate').focus();
+    return;
+  }
+
+  var accessTiers;
+  if (selectedTier === 'inherit'){
+    accessTiers = ['inherit'];
+  } else {
+    accessTiers = [selectedTier];
+  }
+
+  var platform = detectPlatform(url);
+
+  var payload = {
+    channelId: channelId,
+    streamTitle: title,
+    eventName: title,
+    streamUrl: url,
+    streamPlatform: platform,
+    startDate: date,
+    startTime: time,
+    durationMinutes: duration,
+    eventDescription: desc,
+    accessTiers: accessTiers,
+    active: active,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  var btn = $('saveBtn');
+  var orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+
+  var promise;
+  if (editingId){
+    promise = db.collection('streams').doc(editingId).update(payload);
+  } else {
+    payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+    payload.ownerUid = currentUser.uid;
+    payload.ownerEmail = currentUser.email || '';
+    promise = db.collection('streams').add(payload);
+  }
+
+  promise.then(function(){
+    toast(editingId ? 'Stream updated.' : 'Stream created.', 'success');
+    resetEditor();
+  }).catch(function(err){
+    console.error('[save stream]', err);
+    toast('Save failed: ' + (err.message || 'unknown'), 'error', 5000);
+    btn.disabled = false;
+    btn.innerHTML = orig;
+    refreshIcons();
+  });
+}
+
+function deleteStream(id){
+  var s = allStreams.find(function(x){ return x.id === id; });
+  if (!s) return;
+  var title = s.streamTitle || s.eventName || 'this stream';
+  if (!confirm('Delete "' + title + '"?\n\nThis cannot be undone.')) return;
+
+  db.collection('streams').doc(id).delete()
+    .then(function(){
+      toast('Stream deleted.', 'success');
+      if (editingId === id) resetEditor();
+    })
+    .catch(function(err){
+      console.error('[delete]', err);
+      toast('Delete failed.', 'error');
+    });
+}
+
+function attachStreamListener(){
+  if (unsubStreams) { try { unsubStreams(); } catch(e){} }
+  unsubStreams = db.collection('streams')
+    .limit(500)
+    .onSnapshot(function(snap){
+      allStreams = [];
+      snap.forEach(function(doc){
+        var d = doc.data() || {};
+        d.id = doc.id;
+        allStreams.push(d);
+      });
+      renderStreams();
+    }, function(err){
+      console.error('[streams]', err);
+      toast('Could not load streams.', 'error');
+    });
+}
+
+function attachChannelListener(){
+  if (unsubChannels) { try { unsubChannels(); } catch(e){} }
+  unsubChannels = db.collection('channels')
+    .limit(200)
+    .onSnapshot(function(snap){
+      allChannels = [];
+      snap.forEach(function(doc){
+        var d = doc.data() || {};
+        d.id = doc.id;
+        allChannels.push(d);
+      });
+      allChannels.sort(function(a, b){
+        return String(a.name || '').localeCompare(String(b.name || ''));
+      });
+      populateChannelDropdowns();
+      renderStreams();
+    }, function(err){
+      console.error('[channels]', err);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  var yearEl = $('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+  refreshIcons();
+
+  $('stDate').value = today();
+
+  var urlInput = $('stUrl');
+  var urlTimer = null;
+  urlInput.addEventListener('input', function(){
+    clearTimeout(urlTimer);
+    urlTimer = setTimeout(updatePlatformHint, 300);
+  });
+
+  var searchTimer = null;
+  $('searchInput').addEventListener('input', function(){
+    var v = this.value.trim();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function(){
+      searchQuery = v;
+      renderStreams();
+    }, 200);
+  });
+
+  $('channelFilter').addEventListener('change', function(){
+    channelFilter = this.value;
+    renderStreams();
+  });
+
+  $('saveBtn').addEventListener('click', saveStream);
+  $('cancelEditBtn').addEventListener('click', resetEditor);
+
+  if (!firebaseReady || !auth){
+    $('loadingState').classList.add('hidden');
+    $('accessDenied').classList.remove('hidden');
+    return;
+  }
+
+  auth.onAuthStateChanged(function(user){
+    currentUser = user;
+
+    if (!user){
+      $('loadingState').classList.add('hidden');
+      $('signinRequired').classList.remove('hidden');
+      return;
+    }
+    if (!isAdmin(user)){
+      $('loadingState').classList.add('hidden');
+      $('accessDenied').classList.remove('hidden');
+      return;
+    }
+
+    $('loadingState').classList.add('hidden');
+    $('signinRequired').classList.add('hidden');
+    $('accessDenied').classList.add('hidden');
+    $('contentState').classList.remove('hidden');
+
+    renderTierPicker();
+    updatePlatformHint();
+    attachChannelListener();
+    attachStreamListener();
+  });
+
+  window.addEventListener('beforeunload', function(){
+    if (unsubStreams) { try { unsubStreams(); } catch(e){} }
+    if (unsubChannels) { try { unsubChannels(); } catch(e){} }
+  });
+});
+
+})();
+</script>
+
+</body>
+</html>!title){
+    toast('Stream title is required.', 'error');
+    $('stTitle').focus();
+    return;
+  }
+  if (!url){
+    toast('Stream URL is required.', 'error');
+    $('stUrl').focus();
+    return;
+  }
+  if (!date){
+    toast('Start date is required.', 'error');
+    $('stDate').focus();
+    return;
+  }
+
+  // Determine tier
+  var accessTiers;
+  if (selectedTier === 'inherit'){
+    accessTiers = ['inherit'];
+  } else {
+    accessTiers = [selectedTier];
+  }
+
+  var platform = detectPlatform(url);
+
+  var payload = {
+    channelId: channelId,
+    streamTitle: title,
+    eventName: title,
+    streamUrl: url,
+    streamPlatform: platform,
+    startDate: date,
+    startTime: time,
+    durationMinutes: duration,
+    eventDescription: desc,
+    accessTiers: accessTiers,
+    active: active,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  var btn = $('saveBtn');
+  var orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+
+  var promise;
+  if (editingId){
+    promise = db.collection('streams').doc(editingId).update(payload);
+  } else {
+    payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+    payload.ownerUid = currentUser.uid;
+    payload.ownerEmail = currentUser.email || '';
+    promise = db.collection('streams').add(payload);
+  }
+
+  promise.then(function(){
+    toast(editingId ? 'Stream updated.' : 'Stream created.', 'success');
+    resetEditor();
+  }).catch(function(err){
+    console.error('[save stream]', err);
+    toast('Save failed: ' + (err.message || 'unknown'), 'error', 5000);
+    btn.disabled = false;
+    btn.innerHTML = orig;
+    refreshIcons();
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DELETE
+   ═══════════════════════════════════════════════════════════════ */
+function deleteStream(id){
+  var s = allStreams.find(function(x){ return x.id === id; });
+  if (!s) return;
+  var title = s.streamTitle || s.eventName || 'this stream';
+  if (!confirm('Delete "' + title + '"?\n\nThis cannot be undone.')) return;
+
+  db.collection('streams').doc(id).delete()
+    .then(function(){
+      toast('Stream deleted.', 'success');
+      if (editingId === id) resetEditor();
+    })
+    .catch(function(err){
+      console.error('[delete]', err);
+      toast('Delete failed.', 'error');
+    });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LISTENERS
+   ═══════════════════════════════════════════════════════════════ */
+function attachStreamListener(){
+  if (unsubStreams) { try { unsubStreams(); } catch(e){} }
+  unsubStreams = db.collection('streams')
+    .limit(500)
+    .onSnapshot(function(snap){
+      allStreams = [];
+      snap.forEach(function(doc){
+        var d = doc.data() || {};
+        d.id = doc.id;
+        allStreams.push(d);
+      });
+      renderStreams();
+    }, function(err){
+      console.error('[streams]', err);
+      toast('Could not load streams.', 'error');
+    });
+}
+
+function attachChannelListener(){
+  if (unsubChannels) { try { unsubChannels(); } catch(e){} }
+  unsubChannels = db.collection('channels')
+    .limit(200)
+    .onSnapshot(function(snap){
+      allChannels = [];
+      snap.forEach(function(doc){
+        var d = doc.data() || {};
+        d.id = doc.id;
+        allChannels.push(d);
+      });
+      allChannels.sort(function(a, b){
+        return String(a.name || '').localeCompare(String(b.name || ''));
+      });
+      populateChannelDropdowns();
+      renderStreams();
+    }, function(err){
+      console.error('[channels]', err);
+    });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function(){
+  var yearEl = $('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+  refreshIcons();
+
+  // Set default date
+  $('stDate').value = today();
+
+  // URL input hint
+  var urlInput = $('stUrl');
+  var urlTimer = null;
+  urlInput.addEventListener('input', function(){
+    clearTimeout(urlTimer);
+    urlTimer = setTimeout(updatePlatformHint, 300);
+  });
+
+  // Search
+  var searchTimer = null;
+  $('searchInput').addEventListener('input', function(){
+    var v = this.value.trim();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function(){
+      searchQuery = v;
+      renderStreams();
+    }, 200);
+  });
+
+  // Channel filter
+  $('channelFilter').addEventListener('change', function(){
+    channelFilter = this.value;
+    renderStreams();
+  });
+
+  // Save
+  $('saveBtn').addEventListener('click', saveStream);
+  $('cancelEditBtn').addEventListener('click', resetEditor);
+
+  // Auth
+  if (!firebaseReady || !auth){
+    $('loadingState').classList.add('hidden');
+    $('accessDenied').classList.remove('hidden');
+    return;
+  }
+
+  auth.onAuthStateChanged(function(user){
+    currentUser = user;
+
+    if (!user){
+      $('loadingState').classList.add('hidden');
+      $('signinRequired').classList.remove('hidden');
+      return;
+    }
+    if (!isAdmin(user)){
+      $('loadingState').classList.add('hidden');
+      $('accessDenied').classList.remove('hidden');
+      return;
+    }
+
+    $('loadingState').classList.add('hidden');
+    $('signinRequired').classList.add('hidden');
+    $('accessDenied').classList.add('hidden');
+    $('contentState').classList.remove('hidden');
+
+    renderTierPicker();
+    updatePlatformHint();
+    attachChannelListener();
+    attachStreamListener();
+  });
+
+  window.addEventListener('beforeunload', function(){
+    if (unsubStreams) { try { unsubStreams(); } catch(e){} }
+    if (unsubChannels) { try { unsubChannels(); } catch(e){} }
+  });
+});
+
+})();
+</script>
+
+</body>
+</html>
