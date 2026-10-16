@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#050508" />
-<meta name="description" content="Browse every channel on Starlane Stream — Sports, Movies, News, Music, and more. Free to start." />
-<title>All Channels · Starlane Stream</title>
+<meta name="description" content="Browse every channel on Starlane Stream â€” Sports, Movies, News, Music, and more. Free to start." />
+<title>All Channels Â· Starlane Stream</title>
 
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -556,7 +556,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
     <div class="filter-inner">
       <div class="search-box">
         <i data-lucide="search"></i>
-        <input type="text" id="searchInput" placeholder="Search channels…" autocomplete="off" />
+        <input type="text" id="searchInput" placeholder="Search channelsâ€¦" autocomplete="off" />
       </div>
       <div class="cat-chips" id="catChips">
         <button class="chip active" data-cat="" type="button">All</button>
@@ -571,7 +571,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
       <h2 class="section-title">
         <i data-lucide="grid-3x3"></i>
         Channels
-        <span class="count" id="resultCount">—</span>
+        <span class="count" id="resultCount">â€”</span>
       </h2>
     </div>
     <div class="channels-grid" id="channelsGrid">
@@ -605,7 +605,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
           <b>STAR<span>LANE</span></b>
         </div>
         <p class="footer-tagline">
-          Live TV, movies, and sports — streaming without limits.
+          Live TV, movies, and sports â€” streaming without limits.
           Built for South Africa, made for the world.
         </p>
       </div>
@@ -629,7 +629,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© <span id="year"></span> Starlane Stream. All rights reserved.</span>
+      <span>Â© <span id="year"></span> Starlane Stream. All rights reserved.</span>
       <span>Made in Johannesburg, South Africa.</span>
     </div>
   </div>
@@ -641,9 +641,9 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 (function(){
 'use strict';
 
-/* ═══════════════════════════════════════════════════════════════
-   FIREBASE CONFIG — starlane-stream
-   ═══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   FIREBASE CONFIG â€” starlane-stream
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 var firebaseConfig = {
   apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
   authDomain: "starlane-stream.firebaseapp.com",
@@ -880,141 +880,6 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 
   renderCategoryChips();
-  loadChannels();
-});
-
-})();
-</script>
-
-</body>
-</html>�═══════════════════════════════════════════════════════════
-   CATEGORY CHIPS
-   ═══════════════════════════════════════════════════════════════ */
-function renderCategoryChips(){
-  var wrap = $('catChips');
-  var cats = {};
-  allChannels.forEach(function(ch){
-    if (ch.category) cats[ch.category] = (cats[ch.category] || 0) + 1;
-  });
-
-  var html = '<button class="chip' + (!activeCategory ? ' active' : '') + '" data-cat="" type="button">All</button>';
-
-  Object.keys(cats).sort().forEach(function(c){
-    html += '<button class="chip' + (activeCategory === c ? ' active' : '') + '" data-cat="' + esc(c) + '" type="button">'
-      + esc(categoryLabel(c)) + '</button>';
-  });
-
-  wrap.innerHTML = html;
-
-  wrap.querySelectorAll('.chip').forEach(function(chip){
-    chip.addEventListener('click', function(){
-      activeCategory = chip.dataset.cat || '';
-      renderCategoryChips();
-      renderChannels();
-    });
-  });
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   LOAD DATA
-   ═══════════════════════════════════════════════════════════════ */
-function loadChannels(){
-  if (!firebaseReady || !db){
-    // Placeholder mode
-    allChannels = [];
-    streamCounts = {};
-    renderCategoryChips();
-    renderChannels();
-    $('pageStats').style.display = 'none';
-    return;
-  }
-
-  Promise.all([
-    db.collection('channels').limit(200).get(),
-    db.collection('streams').limit(500).get()
-  ])
-    .then(function(results){
-      // Channels
-      var channelsSnap = results[0];
-      allChannels = [];
-      channelsSnap.forEach(function(doc){
-        var d = doc.data() || {};
-        if (d.active === false) return;
-        d.id = doc.id;
-        allChannels.push(d);
-      });
-      allChannels.sort(function(a, b){
-        var oa = a.order || 99, ob = b.order || 99;
-        if (oa !== ob) return oa - ob;
-        return String(a.name || '').localeCompare(String(b.name || ''));
-      });
-
-      // Streams (count per channel)
-      var streamsSnap = results[1];
-      streamCounts = {};
-      var now = Date.now();
-      streamsSnap.forEach(function(doc){
-        var d = doc.data() || {};
-        var cid = d.channelId;
-        if (!cid) return;
-        if (!streamCounts[cid]) streamCounts[cid] = { total: 0, live: 0 };
-        streamCounts[cid].total++;
-
-        // Check if live
-        if (d.startDate){
-          var timeStr = d.startTime || '00:00';
-          var startMs = new Date(d.startDate + 'T' + timeStr + ':00').getTime();
-          var durMin = parseInt(d.durationMinutes, 10) || 90;
-          var endMs = startMs + durMin * 60000 + 15 * 60000;
-          if (!isNaN(startMs) && now >= startMs && now <= endMs){
-            streamCounts[cid].live++;
-          }
-        }
-      });
-
-      // Stats bar
-      var totalLive = Object.keys(streamCounts).reduce(function(sum, k){
-        return sum + (streamCounts[k].live || 0);
-      }, 0);
-      $('statChannels').textContent = allChannels.length;
-      $('statLive').textContent = totalLive;
-      $('pageStats').style.display = 'flex';
-
-      renderCategoryChips();
-      renderChannels();
-    })
-    .catch(function(err){
-      console.warn('[channels load]', err);
-      allChannels = [];
-      streamCounts = {};
-      renderCategoryChips();
-      renderChannels();
-    });
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   BOOT
-   ═══════════════════════════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', function(){
-  var yearEl = $('year');
-  if (yearEl) yearEl.textContent = new Date().getFullYear();
-  refreshIcons();
-
-  // Search
-  var searchTimer = null;
-  $('searchInput').addEventListener('input', function(){
-    var v = this.value.trim();
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(function(){
-      searchQuery = v;
-      renderChannels();
-    }, 200);
-  });
-
-  // Initial category chips (before data loads)
-  renderCategoryChips();
-
-  // Load data
   loadChannels();
 });
 
