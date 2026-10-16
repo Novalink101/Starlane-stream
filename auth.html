@@ -55,7 +55,6 @@ a{color:inherit;text-decoration:none}
 ::selection{background:var(--red);color:#fff}
 .hidden{display:none!important}
 
-/* Starfield */
 .starfield{
   position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
@@ -76,7 +75,6 @@ a{color:inherit;text-decoration:none}
 }
 @keyframes twinkle{0%,100%{opacity:.85}50%{opacity:.4}}
 
-/* Nav (minimal) */
 .nav{
   position:sticky;top:0;z-index:50;
   background:rgba(5,5,8,.85);
@@ -109,7 +107,6 @@ a{color:inherit;text-decoration:none}
   .nav-back .lbl{display:none}
 }
 
-/* Main */
 main{
   flex:1;
   display:flex;align-items:center;justify-content:center;
@@ -117,7 +114,6 @@ main{
 }
 @media (max-width:560px){main{padding:32px 16px 48px}}
 
-/* Card */
 .auth-card{
   width:100%;max-width:440px;
   background:var(--surface);
@@ -156,7 +152,6 @@ main{
   font-weight:500;
 }
 
-/* Tabs */
 .tabs{
   display:flex;
   background:rgba(255,255,255,.03);
@@ -182,7 +177,6 @@ main{
 }
 .tabs button:hover:not(.active){color:#fff}
 
-/* Form */
 .field{margin-bottom:16px}
 .field label{
   display:block;
@@ -223,7 +217,6 @@ main{
 }
 .field-error.show{display:block}
 
-/* Password toggle */
 .field-pw{position:relative}
 .field-pw .pw-toggle{
   position:absolute;
@@ -239,7 +232,6 @@ main{
 .field-pw .pw-toggle svg{width:16px;height:16px}
 .field-pw input{padding-right:48px}
 
-/* Buttons */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:9px;
   padding:13px 20px;
@@ -263,15 +255,6 @@ main{
   box-shadow:0 14px 32px rgba(229,9,20,.55);
 }
 .btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
-.btn-ghost{
-  background:rgba(255,255,255,.04);
-  color:#fff;
-  border-color:var(--border-2);
-}
-.btn-ghost:hover:not(:disabled){
-  background:rgba(255,255,255,.08);
-  border-color:rgba(255,255,255,.28);
-}
 .btn-google{
   background:#fff;
   color:#1f2937;
@@ -284,7 +267,6 @@ main{
 }
 .btn-google svg{width:18px;height:18px}
 
-/* Divider */
 .divider{
   display:flex;align-items:center;gap:14px;
   margin:22px 0;
@@ -297,7 +279,6 @@ main{
   background:var(--border);
 }
 
-/* Footer note */
 .auth-note{
   text-align:center;
   font-size:12.5px;
@@ -312,7 +293,6 @@ main{
 }
 .auth-note a:hover{text-decoration:underline}
 
-/* Spinner */
 .spinner{
   width:16px;height:16px;
   border:2px solid rgba(255,255,255,.3);
@@ -323,7 +303,6 @@ main{
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Toast */
 #toast{
   position:fixed;bottom:28px;left:50%;
   transform:translateX(-50%) translateY(140%);
@@ -473,9 +452,7 @@ main{
 (function(){
 'use strict';
 
-/* ═══════════════════════════════════════════════════════════════
-   FIREBASE CONFIG — starlane-stream
-   ═══════════════════════════════════════════════════════════════ */
+// Firebase configuration
 var firebaseConfig = {
   apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
   authDomain: "starlane-stream.firebaseapp.com",
@@ -495,9 +472,6 @@ if (firebaseReady && !firebase.apps.length){
   db = firebase.firestore();
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   HELPERS
-   ═══════════════════════════════════════════════════════════════ */
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
@@ -530,16 +504,10 @@ function clearAllErrors(){
   ['nameInput','emailInput','pwInput'].forEach(function(f){ var el=$(f); if(el)el.classList.remove('is-error'); });
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   STATE
-   ═══════════════════════════════════════════════════════════════ */
 var mode = 'signin';
 var redirectUrl = null;
 var selectedPlan = null;
 
-/* ═══════════════════════════════════════════════════════════════
-   MODE SWITCHING
-   ═══════════════════════════════════════════════════════════════ */
 function setMode(newMode){
   mode = newMode;
   clearAllErrors();
@@ -574,9 +542,6 @@ function setMode(newMode){
   refreshIcons();
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   FORM VALIDATION
-   ═══════════════════════════════════════════════════════════════ */
 function validate(){
   clearAllErrors();
   var ok = true;
@@ -610,11 +575,22 @@ function validate(){
   return ok;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   AUTH ACTIONS
-   ═══════════════════════════════════════════════════════════════ */
+/*
+  Destination after successful sign-in.
+  If the user came from a specific page (e.g. checkout), go there.
+  If they came from a plan (e.g. ?plan=premium), go to profiles to pick/create one first.
+  Otherwise, go to the profiles picker so every signed-in user has an active profile.
+*/
+function getDestination(){
+  // Explicit redirect wins (e.g. auth.html?redirect=/account-...)
+  if (redirectUrl) return redirectUrl;
+  // After signup with a plan, send to profiles so they pick one
+  // After plain signin without redirect, go to profiles too — ensures active profile is set
+  return 'profiles.html';
+}
+
 function goToRedirect(){
-  var dest = redirectUrl || 'index.html';
+  var dest = getDestination();
   window.location.href = dest;
 }
 
@@ -648,8 +624,8 @@ function submitForm(e){
         }
       })
       .then(function(){
-        toast('Account created! Welcome to Starlane.', 'success', 3500);
-        setTimeout(goToRedirect, 800);
+        toast('Account created! Welcome to Starlane.', 'success', 2500);
+        setTimeout(goToRedirect, 700);
       })
       .catch(function(err){
         console.error('[signup]', err);
@@ -661,8 +637,8 @@ function submitForm(e){
   } else {
     auth.signInWithEmailAndPassword(email, pw)
       .then(function(){
-        toast('Signed in. Welcome back!', 'success', 2500);
-        setTimeout(goToRedirect, 700);
+        toast('Signed in. Welcome back!', 'success', 2000);
+        setTimeout(goToRedirect, 600);
       })
       .catch(function(err){
         console.error('[signin]', err);
@@ -702,8 +678,8 @@ function googleSignin(){
       }
     })
     .then(function(){
-      toast('Signed in with Google!', 'success', 2500);
-      setTimeout(goToRedirect, 700);
+      toast('Signed in with Google!', 'success', 2000);
+      setTimeout(goToRedirect, 600);
     })
     .catch(function(err){
       console.error('[google]', err);
@@ -737,9 +713,6 @@ function forgotPassword(){
     });
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   BOOT
-   ═══════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function(){
   refreshIcons();
 
@@ -772,10 +745,18 @@ document.addEventListener('DOMContentLoaded', function(){
     if (el) el.addEventListener('input', function(){ clearError(id, errId); });
   });
 
+  // If user is already signed in AND there is no explicit redirect,
+  // send them to profiles — that way they always have an active profile.
+  // If there IS a redirect, respect it (e.g. returning to checkout).
   if (firebaseReady && auth){
     auth.onAuthStateChanged(function(user){
-      if (user && !redirectUrl){
-        window.location.href = 'index.html';
+      if (user){
+        // Already signed in — go where they intended
+        if (redirectUrl){
+          window.location.href = redirectUrl;
+        } else {
+          window.location.href = 'profiles.html';
+        }
       }
     });
   }
@@ -785,4 +766,4 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 </body>
-</html>
+    </html>
