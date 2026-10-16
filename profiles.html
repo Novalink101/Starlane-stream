@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#050508" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Who's watching? · Starlane Stream</title>
+
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<style>
+:root{
+  --red:#E50914;--red-hover:#FF3B4E;--red-dark:#B20710;
+  --red-soft:rgba(229,9,20,.12);
+  --red-border:rgba(229,9,20,.25);
+  --bg:#050508;--bg-2:#0A0A0F;
+  --surface:rgba(20,20,28,.75);
+  --border:rgba(255,255,255,.08);
+  --border-2:rgba(255,255,255,.14);
+  --text:#FFFFFF;
+  --text-2:rgba(255,255,255,.75);
+  --text-3:rgba(255,255,255,.5);
+  --text-muted:rgba(255,255,255,.35);
+  --green:#10B981;
+  --yellow:#F59E0B;
+  --danger:#EF4444;
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:22px;--r-full:999px;
+  --ease:cubic-bezier(.25,.8,.25,1);
+  --ease-out:cubic-bezier(.22,.9,.3,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font);font-size:14px;line-height:1.55;
+  color:var(--text);background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;flex-direction:column;
+  overflow-x:hidden;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{line-height:1.15;font-weight:900;letter-spacing:-.02em;color:#fff}
+::selection{background:var(--red);color:#fff}
+.hidden{display:none!important}
+
+.container{max-width:900px;margin:0 auto;padding:0 24px;width:100%}
+@media (max-width:560px){.container{padding:0 16px}}
+
+.starfield{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(229,9,20,.08) 0%, transparent 55%),
+    linear-gradient(180deg, #050508 0%, #0A0A14 100%);
+}
+.starfield::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.8), transparent 100%),
+    radial-gradient(1px 1px at 87% 32%, rgba(255,255,255,.6), transparent 100%),
+    radial-gradient(1.5px 1.5px at 34% 78%, rgba(255,255,255,.7), transparent 100%),
+    radial-gradient(1px 1px at 67% 12%, rgba(255,255,255,.5), transparent 100%),
+    radial-gradient(1.5px 1.5px at 92% 82%, rgba(255,255,255,.75), transparent 100%);
+  animation:twinkle 8s ease-in-out infinite;
+}
+@keyframes twinkle{0%,100%{opacity:.85}50%{opacity:.4}}
+
+/* Nav */
+.nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(5,5,8,.85);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:900px;margin:0 auto;
+  padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+}
+.nav-brand{display:inline-flex;align-items:center;gap:11px;flex-shrink:0}
+.nav-brand svg{width:28px;height:34px;display:block}
+.nav-brand b{font-weight:900;font-size:17px;letter-spacing:-.01em;color:#fff}
+.nav-brand b span{color:var(--red)}
+.nav-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 14px;border-radius:var(--r-full);
+  font-size:12.5px;font-weight:800;
+  color:var(--text-2);
+  border:1px solid var(--border-2);
+  transition:all .2s var(--ease);
+  font-family:inherit;cursor:pointer;
+}
+.nav-btn:hover{color:#fff;border-color:var(--red);background:var(--red-soft)}
+.nav-btn svg{width:14px;height:14px}
+@media (max-width:560px){
+  .nav-inner{padding:12px 16px}
+  .nav-brand b{font-size:15px}
+  .nav-brand svg{width:24px;height:30px}
+  .nav-btn .lbl{display:none}
+}
+
+/* Main */
+main{
+  flex:1;
+  display:flex;align-items:center;justify-content:center;
+  padding:48px 0 80px;
+}
+@media (max-width:640px){main{padding:32px 0 56px}}
+
+.head{
+  text-align:center;
+  margin-bottom:44px;
+}
+.head h1{
+  font-size:clamp(1.8rem,4.5vw,2.8rem);
+  letter-spacing:-.03em;
+  margin-bottom:10px;
+}
+.head p{
+  font-size:14.5px;
+  color:var(--text-3);
+  font-weight:500;
+}
+.head .tier-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 14px;
+  background:var(--red-soft);
+  border:1px solid var(--red-border);
+  border-radius:var(--r-full);
+  font-size:11px;font-weight:900;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--red);
+  margin-top:14px;
+}
+.head .tier-badge svg{width:12px;height:12px}
+
+/* Profile grid */
+.profile-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+  gap:24px;
+  max-width:720px;
+  margin:0 auto;
+}
+@media (max-width:640px){
+  .profile-grid{grid-template-columns:repeat(2, 1fr);gap:18px}
+}
+
+.profile-card{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
+  padding:20px 12px;
+  cursor:pointer;
+  transition:all .22s var(--ease);
+  border-radius:var(--r-lg);
+  border:1px solid transparent;
+  position:relative;
+  text-align:center;
+}
+.profile-card:hover{
+  background:rgba(255,255,255,.03);
+  border-color:var(--border);
+  transform:translateY(-3px);
+}
+
+.profile-avatar{
+  width:110px;height:110px;
+  border-radius:24px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:42px;font-weight:900;
+  color:#fff;
+  font-family:var(--mono);
+  letter-spacing:-.02em;
+  border:3px solid transparent;
+  transition:all .3s var(--ease);
+  box-shadow:0 12px 32px rgba(0,0,0,.4);
+  position:relative;
+  overflow:hidden;
+}
+@media (max-width:640px){
+  .profile-avatar{width:88px;height:88px;font-size:32px;border-radius:20px}
+}
+.profile-card:hover .profile-avatar{
+  transform:scale(1.05);
+  border-color:rgba(255,255,255,.25);
+}
+.profile-card.active .profile-avatar{
+  border-color:var(--red);
+  box-shadow:0 12px 32px rgba(0,0,0,.4), 0 0 0 4px var(--red-soft);
+}
+
+.profile-name{
+  font-size:15px;
+  font-weight:800;
+  color:#fff;
+  letter-spacing:-.01em;
+  word-break:break-word;
+  max-width:100%;
+}
+
+.profile-card.active .profile-name{
+  color:var(--red);
+}
+
+/* Edit badge (shown in manage mode) */
+.profile-edit-badge{
+  position:absolute;
+  top:8px;right:8px;
+  width:32px;height:32px;
+  border-radius:50%;
+  background:var(--red);
+  color:#fff;
+  display:none;
+  align-items:center;justify-content:center;
+  box-shadow:0 6px 16px rgba(229,9,20,.5);
+  z-index:2;
+}
+.profile-edit-badge svg{width:15px;height:15px}
+.manage-mode .profile-edit-badge{display:flex}
+.manage-mode .profile-card{cursor:default}
+.manage-mode .profile-card:hover{transform:none;background:transparent;border-color:transparent}
+
+/* Add profile card */
+.add-card{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
+  padding:20px 12px;
+  cursor:pointer;
+  border-radius:var(--r-lg);
+  border:1px solid transparent;
+  transition:all .22s var(--ease);
+  text-align:center;
+}
+.add-card:hover{
+  background:rgba(255,255,255,.03);
+  border-color:var(--border);
+  transform:translateY(-3px);
+}
+.add-avatar{
+  width:110px;height:110px;
+  border-radius:24px;
+  background:rgba(255,255,255,.03);
+  border:2px dashed var(--border-2);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-3);
+  transition:all .25s var(--ease);
+}
+@media (max-width:640px){
+  .add-avatar{width:88px;height:88px;border-radius:20px}
+}
+.add-card:hover .add-avatar{
+  border-color:var(--red);
+  color:var(--red);
+  background:var(--red-soft);
+}
+.add-avatar svg{width:34px;height:34px}
+.add-card .profile-name{color:var(--text-3)}
+.add-card:hover .profile-name{color:#fff}
+
+/* Manage toggle */
+.manage-toggle{
+  display:flex;
+  justify-content:center;
+  margin-top:36px;
+}
+.manage-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:11px 22px;
+  border-radius:var(--r-md);
+  font-size:13.5px;font-weight:900;
+  background:rgba(255,255,255,.04);
+  color:#fff;
+  border:1px solid var(--border-2);
+  transition:all .22s var(--ease);
+  font-family:inherit;cursor:pointer;
+}
+.manage-btn:hover{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.28);
+}
+.manage-btn.active{
+  background:var(--red);
+  border-color:var(--red);
+  color:#fff;
+  box-shadow:0 8px 22px rgba(229,9,20,.4);
+}
+.manage-btn svg{width:15px;height:15px}
+
+/* Loading / sign-in */
+.loading-block,
+.signin-block{
+  text-align:center;
+  padding:100px 24px;
+  max-width:480px;
+  margin:0 auto;
+}
+.spinner{
+  width:36px;height:36px;
+  border:3px solid rgba(229,9,20,.2);
+  border-top-color:var(--red);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+  margin:0 auto 18px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-block p{color:var(--text-3);font-size:14px;font-weight:500}
+
+.signin-block .ico{
+  width:64px;height:64px;
+  border-radius:50%;
+  background:var(--red-soft);
+  border:2px solid var(--red-border);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;
+  color:var(--red);
+}
+.signin-block .ico svg{width:28px;height:28px}
+.signin-block h2{font-size:20px;margin-bottom:10px}
+.signin-block p{color:var(--text-3);font-size:14px;margin-bottom:22px;line-height:1.6}
+.signin-block .btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 24px;
+  border-radius:var(--r-md);
+  font-size:14px;font-weight:900;
+  background:linear-gradient(135deg,var(--red),#FF2A3D);
+  color:#fff;
+  text-decoration:none;
+  box-shadow:0 8px 22px rgba(229,9,20,.4);
+}
+.signin-block .btn svg{width:16px;height:16px}
+
+/* Empty state */
+.empty-block{
+  text-align:center;
+  padding:40px 20px;
+  max-width:420px;
+  margin:0 auto;
+}
+.empty-block svg{
+  width:48px;height:48px;
+  margin:0 auto 16px;
+  color:var(--text-muted);
+  opacity:.5;
+}
+.empty-block h3{font-size:17px;margin-bottom:8px}
+.empty-block p{font-size:13.5px;color:var(--text-3);line-height:1.6;margin-bottom:20px}
+
+/* Modal */
+.modal-backdrop{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,.75);
+  backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s var(--ease);
+}
+.modal-backdrop.show{opacity:1;pointer-events:auto}
+
+.modal{
+  width:100%;max-width:420px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  padding:32px 28px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 32px 80px rgba(0,0,0,.6);
+  transform:scale(.95);
+  transition:transform .25s var(--ease-out);
+  position:relative;
+  overflow:hidden;
+}
+.modal-backdrop.show .modal{transform:scale(1)}
+.modal::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg, transparent, var(--red), transparent);
+}
+@media (max-width:480px){.modal{padding:26px 20px}}
+
+.modal h3{
+  font-size:19px;
+  margin-bottom:6px;
+  letter-spacing:-.02em;
+}
+.modal .modal-sub{
+  font-size:13.5px;
+  color:var(--text-3);
+  margin-bottom:22px;
+  line-height:1.55;
+}
+
+.modal label{
+  display:block;
+  font-size:11px;font-weight:900;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--text-3);
+  margin-bottom:8px;
+}
+.modal input[type="text"]{
+  width:100%;
+  padding:13px 16px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border-2);
+  border-radius:var(--r-md);
+  font-size:14.5px;
+  color:#fff;
+  transition:all .2s var(--ease);
+  font-family:inherit;
+  margin-bottom:20px;
+}
+.modal input[type="text"]::placeholder{color:var(--text-muted)}
+.modal input[type="text"]:focus{
+  outline:none;
+  border-color:var(--red);
+  background:rgba(255,255,255,.06);
+  box-shadow:0 0 0 3px rgba(229,9,20,.15);
+}
+
+.color-picker{
+  display:flex;gap:10px;flex-wrap:wrap;
+  margin-bottom:24px;
+}
+.color-swatch{
+  width:38px;height:38px;
+  border-radius:50%;
+  border:3px solid transparent;
+  cursor:pointer;
+  transition:all .2s var(--ease);
+  padding:0;
+}
+.color-swatch:hover{transform:scale(1.1)}
+.color-swatch.active{
+  border-color:#fff;
+  box-shadow:0 0 0 3px rgba(255,255,255,.2);
+}
+
+.modal-actions{
+  display:flex;gap:10px;flex-wrap:wrap;
+}
+.modal-actions .btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 20px;
+  border-radius:var(--r-md);
+  font-size:14px;font-weight:900;
+  transition:all .22s var(--ease);
+  font-family:inherit;cursor:pointer;
+  line-height:1;min-height:48px;
+  border:1px solid transparent;
+  flex:1;
+}
+.modal-actions .btn.primary{
+  background:linear-gradient(135deg,var(--red),#FF2A3D);
+  color:#fff;
+  box-shadow:0 8px 22px rgba(229,9,20,.4);
+}
+.modal-actions .btn.primary:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(229,9,20,.55)}
+.modal-actions .btn.danger{
+  background:rgba(239,68,68,.1);
+  color:var(--danger);
+  border-color:rgba(239,68,68,.35);
+}
+.modal-actions .btn.danger:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+.modal-actions .btn.ghost{
+  background:rgba(255,255,255,.04);
+  color:#fff;
+  border-color:var(--border-2);
+}
+.modal-actions .btn.ghost:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.28)}
+.modal-actions .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+
+.modal .limit-note{
+  margin-top:16px;
+  padding:12px 14px;
+  background:rgba(245,158,11,.08);
+  border:1px solid rgba(245,158,11,.25);
+  border-radius:var(--r-md);
+  font-size:12.5px;
+  color:#FCD34D;
+  line-height:1.55;
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+}
+.modal .limit-note svg{width:15px;height:15px;flex-shrink:0;margin-top:2px}
+
+/* Toast */
+#toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(140%);
+  background:#fff;color:#050508;
+  font-size:13.5px;font-weight:800;
+  padding:13px 22px;border-radius:var(--r-full);
+  box-shadow:0 20px 48px rgba(0,0,0,.6);
+  transition:transform .4s var(--ease-out);
+  z-index:400;max-width:90vw;text-align:center;
+  display:flex;align-items:center;gap:10px;
+  pointer-events:none;
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast svg{width:16px;height:16px;flex-shrink:0}
+#toast.success{background:var(--green);color:#fff}
+#toast.error{background:var(--danger);color:#fff}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    transition-duration:.01ms!important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="starfield" aria-hidden="true"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand" aria-label="Starlane Stream home">
+      <svg viewBox="0 0 60 74" aria-hidden="true">
+        <defs>
+          <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#E50914"/>
+            <stop offset="100%" stop-color="#FF5566"/>
+          </linearGradient>
+        </defs>
+        <path d="M10 60 Q 22 32 44 20" stroke="url(#starGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M16 62 Q 26 40 46 26" stroke="url(#starGrad)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+        <circle cx="46" cy="18" r="5" fill="#fff"/>
+        <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
+      </svg>
+      <b>STAR<span>LANE</span></b>
+    </a>
+    <button type="button" class="nav-btn" id="signoutBtn">
+      <i data-lucide="log-out"></i>
+      <span class="lbl">Sign out</span>
+    </button>
+  </div>
+</nav>
+
+<main>
+  <div class="container">
+
+    <div id="loadingState" class="loading-block">
+      <div class="spinner"></div>
+      <p>Loading profiles…</p>
+    </div>
+
+    <div id="signinState" class="signin-block hidden">
+      <div class="ico"><i data-lucide="lock"></i></div>
+      <h2>Sign in to continue</h2>
+      <p>Choose a profile to start watching. You need to be signed in first.</p>
+      <a href="auth.html?redirect=/profiles.html" class="btn">
+        <i data-lucide="log-in"></i>
+        Sign in
+      </a>
+    </div>
+
+    <div id="contentState" class="hidden">
+
+      <div class="head">
+        <h1>Who's watching?</h1>
+        <p>Choose a profile to start streaming.</p>
+        <span class="tier-badge" id="tierBadge">
+          <i data-lucide="users"></i>
+          <span id="tierLabel">Free</span>
+          <span id="profileCount">· 0 / 1</span>
+        </span>
+      </div>
+
+      <div class="profile-grid" id="profileGrid">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="manage-toggle">
+        <button type="button" class="manage-btn" id="manageBtn">
+          <i data-lucide="settings"></i>
+          <span>Manage profiles</span>
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modal">
+    <h3 id="modalTitle">Add profile</h3>
+    <p class="modal-sub" id="modalSub">Give this profile a name.</p>
+
+    <label for="profileNameInput">Profile name</label>
+    <input type="text" id="profileNameInput" placeholder="e.g. Nathan" maxlength="20" autocomplete="off" spellcheck="false" />
+
+    <label>Colour</label>
+    <div class="color-picker" id="colorPicker"></div>
+
+    <div class="modal-actions" id="modalActions">
+      <button type="button" class="btn ghost" id="modalCancel">Cancel</button>
+      <button type="button" class="btn primary" id="modalSave">
+        <i data-lucide="check"></i>
+        <span id="modalSaveLabel">Save</span>
+      </button>
+    </div>
+
+    <div class="limit-note hidden" id="limitNote">
+      <i data-lucide="alert-circle"></i>
+      <div id="limitNoteText">You've reached the profile limit for your plan.</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   FIREBASE CONFIG
+   ============================================================ */
+var firebaseConfig = {
+  apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+  authDomain: "starlane-stream.firebaseapp.com",
+  projectId: "starlane-stream",
+  storageBucket: "starlane-stream.firebasestorage.app",
+  messagingSenderId: "115625325145",
+  appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+};
+
+var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
+var db = null;
+var auth = null;
+var currentUser = null;
+
+if (firebaseReady && !firebase.apps.length){
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  auth = firebase.auth();
+}
+
+/* ============================================================
+   CONSTANTS
+   ============================================================ */
+var PROFILE_LIMITS = {
+  free: 1,
+  starter: 1,
+  standard: 2,
+  premium: 3,
+  elite: 4
+};
+
+var TIER_LABELS = {
+  free: 'Free plan',
+  starter: 'Starter plan',
+  standard: 'Standard plan',
+  premium: 'Premium plan',
+  elite: 'Elite plan'
+};
+
+var COLORS = [
+  '#E50914', // red
+  '#FF6B35', // orange
+  '#F59E0B', // amber
+  '#10B981', // green
+  '#0891B2', // cyan
+  '#3B82F6', // blue
+  '#8B5CF6', // violet
+  '#EC4899'  // pink
+];
+
+var STORAGE_KEY = 'starlane_active_profile';
+
+/* ============================================================
+   STATE
+   ============================================================ */
+var userTier = 'free';
+var profileLimit = 1;
+var profiles = [];
+var activeProfileId = null;
+var manageMode = false;
+var editingProfileId = null; // null = creating new
+var selectedColor = COLORS[0];
+var unsubProfiles = null;
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
+function getParam(n){ try { return new URLSearchParams(location.search).get(n); } catch(e){ return null; } }
+
+function toast(msg, type, ms){
+  type = type || 'info'; ms = ms || 3000;
+  var t = $('toast');
+  var ic = type === 'error' ? 'alert-circle' : (type === 'success' ? 'check-circle' : 'info');
+  t.className = type;
+  t.innerHTML = '<i data-lucide="'+ic+'"></i><span>' + esc(msg) + '</span>';
+  refreshIcons();
+  requestAnimationFrame(function(){ t.classList.add('show'); });
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ t.classList.remove('show'); }, ms);
+}
+
+function initials(name){
+  if (!name) return '?';
+  var p = String(name).trim().split(/\s+/);
+  if (p.length >= 2) return (p[0][0]+p[1][0]).toUpperCase();
+  return p[0].slice(0,2).toUpperCase();
+}
+
+function showLoading(){
+  $('loadingState').classList.remove('hidden');
+  $('contentState').classList.add('hidden');
+  $('signinState').classList.add('hidden');
+}
+
+function showSignin(){
+  $('loadingState').classList.add('hidden');
+  $('contentState').classList.add('hidden');
+  $('signinState').classList.remove('hidden');
+  refreshIcons();
+}
+
+function showContent(){
+  $('loadingState').classList.add('hidden');
+  $('signinState').classList.add('hidden');
+  $('contentState').classList.remove('hidden');
+  refreshIcons();
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function renderHead(){
+  $('tierLabel').textContent = TIER_LABELS[userTier] || 'Free plan';
+  $('profileCount').textContent = '· ' + profiles.length + ' / ' + profileLimit;
+}
+
+function renderProfiles(){
+  var grid = $('profileGrid');
+  grid.innerHTML = '';
+
+  // Existing profiles
+  profiles.forEach(function(p){
+    var card = document.createElement('div');
+    card.className = 'profile-card' + (p.id === activeProfileId ? ' active' : '');
+    if (manageMode) card.classList.add('manage');
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+
+    var color = p.color || COLORS[0];
+
+    card.innerHTML =
+      '<div class="profile-edit-badge"><i data-lucide="pencil"></i></div>' +
+      '<div class="profile-avatar" style="background:linear-gradient(135deg, ' + esc(color) + ', ' + darken(color, 0.3) + ');">' +
+        esc(initials(p.name)) +
+      '</div>' +
+      '<div class="profile-name">' + esc(p.name) + '</div>';
+
+    card.addEventListener('click', function(){
+      if (manageMode){
+        openEditModal(p);
+      } else {
+        selectProfile(p);
+      }
+    });
+
+    grid.appendChild(card);
+  });
+
+  // Add card (if under limit)
+  if (profiles.length < profileLimit){
+    var addCard = document.createElement('div');
+    addCard.className = 'add-card';
+    addCard.setAttribute('role', 'button');
+    addCard.setAttribute('tabindex', '0');
+    addCard.innerHTML =
+      '<div class="add-avatar"><i data-lucide="plus"></i></div>' +
+      '<div class="profile-name">Add profile</div>';
+    addCard.addEventListener('click', function(){
+      openAddModal();
+    });
+    grid.appendChild(addCard);
+  }
+
+  // Empty state
+  if (!profiles.length){
+    grid.innerHTML =
+      '<div class="empty-block" style="grid-column:1/-1;">' +
+        '<i data-lucide="user-plus"></i>' +
+        '<h3>No profiles yet</h3>' +
+        '<p>Add a profile to start watching. You can add more later (up to your plan limit).</p>' +
+      '</div>' +
+      grid.innerHTML;
+    // re-append the add card after the empty message
+    var ec = document.createElement('div');
+    ec.className = 'empty-block';
+    ec.style.gridColumn = '1/-1';
+    ec.innerHTML =
+      '<i data-lucide="user-plus"></i>' +
+      '<h3>No profiles yet</h3>' +
+      '<p>Add a profile to start watching. You can add more later (up to your plan limit).</p>';
+    grid.innerHTML = '';
+    grid.appendChild(ec);
+    var add2 = document.createElement('div');
+    add2.className = 'add-card';
+    add2.innerHTML =
+      '<div class="add-avatar"><i data-lucide="plus"></i></div>' +
+      '<div class="profile-name">Add profile</div>';
+    add2.addEventListener('click', openAddModal);
+    grid.appendChild(add2);
+  }
+
+  refreshIcons();
+}
+
+function darken(hex, amount){
+  // Returns a darker version of a hex color (for gradient)
+  if (!hex || hex.charAt(0) !== '#') return hex;
+  var c = hex.replace('#', '');
+  if (c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+  var r = parseInt(c.substring(0,2), 16);
+  var g = parseInt(c.substring(2,4), 16);
+  var b = parseInt(c.substring(4,6), 16);
+  r = Math.max(0, Math.floor(r * (1 - amount)));
+  g = Math.max(0, Math.floor(g * (1 - amount)));
+  b = Math.max(0, Math.floor(b * (1 - amount)));
+  return '#' + [r,g,b].map(function(v){
+    var h = v.toString(16);
+    return h.length === 1 ? '0'+h : h;
+  }).join('');
+}
+
+/* ============================================================
+   SELECT PROFILE
+   ============================================================ */
+function selectProfile(p){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      id: p.id,
+      name: p.name,
+      color: p.color || COLORS[0]
+    }));
+  } catch(e){}
+
+  toast('Switching to ' + p.name + '…', 'success', 1500);
+
+  var redirect = getParam('redirect') || 'index.html';
+  setTimeout(function(){
+    window.location.href = redirect;
+  }, 500);
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+function openAddModal(){
+  if (profiles.length >= profileLimit){
+    toast('Profile limit reached for your plan.', 'error', 3500);
+    return;
+  }
+  editingProfileId = null;
+  selectedColor = COLORS[profiles.length % COLORS.length];
+  $('modalTitle').textContent = 'Add profile';
+  $('modalSub').textContent = 'Give this profile a name. It can be a first name, nickname, or anything easy to recognise.';
+  $('profileNameInput').value = '';
+  $('modalSaveLabel').textContent = 'Create profile';
+  $('limitNote').classList.add('hidden');
+  renderColorPicker();
+  showModal();
+  setTimeout(function(){ $('profileNameInput').focus(); }, 200);
+}
+
+function openEditModal(p){
+  editingProfileId = p.id;
+  selectedColor = p.color || COLORS[0];
+  $('modalTitle').textContent = 'Edit profile';
+  $('modalSub').textContent = 'Change the name or colour of this profile.';
+  $('profileNameInput').value = p.name || '';
+  $('modalSaveLabel').textContent = 'Save changes';
+
+  // Show delete button
+  $('modalActions').innerHTML =
+    '<button type="button" class="btn danger" id="modalDelete"><i data-lucide="trash-2"></i> Delete</button>' +
+    '<button type="button" class="btn primary" id="modalSave"><i data-lucide="check"></i> <span id="modalSaveLabel">Save</span></button>';
+  wireModalButtons();
+
+  $('limitNote').classList.add('hidden');
+  renderColorPicker();
+  showModal();
+  setTimeout(function(){ $('profileNameInput').focus(); }, 200);
+}
+
+function renderColorPicker(){
+  var wrap = $('colorPicker');
+  wrap.innerHTML = '';
+  COLORS.forEach(function(c){
+    var swatch = document.createElement('button');
+    swatch.type = 'button';
+    swatch.className = 'color-swatch' + (c === selectedColor ? ' active' : '');
+    swatch.style.background = c;
+    swatch.setAttribute('aria-label', 'Colour ' + c);
+    swatch.addEventListener('click', function(){
+      selectedColor = c;
+      renderColorPicker();
+    });
+    wrap.appendChild(swatch);
+  });
+}
+
+function showModal(){
+  $('modalBackdrop').classList.add('show');
+  refreshIcons();
+}
+
+function hideModal(){
+  $('modalBackdrop').classList.remove('show');
+  editingProfileId = null;
+}
+
+function wireModalButtons(){
+  var cancel = $('modalCancel');
+  if (cancel && !cancel.dataset.wired){
+    cancel.dataset.wired = '1';
+    cancel.addEventListener('click', hideModal);
+  }
+
+  var save = $('modalSave');
+  if (save){
+    // Remove any previous listener by cloning
+    var clone = save.cloneNode(true);
+    save.parentNode.replaceChild(clone, save);
+    clone.addEventListener('click', saveProfile);
+  }
+
+  var del = $('modalDelete');
+  if (del){
+    del.addEventListener('click', deleteProfile);
+  }
+}
+
+function saveProfile(){
+  var name = ($('profileNameInput').value || '').trim();
+  if (!name || name.length < 1){
+    toast('Please enter a name.', 'error');
+    $('profileNameInput').focus();
+    return;
+  }
+  if (name.length > 20){
+    toast('Name is too long (max 20 characters).', 'error');
+    return;
+  }
+
+  var btn = $('modalSave');
+  if (btn) btn.disabled = true;
+
+  if (editingProfileId){
+    // Update
+    db.collection('users').doc(currentUser.uid)
+      .collection('profiles').doc(editingProfileId)
+      .update({
+        name: name,
+        color: selectedColor,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      })
+      .then(function(){
+        toast('Profile updated.', 'success');
+        hideModal();
+        // If this is the active profile, update localStorage
+        if (editingProfileId === activeProfileId){
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+              id: editingProfileId,
+              name: name,
+              color: selectedColor
+            }));
+          } catch(e){}
+        }
+      })
+      .catch(function(err){
+        console.error('[update profile]', err);
+        toast('Could not update profile.', 'error');
+        if (btn) btn.disabled = false;
+      });
+  } else {
+    // Create
+    if (profiles.length >= profileLimit){
+      toast('Profile limit reached.', 'error');
+      if (btn) btn.disabled = false;
+      return;
+    }
+    db.collection('users').doc(currentUser.uid)
+      .collection('profiles').add({
+        name: name,
+        color: selectedColor,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      })
+      .then(function(){
+        toast('Profile created.', 'success');
+        hideModal();
+      })
+      .catch(function(err){
+        console.error('[create profile]', err);
+        toast('Could not create profile.', 'error');
+        if (btn) btn.disabled = false;
+      });
+  }
+}
+
+function deleteProfile(){
+  if (!editingProfileId) return;
+  var p = profiles.find(function(x){ return x.id === editingProfileId; });
+  if (!p) return;
+  if (!confirm('Delete profile "' + p.name + '"? This can\'t be undone.')) return;
+
+  var id = editingProfileId;
+
+  db.collection('users').doc(currentUser.uid)
+    .collection('profiles').doc(id)
+    .delete()
+    .then(function(){
+      toast('Profile deleted.', 'success');
+      hideModal();
+      // If they deleted the active profile, clear localStorage
+      try {
+        var stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        if (stored && stored.id === id){
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      } catch(e){}
+    })
+    .catch(function(err){
+      console.error('[delete profile]', err);
+      toast('Could not delete profile.', 'error');
+    });
+}
+
+/* ============================================================
+   MANAGE MODE
+   ============================================================ */
+function toggleManageMode(){
+  manageMode = !manageMode;
+  var btn = $('manageBtn');
+  if (manageMode){
+    btn.classList.add('active');
+    btn.querySelector('span').textContent = 'Done';
+    document.body.classList.add('manage-mode');
+  } else {
+    btn.classList.remove('active');
+    btn.querySelector('span').textContent = 'Manage profiles';
+    document.body.classList.remove('manage-mode');
+  }
+  renderProfiles();
+}
+
+/* ============================================================
+   LOAD
+   ============================================================ */
+function loadUserData(){
+  if (!currentUser){ showSignin(); return; }
+
+  var uid = currentUser.uid;
+
+  // Load subscription tier
+  db.collection('subscriptions').doc(uid).get()
+    .then(function(doc){
+      var sub = doc.exists ? doc.data() : {};
+      var tier = sub.tier || 'free';
+
+      // Check expiry
+      if (sub.expiresAt && sub.expiresAt.toDate && sub.expiresAt.toDate() < new Date()){
+        tier = 'free';
+      }
+
+      userTier = tier;
+      profileLimit = PROFILE_LIMITS[tier] || 1;
+      renderHead();
+
+      // Now load profiles
+      attachProfilesListener();
+    })
+    .catch(function(err){
+      console.warn('[subscription]', err);
+      userTier = 'free';
+      profileLimit = 1;
+      renderHead();
+      attachProfilesListener();
+    });
+}
+
+function attachProfilesListener(){
+  if (unsubProfiles){ try { unsubProfiles(); } catch(e){} }
+
+  unsubProfiles = db.collection('users').doc(currentUser.uid)
+    .collection('profiles')
+    .orderBy('createdAt', 'asc')
+    .onSnapshot(function(snap){
+      profiles = [];
+      snap.forEach(function(doc){
+        var d = doc.data() || {};
+        d.id = doc.id;
+        profiles.push(d);
+      });
+
+      // Auto-create first profile if none exist
+      if (profiles.length === 0){
+        db.collection('users').doc(currentUser.uid)
+          .collection('profiles')
+          .add({
+            name: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Me'),
+            color: COLORS[0],
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          })
+          .then(function(){
+            // Listener will fire again with the new profile
+          })
+          .catch(function(err){
+            console.error('[auto-create profile]', err);
+            // Fall through — show empty state
+            renderHead();
+            renderProfiles();
+            showContent();
+          });
+        return;
+      }
+
+      // Load currently active profile from localStorage
+      try {
+        var stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        if (stored && stored.id && profiles.some(function(p){ return p.id === stored.id; })){
+          activeProfileId = stored.id;
+        } else {
+          activeProfileId = null;
+        }
+      } catch(e){
+        activeProfileId = null;
+      }
+
+      renderHead();
+      renderProfiles();
+      showContent();
+    }, function(err){
+      console.error('[profiles]', err);
+      toast('Could not load profiles.', 'error');
+      showContent();
+    });
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', function(){
+  refreshIcons();
+
+  // Wire modal buttons initially
+  wireModalButtons();
+
+  // Manage button
+  $('manageBtn').addEventListener('click', toggleManageMode);
+
+  // Sign out
+  $('signoutBtn').addEventListener('click', function(){
+    if (!confirm('Sign out of Starlane Stream?')) return;
+    if (auth){
+      auth.signOut().then(function(){
+        try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
+        window.location.href = 'index.html';
+      });
+    }
+  });
+
+  // Close modal on backdrop click
+  $('modalBackdrop').addEventListener('click', function(e){
+    if (e.target === this) hideModal();
+  });
+
+  // Enter key on name input saves
+  $('profileNameInput').addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); saveProfile(); }
+  });
+
+  // Auth check
+  if (!firebaseReady || !auth){
+    showSignin();
+    return;
+  }
+
+  auth.onAuthStateChanged(function(user){
+    if (!user){
+      currentUser = null;
+      showSignin();
+      return;
+    }
+    currentUser = user;
+    showLoading();
+    loadUserData();
+  });
+
+  window.addEventListener('beforeunload', function(){
+    if (unsubProfiles){ try { unsubProfiles(); } catch(e){} }
+  });
+});
+
+})();
+</script>
+
+</body>
+  </html>
