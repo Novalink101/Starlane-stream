@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#050508" />
-<meta name="description" content="Browse every channel on Starlane Stream — Sports, Movies, News, Music, and more. Free to start." />
-<title>All Channels · Starlane Stream</title>
+<meta name="description" content="Browse everything on Starlane Stream — live TV, movies, and shows." />
+<title>Browse · Starlane Stream</title>
 
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -17,28 +17,23 @@
   --red:#E50914;--red-hover:#FF3B4E;--red-dark:#B20710;
   --red-soft:rgba(229,9,20,.12);
   --red-border:rgba(229,9,20,.25);
-
   --bg:#050508;--bg-2:#0A0A0F;
   --surface:rgba(20,20,28,.75);
-  --surface-2:rgba(30,30,40,.6);
   --border:rgba(255,255,255,.08);
   --border-2:rgba(255,255,255,.14);
-
   --text:#FFFFFF;
   --text-2:rgba(255,255,255,.75);
   --text-3:rgba(255,255,255,.5);
   --text-muted:rgba(255,255,255,.35);
-
   --green:#10B981;
   --yellow:#F59E0B;
-
+  --purple:#8B5CF6;
   --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-
   --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:22px;--r-full:999px;
   --ease:cubic-bezier(.25,.8,.25,1);
   --ease-out:cubic-bezier(.22,.9,.3,1);
-  --container:1240px;
+  --container:1480px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
@@ -53,7 +48,7 @@ img,svg{display:block;max-width:100%}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:none}
 a{color:inherit;text-decoration:none}
-h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
+h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em;color:#fff}
 ::selection{background:var(--red);color:#fff}
 .hidden{display:none!important}
 
@@ -79,9 +74,10 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 }
 @keyframes twinkle{0%,100%{opacity:.85}50%{opacity:.4}}
 
+/* Nav */
 .nav{
   position:sticky;top:0;z-index:50;
-  background:rgba(5,5,8,.85);
+  background:rgba(5,5,8,.88);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-bottom:1px solid var(--border);
 }
@@ -100,26 +96,24 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   .nav-brand b{font-size:15px}
   .nav-brand svg{width:24px;height:30px}
 }
-
 .nav-btn{
   display:inline-flex;align-items:center;gap:7px;
-  padding:9px 16px;border-radius:var(--r-full);
+  padding:9px 14px;border-radius:var(--r-full);
   font-size:13px;font-weight:800;
   transition:all .2s var(--ease);
   white-space:nowrap;text-decoration:none;
   font-family:inherit;cursor:pointer;
   border:1px solid transparent;line-height:1;
 }
-.nav-btn svg{width:15px;height:15px;flex-shrink:0}
+.nav-btn svg{width:14px;height:14px;flex-shrink:0}
 .nav-btn.ghost{background:transparent;color:var(--text-2);border-color:var(--border-2)}
 .nav-btn.ghost:hover{color:#fff;border-color:var(--red);background:var(--red-soft)}
 .nav-btn.primary{background:var(--red);color:#fff;box-shadow:0 4px 14px rgba(229,9,20,.35)}
 .nav-btn.primary:hover{background:var(--red-hover);transform:translateY(-1px)}
-@media (max-width:480px){
+@media (max-width:640px){
   .nav-btn .lbl{display:none}
   .nav-btn{padding:9px 12px}
 }
-
 .user-chip{
   display:inline-flex;align-items:center;gap:9px;
   padding:6px 14px 6px 6px;
@@ -132,29 +126,16 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   max-width:220px;
   overflow:hidden;
 }
-.user-chip:hover{
-  border-color:var(--red);
-  background:var(--red-soft);
-}
+.user-chip:hover{border-color:var(--red);background:var(--red-soft);}
 .user-chip-avatar{
-  width:28px;height:28px;
-  border-radius:50%;
+  width:28px;height:28px;border-radius:50%;
   background:linear-gradient(135deg, var(--red), #FF5566);
-  color:#fff;
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:900;
-  font-family:var(--mono);
-  flex-shrink:0;
-  letter-spacing:.02em;
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:900;font-family:var(--mono);flex-shrink:0;
 }
 .user-chip-name{
-  font-size:13px;
-  font-weight:800;
-  color:#fff;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  max-width:140px;
+  font-size:13px;font-weight:800;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;
 }
 @media (max-width:560px){
   .user-chip{padding:5px;gap:0}
@@ -162,9 +143,9 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   .user-chip-avatar{width:30px;height:30px;font-size:12px}
 }
 
-.page-head{padding:56px 0 32px;}
-@media (max-width:640px){.page-head{padding:36px 0 20px}}
-
+/* Page head */
+.page-head{padding:44px 0 26px;}
+@media (max-width:640px){.page-head{padding:28px 0 18px}}
 .page-crumb{
   display:inline-flex;align-items:center;gap:7px;
   font-size:12px;font-weight:800;
@@ -175,7 +156,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 }
 .page-crumb:hover{color:var(--red)}
 .page-crumb svg{width:14px;height:14px}
-
 .page-head h1{
   font-size:clamp(1.8rem,4vw,2.6rem);
   margin-bottom:10px;
@@ -194,38 +174,25 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   font-weight:500;
 }
 
-.page-stats{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;}
-.page-stat{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:8px 14px;
-  background:rgba(255,255,255,.03);
-  border:1px solid var(--border);
-  border-radius:var(--r-full);
-  font-size:12.5px;font-weight:800;
-  color:var(--text-2);
-}
-.page-stat svg{width:14px;height:14px;color:var(--red)}
-.page-stat .num{color:#fff;font-family:var(--mono)}
-
+/* Filter bar */
 .filter-bar{
   position:sticky;top:62px;z-index:40;
-  padding:16px 0;
-  background:rgba(5,5,8,.92);
+  padding:14px 0;
+  background:rgba(5,5,8,.94);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-bottom:1px solid var(--border);
-  margin-bottom:32px;
+  margin-bottom:28px;
 }
-@media (max-width:560px){.filter-bar{top:56px;padding:12px 0}}
-
-.filter-inner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
-
+@media (max-width:640px){.filter-bar{top:56px;padding:12px 0}}
+.filter-inner{
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+}
 .search-box{position:relative;flex:1;min-width:220px;}
 .search-box svg{
   position:absolute;left:16px;top:50%;
   transform:translateY(-50%);
   width:16px;height:16px;
-  color:var(--text-3);
-  pointer-events:none;
+  color:var(--text-3);pointer-events:none;
 }
 .search-box input{
   width:100%;
@@ -233,8 +200,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   background:rgba(255,255,255,.04);
   border:1px solid var(--border-2);
   border-radius:var(--r-full);
-  font-size:14px;
-  color:#fff;
+  font-size:14px;color:#fff;
   transition:all .2s var(--ease);
   font-family:inherit;
 }
@@ -245,19 +211,16 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   background:rgba(255,255,255,.06);
   box-shadow:0 0 0 3px rgba(229,9,20,.15);
 }
-
-.cat-chips{
+.type-chips{
   display:flex;gap:6px;
   overflow-x:auto;
   scrollbar-width:none;
-  -webkit-overflow-scrolling:touch;
-  flex:1;min-width:0;
+  flex:0 1 auto;
 }
-.cat-chips::-webkit-scrollbar{display:none}
-
+.type-chips::-webkit-scrollbar{display:none}
 .chip{
   flex-shrink:0;
-  padding:8px 14px;
+  padding:9px 16px;
   border-radius:var(--r-full);
   font-size:12.5px;font-weight:800;
   background:rgba(255,255,255,.04);
@@ -267,7 +230,11 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   cursor:pointer;
   white-space:nowrap;
   font-family:inherit;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
 }
+.chip svg{width:14px;height:14px}
 .chip:hover{border-color:var(--red-border);color:#fff}
 .chip.active{
   background:var(--red);
@@ -276,9 +243,9 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   box-shadow:0 4px 12px rgba(229,9,20,.35);
 }
 
+/* Section */
 .section{padding:0 0 56px}
 @media (max-width:640px){.section{padding:0 0 40px}}
-
 .section-head{
   display:flex;justify-content:space-between;align-items:flex-end;
   gap:14px;flex-wrap:wrap;margin-bottom:20px;padding:0 4px;
@@ -299,104 +266,101 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   font-family:var(--mono);
 }
 
-.channels-grid{
+/* Content grid */
+.content-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
   gap:16px;
   padding:0 4px;
 }
 @media (max-width:640px){
-  .channels-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .content-grid{grid-template-columns:repeat(2,1fr);gap:12px}
 }
 
-.channel-card{
+.content-card{
   background:var(--surface);
   border:1px solid var(--border);
   border-radius:var(--r-lg);
-  padding:22px 18px;
+  overflow:hidden;
   cursor:pointer;
-  transition:all .28s var(--ease);
-  display:flex;flex-direction:column;align-items:center;
-  text-align:center;gap:14px;
-  position:relative;overflow:hidden;
+  transition:all .25s var(--ease);
+  display:flex;flex-direction:column;
   text-decoration:none;
+  position:relative;
 }
-@media (max-width:480px){.channel-card{padding:16px 12px;gap:10px}}
-
-.channel-card::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(circle at 50% 0%, rgba(229,9,20,.14), transparent 60%);
-  opacity:0;transition:opacity .3s;
-  pointer-events:none;
-}
-.channel-card:hover{
+.content-card:hover{
   transform:translateY(-4px);
   border-color:var(--red-border);
-  box-shadow:0 20px 40px rgba(0,0,0,.4);
+  box-shadow:0 20px 40px rgba(0,0,0,.45);
 }
-.channel-card:hover::before{opacity:1}
-
-.channel-logo{
-  width:72px;height:72px;
-  border-radius:18px;
-  background:linear-gradient(135deg, #1A0A0F, #2A0A14);
-  border:2px solid var(--red-border);
+.content-thumb{
+  aspect-ratio:16/9;position:relative;overflow:hidden;
+  background:linear-gradient(135deg, #0A0A14, #1A0A14);
+  background-size:cover;background-position:center;
   display:flex;align-items:center;justify-content:center;
-  font-size:26px;font-weight:900;
-  color:var(--red);
-  font-family:var(--mono);
-  flex-shrink:0;overflow:hidden;
-  box-shadow:inset 0 0 24px rgba(229,9,20,.15);
+}
+.content-thumb::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg, transparent 40%, rgba(5,5,8,.9) 100%);
+  pointer-events:none;
+}
+.content-badge{
+  position:absolute;top:10px;left:10px;z-index:3;
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:9.5px;font-weight:900;
+  letter-spacing:.12em;text-transform:uppercase;
+  padding:4px 10px;border-radius:var(--r-full);
+  backdrop-filter:blur(8px);
+}
+.content-badge.live{
+  background:var(--red);color:#fff;
+  box-shadow:0 0 16px rgba(229,9,20,.7);
+}
+.content-badge.live::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:#fff;animation:pulse 1.2s infinite;
+}
+.content-badge.upcoming{
+  background:rgba(0,0,0,.7);
+  border:1px solid rgba(255,255,255,.2);
+  color:#fff;
+}
+.content-badge.movie{background:rgba(139,92,246,.92);color:#fff;}
+.content-badge.show{background:rgba(229,9,20,.9);color:#fff;}
+.content-badge.replay{background:rgba(124,58,237,.9);color:#fff;}
+.content-badge.ended{background:rgba(71,85,105,.9);color:#fff;}
+.play-ico{
+  width:52px;height:52px;border-radius:50%;z-index:2;
+  background:rgba(229,9,20,.9);
+  border:2px solid rgba(255,255,255,.25);
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(8px);
+  box-shadow:0 0 30px rgba(229,9,20,.6);
   transition:transform .3s var(--ease);
 }
-.channel-card:hover .channel-logo{transform:scale(1.05)}
-@media (max-width:480px){.channel-logo{width:56px;height:56px;font-size:20px;border-radius:14px}}
-
-.channel-logo img{width:100%;height:100%;object-fit:cover}
-
-.channel-body{
-  display:flex;flex-direction:column;gap:5px;
-  width:100%;min-width:0;
+.content-card:hover .play-ico{transform:scale(1.15)}
+.play-ico svg{width:22px;height:22px;color:#fff;fill:#fff;margin-left:3px}
+.content-body{
+  padding:12px 14px 14px;
+  display:flex;flex-direction:column;gap:6px;flex:1;
 }
-.channel-name{
-  font-size:15px;font-weight:800;
+.content-title{
+  font-size:14.5px;font-weight:800;line-height:1.28;
   color:#fff;letter-spacing:-.01em;
-  line-height:1.25;
   overflow:hidden;text-overflow:ellipsis;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
   word-break:break-word;
 }
-.channel-meta{
-  font-size:11.5px;font-weight:700;
-  color:var(--text-3);
-  letter-spacing:.04em;
-  display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  flex-wrap:wrap;
+.content-meta{
+  font-size:11.5px;color:var(--text-3);
+  font-weight:600;
+  display:flex;align-items:center;gap:6px;
+  margin-top:auto;padding-top:8px;
+  border-top:1px solid var(--border);
 }
-.channel-meta svg{width:12px;height:12px}
-.channel-meta .live{
-  color:var(--red);
-  display:inline-flex;align-items:center;gap:4px;
-  font-weight:900;
-}
-.channel-meta .live::before{
-  content:'';width:6px;height:6px;border-radius:50%;
-  background:var(--red);
-  box-shadow:0 0 8px var(--red);
-  animation:pulse 1.5s ease-in-out infinite;
-}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.content-meta svg{width:12px;height:12px;flex-shrink:0;color:var(--red)}
 
-.channel-tag{
-  position:absolute;top:12px;right:12px;
-  font-size:9.5px;font-weight:900;
-  letter-spacing:.1em;text-transform:uppercase;
-  padding:4px 9px;border-radius:var(--r-full);
-  backdrop-filter:blur(8px);
-}
-.channel-tag.free{background:rgba(16,185,129,.2);color:#10B981;border:1px solid rgba(16,185,129,.4)}
-.channel-tag.paid{background:rgba(229,9,20,.2);color:#fff;border:1px solid var(--red)}
-
+/* Empty state */
 .empty-state{
   grid-column:1/-1;
   text-align:center;
@@ -419,19 +383,20 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   line-height:1.6;
 }
 
+/* Skeleton */
 .skeleton-card{
   background:var(--surface);
   border:1px solid var(--border);
   border-radius:var(--r-lg);
-  padding:22px 18px;
-  display:flex;flex-direction:column;align-items:center;gap:14px;
+  overflow:hidden;
 }
-.sk-circle{
-  width:72px;height:72px;border-radius:18px;
+.sk-thumb{
+  aspect-ratio:16/9;
   background:linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.08), rgba(255,255,255,.04));
   background-size:200% 100%;
   animation:sk 1.6s ease-in-out infinite;
 }
+.sk-body{padding:14px;display:flex;flex-direction:column;gap:10px}
 .sk-line{
   height:12px;border-radius:6px;width:80%;
   background:linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.08), rgba(255,255,255,.04));
@@ -443,7 +408,9 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   0%{background-position:200% 0}
   100%{background-position:-200% 0}
 }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 
+/* Footer */
 .footer{
   background:#020204;
   border-top:1px solid var(--border);
@@ -451,16 +418,13 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   margin-top:auto;
 }
 @media (max-width:640px){.footer{padding:40px 0 24px}}
-
 .footer-grid{
   display:grid;
   grid-template-columns:2fr 1fr 1fr 1fr;
-  gap:40px;
-  margin-bottom:48px;
+  gap:40px;margin-bottom:48px;
 }
 @media (max-width:800px){.footer-grid{grid-template-columns:1fr 1fr;gap:32px}}
 @media (max-width:480px){.footer-grid{grid-template-columns:1fr;gap:28px}}
-
 .footer-brand{display:inline-flex;align-items:center;gap:11px;margin-bottom:14px;}
 .footer-brand svg{width:26px;height:32px}
 .footer-brand b{font-weight:900;font-size:16px;color:#fff;letter-spacing:-.01em}
@@ -469,20 +433,16 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .footer-col h4{
   font-size:11px;font-weight:900;
   letter-spacing:.14em;text-transform:uppercase;
-  color:var(--text-muted);
-  margin-bottom:16px;
+  color:var(--text-muted);margin-bottom:16px;
 }
 .footer-col a{
   display:block;color:var(--text-2);
-  font-size:13.5px;font-weight:500;
-  padding:5px 0;
+  font-size:13.5px;font-weight:500;padding:5px 0;
   transition:color .2s;
 }
 .footer-col a:hover{color:var(--red)}
-
 .footer-bottom{
-  padding-top:28px;
-  border-top:1px solid var(--border);
+  padding-top:28px;border-top:1px solid var(--border);
   display:flex;justify-content:space-between;
   align-items:center;flex-wrap:wrap;gap:14px;
   font-size:12.5px;color:var(--text-muted);
@@ -539,7 +499,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
       <b>STAR<span>LANE</span></b>
     </a>
     <div class="nav-actions">
-
       <a href="index.html" class="nav-btn ghost">
         <i data-lucide="home"></i>
         <span class="lbl">Home</span>
@@ -548,16 +507,10 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
         <i data-lucide="tag"></i>
         <span class="lbl">Plans</span>
       </a>
-
-      <a href="auth.html?tab=signup" class="nav-btn primary" id="signupBtn">
-        <i data-lucide="sparkles"></i>
-        <span class="lbl">Start free</span>
-      </a>
       <a href="auth.html" class="nav-btn ghost" id="signinBtn">
         <i data-lucide="log-in"></i>
         <span class="lbl">Sign in</span>
       </a>
-
       <a href="admin-618472935.html" class="nav-btn primary hidden" id="adminBtn" title="Admin dashboard">
         <i data-lucide="shield-check"></i>
         <span class="lbl">Admin</span>
@@ -570,7 +523,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
         <i data-lucide="log-out"></i>
         <span class="lbl">Sign out</span>
       </button>
-
     </div>
   </div>
 </nav>
@@ -581,20 +533,8 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
       <i data-lucide="arrow-left"></i>
       Back to home
     </a>
-    <h1>All <span class="accent">channels.</span></h1>
-    <p>Sports, movies, news, music, and more. Filter by category or search for something specific.</p>
-    <div class="page-stats" id="pageStats" style="display:none;">
-      <span class="page-stat">
-        <i data-lucide="tv"></i>
-        <span class="num" id="statChannels">0</span>
-        <span>channels</span>
-      </span>
-      <span class="page-stat">
-        <i data-lucide="radio"></i>
-        <span class="num" id="statLive">0</span>
-        <span>live now</span>
-      </span>
-    </div>
+    <h1>Browse <span class="accent">everything.</span></h1>
+    <p>Live streams, movies, and shows — all in one place. Filter by type or search for something specific.</p>
   </div>
 </section>
 
@@ -603,10 +543,29 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
     <div class="filter-inner">
       <div class="search-box">
         <i data-lucide="search"></i>
-        <input type="text" id="searchInput" placeholder="Search channels…" autocomplete="off" />
+        <input type="text" id="searchInput" placeholder="Search titles…" autocomplete="off" />
       </div>
-      <div class="cat-chips" id="catChips">
-        <button class="chip active" data-cat="" type="button">All</button>
+      <div class="type-chips" id="typeChips">
+        <button class="chip active" data-filter="all" type="button">
+          <i data-lucide="layers"></i>
+          All
+          <span id="cntAll">0</span>
+        </button>
+        <button class="chip" data-filter="live" type="button">
+          <i data-lucide="radio"></i>
+          Live
+          <span id="cntLive">0</span>
+        </button>
+        <button class="chip" data-filter="movie" type="button">
+          <i data-lucide="film"></i>
+          Movies
+          <span id="cntMovie">0</span>
+        </button>
+        <button class="chip" data-filter="show" type="button">
+          <i data-lucide="layers"></i>
+          Shows
+          <span id="cntShow">0</span>
+        </button>
       </div>
     </div>
   </div>
@@ -617,17 +576,17 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
     <div class="section-head">
       <h2 class="section-title">
         <i data-lucide="grid-3x3"></i>
-        Channels
+        <span id="sectionTitle">All content</span>
         <span class="count" id="resultCount">—</span>
       </h2>
     </div>
-    <div class="channels-grid" id="channelsGrid">
-      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
-      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
-      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
-      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
-      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
-      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
+    <div class="content-grid" id="contentGrid">
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
     </div>
   </div>
 </section>
@@ -652,13 +611,13 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
           <b>STAR<span>LANE</span></b>
         </div>
         <p class="footer-tagline">
-          Live TV, movies, and sports — streaming without limits.
+          Live TV, movies, shows and sports — streaming without limits.
           Built for South Africa, made for the world.
         </p>
       </div>
       <div class="footer-col">
         <h4>Product</h4>
-        <a href="streams.html">All channels</a>
+        <a href="streams.html">Browse all</a>
         <a href="plans.html">Plans & pricing</a>
         <a href="auth.html?tab=signup">Start free</a>
       </div>
@@ -688,7 +647,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 (function(){
 'use strict';
 
-// Firebase configuration
 var firebaseConfig = {
   apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
   authDomain: "starlane-stream.firebaseapp.com",
@@ -698,15 +656,18 @@ var firebaseConfig = {
   appId: "1:115625325145:web:b14025df503bbe2b7d7748"
 };
 
-// Admin emails (must match Firestore rules)
 var ADMIN_EMAILS = [
   'nylnathan340@gmail.com',
   'customerservicesnovalink@gmail.com'
 ];
 
+var STREAMS = "streams";
+var REPLAY_DAYS = 30;
+
 var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
 var db = null;
 var auth = null;
+var currentUser = null;
 
 if (firebaseReady && !firebase.apps.length){
   firebase.initializeApp(firebaseConfig);
@@ -715,8 +676,23 @@ if (firebaseReady && !firebase.apps.length){
 }
 
 function $(id){ return document.getElementById(id); }
-function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
+function icon(n){ return '<i data-lucide="' + n + '"></i>'; }
+
+function initials(name, email){
+  if (name && String(name).trim()){
+    var p = String(name).trim().split(/\s+/);
+    if (p.length >= 2) return (p[0][0]+p[1][0]).toUpperCase();
+    return p[0].slice(0,2).toUpperCase();
+  }
+  if (email) return String(email).slice(0,2).toUpperCase();
+  return '?';
+}
 
 function isAdmin(user){
   if (!user || !user.email) return false;
@@ -734,47 +710,42 @@ function getActiveProfile(){
   return null;
 }
 
-function initials(name, email){
-  if (name && String(name).trim()){
-    var p = String(name).trim().split(/\s+/);
-    if (p.length >= 2) return (p[0][0]+p[1][0]).toUpperCase();
-    return p[0].slice(0,2).toUpperCase();
-  }
-  if (email) return String(email).slice(0,2).toUpperCase();
-  return '?';
+function formatDate(dateStr, timeStr){
+  if (!dateStr) return 'On demand';
+  try {
+    var d = new Date(dateStr + 'T' + (timeStr || '00:00'));
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
+  } catch(e){ return dateStr; }
 }
 
-function toast(msg, type, ms){
-  type = type || 'info'; ms = ms || 3000;
-  var t = $('toast');
-  var ic = type === 'error' ? 'alert-circle' : (type === 'success' ? 'check-circle' : 'info');
-  t.className = type;
-  t.innerHTML = '<i data-lucide="'+ic+'"></i><span>' + esc(msg) + '</span>';
-  refreshIcons();
-  requestAnimationFrame(function(){ t.classList.add('show'); });
-  clearTimeout(toast._t);
-  toast._t = setTimeout(function(){ t.classList.remove('show'); }, ms);
+function streamStatus(item){
+  var type = item.type || 'live';
+  if (type === 'movie' || type === 'show') return 'on-demand';
+  if (!item.startDate) return 'upcoming';
+  var startMs = new Date(item.startDate + 'T' + (item.startTime || '00:00') + ':00').getTime();
+  if (isNaN(startMs)) return 'upcoming';
+  var dur = (parseInt(item.durationMinutes, 10) || 90) * 60000;
+  var endMs = startMs + dur;
+  var replayMs = endMs + REPLAY_DAYS * 86400000;
+  var now = Date.now();
+  if (now < startMs) return 'upcoming';
+  if (now <= endMs) return 'live';
+  if (now <= replayMs && item.replayEnabled !== false) return 'replay';
+  return 'ended';
 }
 
-function categoryLabel(c){
-  return {
-    sports:'Sports', movies:'Movies', news:'News', music:'Music',
-    kids:'Kids', documentary:'Documentary', gaming:'Gaming',
-    entertainment:'Entertainment', education:'Education', other:'Other'
-  }[c] || (c ? c.charAt(0).toUpperCase() + c.slice(1) : 'Channel');
-}
-
+/* ═══════════════════════════════════════════════════════════════
+   NAV AUTH
+   ═══════════════════════════════════════════════════════════════ */
 function updateNavAuth(user){
   var signinBtn = $('signinBtn');
-  var signupBtn = $('signupBtn');
   var userChip = $('userChip');
   var signoutBtn = $('signoutBtn');
   var adminBtn = $('adminBtn');
 
   if (user){
     if (signinBtn) signinBtn.classList.add('hidden');
-    if (signupBtn) signupBtn.classList.add('hidden');
-
     if (userChip){
       userChip.classList.remove('hidden');
       var av = $('userAvatar');
@@ -799,7 +770,6 @@ function updateNavAuth(user){
     }
   } else {
     if (signinBtn) signinBtn.classList.remove('hidden');
-    if (signupBtn) signupBtn.classList.remove('hidden');
     if (userChip) userChip.classList.add('hidden');
     if (signoutBtn) signoutBtn.classList.add('hidden');
     if (adminBtn) adminBtn.classList.add('hidden');
@@ -814,216 +784,245 @@ function wireSignout(){
     if (!confirm('Sign out of Starlane Stream?')) return;
     try { localStorage.removeItem('starlane_active_profile'); } catch(e){}
     if (auth){
-      auth.signOut().then(function(){
-        toast('Signed out.', 'success', 2000);
-      }).catch(function(err){
+      auth.signOut().catch(function(err){
         console.error('[signout]', err);
-        toast('Could not sign out.', 'error');
       });
     }
   });
 }
 
-var allChannels = [];
-var streamCounts = {};
-var activeCategory = '';
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════ */
+var allContent = [];
+var activeFilter = 'all';
 var searchQuery = '';
 
-function renderChannels(){
-  var grid = $('channelsGrid');
-  var q = searchQuery.toLowerCase();
-  var cat = activeCategory;
+/* ═══════════════════════════════════════════════════════════════
+   BUILD CARD
+   ═══════════════════════════════════════════════════════════════ */
+function buildContentCard(item){
+  var card = document.createElement('a');
+  card.className = 'content-card';
+  card.href = 'watch-847291563.html?id=' + encodeURIComponent(item.id);
 
-  var filtered = allChannels.filter(function(ch){
-    if (cat && ch.category !== cat) return false;
-    if (q){
-      var name = String(ch.name || '').toLowerCase();
-      var tag = String(ch.tagline || '').toLowerCase();
-      var catL = String(ch.category || '').toLowerCase();
-      if (name.indexOf(q) === -1 && tag.indexOf(q) === -1 && catL.indexOf(q) === -1) return false;
-    }
-    return true;
+  var type = item.type || 'live';
+  var status = streamStatus(item);
+  var title = item.title || item.streamTitle || item.eventName || 'Untitled';
+  var poster = item.posterUrl || item.heroImage || '';
+
+  var thumbStyle = poster
+    ? "background-image:url('" + esc(poster) + "');background-size:cover;background-position:center;"
+    : '';
+
+  var badgeClass = 'upcoming';
+  var badgeLabel = 'Upcoming';
+  if (type === 'movie'){ badgeClass = 'movie'; badgeLabel = 'Movie'; }
+  else if (type === 'show'){ badgeClass = 'show'; badgeLabel = 'Show'; }
+  else {
+    if (status === 'live'){ badgeClass = 'live'; badgeLabel = 'Live'; }
+    else if (status === 'replay'){ badgeClass = 'replay'; badgeLabel = 'Replay'; }
+    else if (status === 'ended'){ badgeClass = 'ended'; badgeLabel = 'Ended'; }
+  }
+
+  var metaText = '';
+  if (type === 'show' && Array.isArray(item.episodes)){
+    metaText = item.episodes.length + ' episode' + (item.episodes.length === 1 ? '' : 's');
+  } else if (type === 'movie'){
+    metaText = (parseInt(item.durationMinutes, 10) || 0) + ' min';
+  } else {
+    metaText = formatDate(item.startDate, item.startTime);
+  }
+
+  card.innerHTML =
+    '<div class="content-thumb" style="' + thumbStyle + '">' +
+      '<span class="content-badge ' + badgeClass + '">' + esc(badgeLabel) + '</span>' +
+      '<div class="play-ico">' + icon('play') + '</div>' +
+    '</div>' +
+    '<div class="content-body">' +
+      '<div class="content-title">' + esc(title) + '</div>' +
+      '<div class="content-meta">' + icon('calendar') + '<span>' + esc(metaText) + '</span></div>' +
+    '</div>';
+
+  return card;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COUNTS
+   ═══════════════════════════════════════════════════════════════ */
+function updateCounts(){
+  var counts = { all: allContent.length, live: 0, movie: 0, show: 0 };
+  allContent.forEach(function(item){
+    var t = item.type || 'live';
+    if (counts[t] !== undefined) counts[t]++;
+  });
+  $('cntAll').textContent = counts.all;
+  $('cntLive').textContent = counts.live;
+  $('cntMovie').textContent = counts.movie;
+  $('cntShow').textContent = counts.show;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER
+   ═══════════════════════════════════════════════════════════════ */
+function renderGrid(){
+  var grid = $('contentGrid');
+  updateCounts();
+
+  var filtered = allContent.slice();
+
+  // Type filter
+  if (activeFilter !== 'all'){
+    filtered = filtered.filter(function(item){
+      return (item.type || 'live') === activeFilter;
+    });
+  }
+
+  // Search
+  if (searchQuery){
+    var q = searchQuery.toLowerCase();
+    filtered = filtered.filter(function(item){
+      var t = String(item.title || item.streamTitle || item.eventName || '').toLowerCase();
+      return t.indexOf(q) !== -1;
+    });
+  }
+
+  // Sort: live first, then upcoming, then movies/shows, then ended
+  var order = { live: 0, upcoming: 1, 'on-demand': 2, replay: 3, ended: 4 };
+  filtered.sort(function(a, b){
+    var sa = streamStatus(a), sb = streamStatus(b);
+    if (order[sa] !== order[sb]) return order[sa] - order[sb];
+    return String(a.title || '').localeCompare(String(b.title || ''));
   });
 
-  $('resultCount').textContent = filtered.length + (filtered.length === 1 ? ' channel' : ' channels');
+  // Update section title
+  var labels = { all: 'All content', live: 'Live streams', movie: 'Movies', show: 'Shows' };
+  var titleEl = $('sectionTitle');
+  if (titleEl) titleEl.textContent = labels[activeFilter] || 'All content';
+
+  $('resultCount').textContent = filtered.length + (filtered.length === 1 ? ' item' : ' items');
 
   if (!filtered.length){
     grid.innerHTML =
       '<div class="empty-state">' +
-        '<i data-lucide="search-x"></i>' +
-        '<h3>No channels found</h3>' +
-        '<p>' + (searchQuery ? 'Try a different search term.' : 'No channels in this category yet. Check back soon.') + '</p>' +
+        icon('search-x') +
+        '<h3>Nothing found</h3>' +
+        '<p>' + (searchQuery ? 'Try a different search term.' : 'No content in this category yet. Check back soon.') + '</p>' +
       '</div>';
     refreshIcons();
     return;
   }
 
   grid.innerHTML = '';
-  filtered.forEach(function(ch){
-    grid.appendChild(buildChannelCard(ch));
+  filtered.forEach(function(item){
+    grid.appendChild(buildContentCard(item));
   });
   refreshIcons();
 }
 
-function buildChannelCard(ch){
-  var card = document.createElement('a');
-  card.className = 'channel-card';
-  card.href = 'channel.html?id=' + encodeURIComponent(ch.id);
-
-  var logoHTML = ch.logoUrl
-    ? '<img alt="" src="' + esc(ch.logoUrl) + '" />'
-    : esc(initials(ch.name));
-
-  var isPaid = ch.accessTier && ch.accessTier !== 'free';
-  var tagHTML = isPaid
-    ? '<span class="channel-tag paid">Premium</span>'
-    : '<span class="channel-tag free">Free</span>';
-
-  var counts = streamCounts[ch.id] || { total: 0, live: 0 };
-  var metaHTML = '';
-  if (counts.live > 0){
-    metaHTML = '<span class="live">' + counts.live + ' live</span>';
-  } else if (counts.total > 0){
-    metaHTML = '<i data-lucide="video"></i><span>' + counts.total + ' stream' + (counts.total === 1 ? '' : 's') + '</span>';
-  } else {
-    metaHTML = '<span>Coming soon</span>';
-  }
-
-  card.innerHTML =
-    tagHTML +
-    '<div class="channel-logo">' + logoHTML + '</div>' +
-    '<div class="channel-body">' +
-      '<div class="channel-name">' + esc(ch.name || 'Untitled') + '</div>' +
-      '<div class="channel-meta">' + metaHTML + '</div>' +
-    '</div>';
-
-  return card;
-}
-
-function renderCategoryChips(){
-  var wrap = $('catChips');
-  var cats = {};
-  allChannels.forEach(function(ch){
-    if (ch.category) cats[ch.category] = (cats[ch.category] || 0) + 1;
-  });
-
-  var html = '<button class="chip' + (!activeCategory ? ' active' : '') + '" data-cat="" type="button">All</button>';
-
-  Object.keys(cats).sort().forEach(function(c){
-    html += '<button class="chip' + (activeCategory === c ? ' active' : '') + '" data-cat="' + esc(c) + '" type="button">'
-      + esc(categoryLabel(c)) + '</button>';
-  });
-
-  wrap.innerHTML = html;
-
-  wrap.querySelectorAll('.chip').forEach(function(chip){
-    chip.addEventListener('click', function(){
-      activeCategory = chip.dataset.cat || '';
-      renderCategoryChips();
-      renderChannels();
-    });
-  });
-}
-
-function loadChannels(){
+/* ═══════════════════════════════════════════════════════════════
+   LOAD
+   ═══════════════════════════════════════════════════════════════ */
+function loadContent(){
   if (!firebaseReady || !db){
-    allChannels = [];
-    streamCounts = {};
-    renderCategoryChips();
-    renderChannels();
-    $('pageStats').style.display = 'none';
+    allContent = [];
+    renderGrid();
     return;
   }
 
-  Promise.all([
-    db.collection('channels').limit(200).get(),
-    db.collection('streams').limit(500).get()
-  ])
-    .then(function(results){
-      var channelsSnap = results[0];
-      allChannels = [];
-      channelsSnap.forEach(function(doc){
+  db.collection(STREAMS)
+    .where('active', '!=', false)
+    .limit(300)
+    .get()
+    .then(function(snap){
+      allContent = [];
+      snap.forEach(function(doc){
         var d = doc.data() || {};
         if (d.active === false) return;
         d.id = doc.id;
-        allChannels.push(d);
+        allContent.push(d);
       });
-      allChannels.sort(function(a, b){
-        var oa = a.order || 99, ob = b.order || 99;
-        if (oa !== ob) return oa - ob;
-        return String(a.name || '').localeCompare(String(b.name || ''));
-      });
-
-      var streamsSnap = results[1];
-      streamCounts = {};
-      var now = Date.now();
-      streamsSnap.forEach(function(doc){
-        var d = doc.data() || {};
-        var cid = d.channelId;
-        if (!cid) return;
-        if (!streamCounts[cid]) streamCounts[cid] = { total: 0, live: 0 };
-        streamCounts[cid].total++;
-
-        if (d.startDate){
-          var timeStr = d.startTime || '00:00';
-          var startMs = new Date(d.startDate + 'T' + timeStr + ':00').getTime();
-          var durMin = parseInt(d.durationMinutes, 10) || 90;
-          var endMs = startMs + durMin * 60000 + 15 * 60000;
-          if (!isNaN(startMs) && now >= startMs && now <= endMs){
-            streamCounts[cid].live++;
-          }
-        }
-      });
-
-      var totalLive = Object.keys(streamCounts).reduce(function(sum, k){
-        return sum + (streamCounts[k].live || 0);
-      }, 0);
-      $('statChannels').textContent = allChannels.length;
-      $('statLive').textContent = totalLive;
-      $('pageStats').style.display = 'flex';
-
-      renderCategoryChips();
-      renderChannels();
+      renderGrid();
     })
     .catch(function(err){
-      console.warn('[channels load]', err);
-      allChannels = [];
-      streamCounts = {};
-      renderCategoryChips();
-      renderChannels();
+      console.warn('[content load]', err);
+      allContent = [];
+      renderGrid();
     });
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   TABS + SEARCH WIRING
+   ═══════════════════════════════════════════════════════════════ */
+function wireFilters(){
+  document.querySelectorAll('#typeChips .chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      activeFilter = chip.dataset.filter || 'all';
+      document.querySelectorAll('#typeChips .chip').forEach(function(c){
+        c.classList.toggle('active', c === chip);
+      });
+      renderGrid();
+      // Update URL param so refresh keeps filter
+      try {
+        var url = new URL(location.href);
+        if (activeFilter === 'all') url.searchParams.delete('filter');
+        else url.searchParams.set('filter', activeFilter);
+        history.replaceState(null, '', url.toString());
+      } catch(e){}
+    });
+  });
+
+  var input = $('searchInput');
+  var timer = null;
+  input.addEventListener('input', function(){
+    var v = this.value.trim();
+    clearTimeout(timer);
+    timer = setTimeout(function(){
+      searchQuery = v;
+      renderGrid();
+    }, 200);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function(){
   var yearEl = $('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
   refreshIcons();
   wireSignout();
+  wireFilters();
 
-  var searchTimer = null;
-  $('searchInput').addEventListener('input', function(){
-    var v = this.value.trim();
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(function(){
-      searchQuery = v;
-      renderChannels();
-    }, 200);
+  // Read filter from URL
+  try {
+    var params = new URLSearchParams(location.search);
+    var f = (params.get('filter') || 'all').toLowerCase();
+    if (['all','live','movie','show'].indexOf(f) !== -1) activeFilter = f;
+  } catch(e){}
+
+  // Apply active class to matching chip
+  document.querySelectorAll('#typeChips .chip').forEach(function(c){
+    c.classList.toggle('active', c.dataset.filter === activeFilter);
   });
 
-  renderCategoryChips();
-
+  // Auth
   if (firebaseReady && auth){
     auth.onAuthStateChanged(function(user){
+      currentUser = user;
       updateNavAuth(user);
-      if (!allChannels.length){
-        loadChannels();
+      if (!allLoaded){
+        allLoaded = true;
+        loadContent();
       }
     });
   } else {
     updateNavAuth(null);
-    loadChannels();
+    loadContent();
   }
 });
+
+var allLoaded = false;
 
 })();
 </script>
