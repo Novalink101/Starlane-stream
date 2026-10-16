@@ -63,7 +63,6 @@ h1,h2,h3{line-height:1.15;font-weight:900;letter-spacing:-.02em;color:#fff}
 .container{max-width:var(--container);margin:0 auto;padding:0 24px;width:100%}
 @media (max-width:560px){.container{padding:0 16px}}
 
-/* Starfield */
 .starfield{
   position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
@@ -82,7 +81,6 @@ h1,h2,h3{line-height:1.15;font-weight:900;letter-spacing:-.02em;color:#fff}
 }
 @keyframes twinkle{0%,100%{opacity:.85}50%{opacity:.4}}
 
-/* Nav */
 .nav{
   position:sticky;top:0;z-index:50;
   background:rgba(5,5,8,.9);
@@ -135,11 +133,9 @@ h1,h2,h3{line-height:1.15;font-weight:900;letter-spacing:-.02em;color:#fff}
   .nav-btn{padding:9px 11px}
 }
 
-/* Main */
 main{flex:1;padding:32px 0 80px}
 @media (max-width:640px){main{padding:24px 0 56px}}
 
-/* Page head */
 .page-head{margin-bottom:24px}
 .page-head h1{
   font-size:clamp(1.5rem,3.2vw,2rem);
@@ -153,7 +149,6 @@ main{flex:1;padding:32px 0 80px}
   max-width:640px;
 }
 
-/* Stats */
 .stats{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -202,7 +197,6 @@ main{flex:1;padding:32px 0 80px}
   font-weight:600;margin-top:5px;
 }
 
-/* Toolbar */
 .toolbar{
   background:var(--surface);
   border:1px solid var(--border);
@@ -247,7 +241,6 @@ main{flex:1;padding:32px 0 80px}
   box-shadow:0 0 0 3px rgba(229,9,20,.15);
 }
 
-/* Tabs */
 .tabs{
   display:flex;
   gap:4px;
@@ -292,7 +285,6 @@ main{flex:1;padding:32px 0 80px}
 }
 .tab.active .badge{background:rgba(0,0,0,.25)}
 
-/* Subscriber list */
 .sub-list{
   display:flex;
   flex-direction:column;
@@ -419,7 +411,6 @@ main{flex:1;padding:32px 0 80px}
   .sub-actions .btn{flex:1}
 }
 
-/* Buttons */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:7px;
   padding:10px 16px;
@@ -473,7 +464,6 @@ main{flex:1;padding:32px 0 80px}
 }
 .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
 
-/* Empty state */
 .empty-block{
   text-align:center;
   padding:64px 24px;
@@ -500,7 +490,6 @@ main{flex:1;padding:32px 0 80px}
   margin:0 auto;
 }
 
-/* Access denied */
 .access-screen{
   max-width:520px;
   margin:80px auto;
@@ -533,7 +522,6 @@ main{flex:1;padding:32px 0 80px}
   margin-bottom:22px;
 }
 
-/* Spinner */
 .spinner{
   width:15px;height:15px;
   border:2px solid rgba(255,255,255,.3);
@@ -544,7 +532,6 @@ main{flex:1;padding:32px 0 80px}
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Footer */
 .footer{
   background:#020204;
   border-top:1px solid var(--border);
@@ -558,7 +545,6 @@ main{flex:1;padding:32px 0 80px}
   font-size:12.5px;color:var(--text-muted);
 }
 
-/* Toast */
 #toast{
   position:fixed;bottom:28px;left:50%;
   transform:translateX(-50%) translateY(140%);
@@ -588,9 +574,6 @@ main{flex:1;padding:32px 0 80px}
 
 <div class="starfield" aria-hidden="true"></div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     NAV
-     ═══════════════════════════════════════════════════════════════ -->
 <nav class="nav">
   <div class="nav-inner">
     <a href="index.html" class="nav-brand" aria-label="Starlane Stream home">
@@ -629,19 +612,14 @@ main{flex:1;padding:32px 0 80px}
   </div>
 </nav>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     MAIN
-     ═══════════════════════════════════════════════════════════════ -->
 <main>
   <div class="container">
 
-    <!-- Loading -->
     <div id="loadingState" style="text-align:center;padding:80px 0;">
       <div class="spinner" style="width:36px;height:36px;border-width:3px;margin:0 auto 16px;"></div>
       <p style="color:var(--text-3);font-size:14px;">Loading subscribers…</p>
     </div>
 
-    <!-- Access denied -->
     <div id="accessDenied" class="access-screen hidden">
       <div class="ico"><i data-lucide="shield-x"></i></div>
       <h2>Admin access only</h2>
@@ -652,7 +630,6 @@ main{flex:1;padding:32px 0 80px}
       </a>
     </div>
 
-    <!-- Sign in required -->
     <div id="signinRequired" class="access-screen hidden">
       <div class="ico" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);color:var(--yellow);">
         <i data-lucide="lock"></i>
@@ -665,7 +642,6 @@ main{flex:1;padding:32px 0 80px}
       </a>
     </div>
 
-    <!-- Content -->
     <div id="contentState" class="hidden">
 
       <div class="page-head">
@@ -673,7 +649,6 @@ main{flex:1;padding:32px 0 80px}
         <p>Verify payments and activate subscription plans. Payments are received via Yoco — verify each reference before approving.</p>
       </div>
 
-      <!-- Stats -->
       <div class="stats">
         <div class="stat pending">
           <div class="lbl">
@@ -709,7 +684,6 @@ main{flex:1;padding:32px 0 80px}
         </div>
       </div>
 
-      <!-- Toolbar -->
       <div class="toolbar">
         <div class="search-box">
           <i data-lucide="search"></i>
@@ -717,7 +691,6 @@ main{flex:1;padding:32px 0 80px}
         </div>
       </div>
 
-      <!-- Tabs -->
       <div class="tabs">
         <button type="button" class="tab active" data-tab="pending">
           <i data-lucide="clock" style="width:14px;height:14px;"></i>
@@ -741,7 +714,6 @@ main{flex:1;padding:32px 0 80px}
         </button>
       </div>
 
-      <!-- List -->
       <div class="sub-list" id="subList"></div>
 
     </div>
@@ -749,9 +721,6 @@ main{flex:1;padding:32px 0 80px}
   </div>
 </main>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     FOOTER
-     ═══════════════════════════════════════════════════════════════ -->
 <footer class="footer">
   <div class="footer-inner">
     <span>© <span id="year"></span> Starlane Stream Admin. All rights reserved.</span>
@@ -764,19 +733,17 @@ main{flex:1;padding:32px 0 80px}
 (function(){
 'use strict';
 
-/* ═══════════════════════════════════════════════════════════════
-   FIREBASE CONFIG
-   ⚠️ REPLACE with your Starlane project config
-   ═══════════════════════════════════════════════════════════════ */
+// Firebase configuration
 var firebaseConfig = {
-  apiKey: "PASTE_YOUR_API_KEY",
-  authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
-  projectId: "PASTE_YOUR_PROJECT_ID",
-  storageBucket: "PASTE_YOUR_PROJECT.firebasestorage.app",
-  messagingSenderId: "PASTE_YOUR_SENDER_ID",
-  appId: "PASTE_YOUR_APP_ID"
+  apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+  authDomain: "starlane-stream.firebaseapp.com",
+  projectId: "starlane-stream",
+  storageBucket: "starlane-stream.firebasestorage.app",
+  messagingSenderId: "115625325145",
+  appId: "1:115625325145:web:b14025df503bbe2b7d7748"
 };
 
+// Admin emails (must match Firestore rules)
 var ADMIN_EMAILS = [
   'nylnathan340@gmail.com',
   'customerservicesnovalink@gmail.com'
@@ -793,9 +760,6 @@ if (firebaseReady && !firebase.apps.length){
   auth = firebase.auth();
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   PLAN PRICES
-   ═══════════════════════════════════════════════════════════════ */
 var PLAN_PRICES = {
   starter: 90,
   standard: 180,
@@ -815,9 +779,6 @@ function planLabel(tier){
   return tier.charAt(0).toUpperCase() + tier.slice(1);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   HELPERS
-   ═══════════════════════════════════════════════════════════════ */
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
@@ -866,30 +827,22 @@ function timeAgo(ts){
   } catch(e){ return ''; }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   STATE
-   ═══════════════════════════════════════════════════════════════ */
-var allSubs = [];         // pending_subscriptions
-var allActiveSubs = [];   // subscriptions
+var allSubs = [];
+var allActiveSubs = [];
 var activeTab = 'pending';
 var searchQuery = '';
 var unsubPending = null;
 var unsubActive = null;
 
-/* ═══════════════════════════════════════════════════════════════
-   RENDER
-   ═══════════════════════════════════════════════════════════════ */
 function computeStatus(sub){
-  // Active subs: check expiry
   if (sub.type === 'active'){
     if (sub.expiresAt){
       var exp = sub.expiresAt.toDate ? sub.expiresAt.toDate() : new Date(sub.expiresAt);
       if (exp < new Date()) return 'expired';
     }
-    if (sub.cancelAtPeriodEnd) return 'active'; // still active until expiry
+    if (sub.cancelAtPeriodEnd) return 'active';
     return 'active';
   }
-  // Pending
   return sub.status || 'pending';
 }
 
@@ -919,7 +872,6 @@ function renderStats(){
   $('statRevenue').textContent = 'R' + monthly.toLocaleString('en-ZA');
   $('statRevenueSub').textContent = monthly > 0 ? 'recurring monthly' : 'no revenue yet';
 
-  // Tab counters
   $('cntPending').textContent = pending;
   $('cntActive').textContent = active;
   $('cntExpired').textContent = allActiveSubs.filter(function(s){
@@ -939,12 +891,10 @@ function renderList(){
   } else if (activeTab === 'expired'){
     filtered = allActiveSubs.filter(function(s){ return computeStatus(s) === 'expired'; });
   } else {
-    // All — combine
     filtered = allSubs.map(function(s){ return Object.assign({}, s, { type: 'pending' }); })
       .concat(allActiveSubs.map(function(s){ return Object.assign({}, s, { type: 'active' }); }));
   }
 
-  // Search
   if (searchQuery){
     var q = searchQuery.toLowerCase();
     filtered = filtered.filter(function(s){
@@ -953,7 +903,6 @@ function renderList(){
     });
   }
 
-  // Sort by date
   filtered.sort(function(a, b){
     var ta = (a.submittedAt || a.startedAt || a.createdAt);
     var tb = (b.submittedAt || b.startedAt || b.createdAt);
@@ -1018,7 +967,6 @@ function buildSubCard(sub){
     rejected: 'Rejected'
   };
 
-  // Actions
   var actionsHTML = '';
   if (status === 'pending' && sub.type !== 'active'){
     actionsHTML =
@@ -1052,11 +1000,9 @@ function buildSubCard(sub){
     '</div>' +
     '<div class="sub-actions">' + actionsHTML + '</div>';
 
-  // Wire actions
   el.querySelectorAll('[data-action]').forEach(function(btn){
     btn.addEventListener('click', function(){
       var action = this.dataset.action;
-      var id = this.dataset.id;
       if (action === 'approve') approveSub(sub, btn);
       else if (action === 'reject') rejectSub(sub, btn);
       else if (action === 'extend') extendSub(sub, btn);
@@ -1068,9 +1014,6 @@ function buildSubCard(sub){
   return el;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ACTIONS
-   ═══════════════════════════════════════════════════════════════ */
 function approveSub(sub, btn){
   if (!confirm('Approve this subscription?\n\n' + (sub.email || '') + '\n' + planLabel(sub.plan || sub.tier) + ' — R' + (PLAN_PRICES[sub.plan] || 0))) return;
 
@@ -1081,9 +1024,8 @@ function approveSub(sub, btn){
   var uid = sub.uid;
   var tier = sub.plan || sub.tier;
   var now = new Date();
-  var expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+  var expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-  // 1. Create subscription record
   var subData = {
     tier: tier,
     active: true,
@@ -1098,7 +1040,6 @@ function approveSub(sub, btn){
 
   db.collection('subscriptions').doc(uid).set(subData)
     .then(function(){
-      // 2. Save billing record
       return db.collection('payments').add({
         uid: uid,
         email: sub.email || '',
@@ -1110,7 +1051,6 @@ function approveSub(sub, btn){
       });
     })
     .then(function(){
-      // 3. Mark pending sub as approved
       return db.collection('pending_subscriptions').doc(sub.id).update({
         status: 'approved',
         approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -1171,7 +1111,6 @@ function extendSub(sub, btn){
     }
     var current = doc.data();
     var currentExpiry = current.expiresAt && current.expiresAt.toDate ? current.expiresAt.toDate() : new Date();
-    // If already expired, extend from now; else extend from current expiry
     var baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
     var newExpiry = new Date(baseDate.getTime() + 30 * 24 * 60 * 60 * 1000);
 
@@ -1247,11 +1186,7 @@ function reactivateSub(sub, btn){
     });
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   LOAD DATA (real-time listeners)
-   ═══════════════════════════════════════════════════════════════ */
 function attachListeners(){
-  // Pending subscriptions
   if (unsubPending) { try { unsubPending(); } catch(e){} }
   unsubPending = db.collection('pending_subscriptions')
     .orderBy('submittedAt', 'desc')
@@ -1271,7 +1206,6 @@ function attachListeners(){
       toast('Could not load pending subs.', 'error');
     });
 
-  // Active subscriptions
   if (unsubActive) { try { unsubActive(); } catch(e){} }
   unsubActive = db.collection('subscriptions')
     .limit(500)
@@ -1292,15 +1226,11 @@ function attachListeners(){
     });
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   BOOT
-   ═══════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function(){
   var yearEl = $('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
   refreshIcons();
 
-  // Tab switching
   document.querySelectorAll('.tab').forEach(function(tab){
     tab.addEventListener('click', function(){
       activeTab = tab.dataset.tab;
@@ -1311,7 +1241,6 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   });
 
-  // Search
   var searchTimer = null;
   $('searchInput').addEventListener('input', function(){
     var v = this.value.trim();
@@ -1322,7 +1251,6 @@ document.addEventListener('DOMContentLoaded', function(){
     }, 200);
   });
 
-  // Auth check
   if (!firebaseReady || !auth){
     $('loadingState').classList.add('hidden');
     $('accessDenied').classList.remove('hidden');
@@ -1344,7 +1272,6 @@ document.addEventListener('DOMContentLoaded', function(){
       return;
     }
 
-    // Admin confirmed
     $('loadingState').classList.add('hidden');
     $('signinRequired').classList.add('hidden');
     $('accessDenied').classList.add('hidden');
@@ -1363,4 +1290,4 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 </body>
-</html>
+  </html>
