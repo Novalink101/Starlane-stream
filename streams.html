@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#050508" />
-<meta name="description" content="Browse every channel on Starlane Stream â€” Sports, Movies, News, Music, and more. Free to start." />
-<title>All Channels Â· Starlane Stream</title>
+<meta name="description" content="Browse every channel on Starlane Stream — Sports, Movies, News, Music, and more. Free to start." />
+<title>All Channels · Starlane Stream</title>
 
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -60,7 +60,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .container{max-width:var(--container);margin:0 auto;padding:0 24px;width:100%}
 @media (max-width:560px){.container{padding:0 16px}}
 
-/* Starfield */
 .starfield{
   position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
@@ -80,7 +79,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 }
 @keyframes twinkle{0%,100%{opacity:.85}50%{opacity:.4}}
 
-/* Nav */
 .nav{
   position:sticky;top:0;z-index:50;
   background:rgba(5,5,8,.85);
@@ -116,13 +114,54 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .nav-btn.ghost{background:transparent;color:var(--text-2);border-color:var(--border-2)}
 .nav-btn.ghost:hover{color:#fff;border-color:var(--red);background:var(--red-soft)}
 .nav-btn.primary{background:var(--red);color:#fff;box-shadow:0 4px 14px rgba(229,9,20,.35)}
-.nav-btn.primary:hover{background:var(--red-hover);transform:translateY(-1px);box-shadow:0 8px 22px rgba(229,9,20,.5)}
+.nav-btn.primary:hover{background:var(--red-hover);transform:translateY(-1px)}
 @media (max-width:480px){
   .nav-btn .lbl{display:none}
   .nav-btn{padding:9px 12px}
 }
 
-/* Page head */
+.user-chip{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:6px 14px 6px 6px;
+  border-radius:var(--r-full);
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--border-2);
+  transition:all .2s var(--ease);
+  text-decoration:none;
+  line-height:1;
+  max-width:220px;
+  overflow:hidden;
+}
+.user-chip:hover{
+  border-color:var(--red);
+  background:var(--red-soft);
+}
+.user-chip-avatar{
+  width:28px;height:28px;
+  border-radius:50%;
+  background:linear-gradient(135deg, var(--red), #FF5566);
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:900;
+  font-family:var(--mono);
+  flex-shrink:0;
+  letter-spacing:.02em;
+}
+.user-chip-name{
+  font-size:13px;
+  font-weight:800;
+  color:#fff;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:140px;
+}
+@media (max-width:560px){
+  .user-chip{padding:5px;gap:0}
+  .user-chip-name{display:none}
+  .user-chip-avatar{width:30px;height:30px;font-size:12px}
+}
+
 .page-head{padding:56px 0 32px;}
 @media (max-width:640px){.page-head{padding:36px 0 20px}}
 
@@ -168,7 +207,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .page-stat svg{width:14px;height:14px;color:var(--red)}
 .page-stat .num{color:#fff;font-family:var(--mono)}
 
-/* Filter bar */
 .filter-bar{
   position:sticky;top:62px;z-index:40;
   padding:16px 0;
@@ -238,7 +276,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   box-shadow:0 4px 12px rgba(229,9,20,.35);
 }
 
-/* Section */
 .section{padding:0 0 56px}
 @media (max-width:640px){.section{padding:0 0 40px}}
 
@@ -261,16 +298,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   border-radius:var(--r-full);
   font-family:var(--mono);
 }
-.section-link{
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:13px;font-weight:800;
-  color:var(--text-3);
-  transition:all .2s var(--ease);
-}
-.section-link:hover{color:var(--red);gap:9px}
-.section-link svg{width:14px;height:14px}
 
-/* Channel grid */
 .channels-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
@@ -304,7 +332,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .channel-card:hover{
   transform:translateY(-4px);
   border-color:var(--red-border);
-  box-shadow:0 20px 40px rgba(0,0,0,.4), 0 0 0 1px var(--red-border);
+  box-shadow:0 20px 40px rgba(0,0,0,.4);
 }
 .channel-card:hover::before{opacity:1}
 
@@ -369,7 +397,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .channel-tag.free{background:rgba(16,185,129,.2);color:#10B981;border:1px solid rgba(16,185,129,.4)}
 .channel-tag.paid{background:rgba(229,9,20,.2);color:#fff;border:1px solid var(--red)}
 
-/* Empty state */
 .empty-state{
   grid-column:1/-1;
   text-align:center;
@@ -392,7 +419,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   line-height:1.6;
 }
 
-/* Loading skeleton */
 .skeleton-card{
   background:var(--surface);
   border:1px solid var(--border);
@@ -418,7 +444,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   100%{background-position:-200% 0}
 }
 
-/* Footer */
 .footer{
   background:#020204;
   border-top:1px solid var(--border);
@@ -477,6 +502,8 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 }
 #toast.show{transform:translateX(-50%) translateY(0)}
 #toast svg{width:16px;height:16px;flex-shrink:0}
+#toast.success{background:var(--green);color:#fff}
+#toast.error{background:var(--red);color:#fff}
 
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{
@@ -512,6 +539,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
       <b>STAR<span>LANE</span></b>
     </a>
     <div class="nav-actions">
+
       <a href="index.html" class="nav-btn ghost">
         <i data-lucide="home"></i>
         <span class="lbl">Home</span>
@@ -520,10 +548,29 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
         <i data-lucide="tag"></i>
         <span class="lbl">Plans</span>
       </a>
-      <a href="auth.html?tab=signup" class="nav-btn primary">
+
+      <a href="auth.html?tab=signup" class="nav-btn primary" id="signupBtn">
         <i data-lucide="sparkles"></i>
         <span class="lbl">Start free</span>
       </a>
+      <a href="auth.html" class="nav-btn ghost" id="signinBtn">
+        <i data-lucide="log-in"></i>
+        <span class="lbl">Sign in</span>
+      </a>
+
+      <a href="admin-618472935.html" class="nav-btn primary hidden" id="adminBtn" title="Admin dashboard">
+        <i data-lucide="shield-check"></i>
+        <span class="lbl">Admin</span>
+      </a>
+      <a href="profiles.html" class="user-chip hidden" id="userChip" title="Switch profile">
+        <span class="user-chip-avatar" id="userAvatar">?</span>
+        <span class="user-chip-name" id="userName">Account</span>
+      </a>
+      <button type="button" class="nav-btn ghost hidden" id="signoutBtn" title="Sign out">
+        <i data-lucide="log-out"></i>
+        <span class="lbl">Sign out</span>
+      </button>
+
     </div>
   </div>
 </nav>
@@ -556,7 +603,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
     <div class="filter-inner">
       <div class="search-box">
         <i data-lucide="search"></i>
-        <input type="text" id="searchInput" placeholder="Search channelsâ€¦" autocomplete="off" />
+        <input type="text" id="searchInput" placeholder="Search channels…" autocomplete="off" />
       </div>
       <div class="cat-chips" id="catChips">
         <button class="chip active" data-cat="" type="button">All</button>
@@ -571,7 +618,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
       <h2 class="section-title">
         <i data-lucide="grid-3x3"></i>
         Channels
-        <span class="count" id="resultCount">â€”</span>
+        <span class="count" id="resultCount">—</span>
       </h2>
     </div>
     <div class="channels-grid" id="channelsGrid">
@@ -605,7 +652,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
           <b>STAR<span>LANE</span></b>
         </div>
         <p class="footer-tagline">
-          Live TV, movies, and sports â€” streaming without limits.
+          Live TV, movies, and sports — streaming without limits.
           Built for South Africa, made for the world.
         </p>
       </div>
@@ -629,7 +676,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
       </div>
     </div>
     <div class="footer-bottom">
-      <span>Â© <span id="year"></span> Starlane Stream. All rights reserved.</span>
+      <span>© <span id="year"></span> Starlane Stream. All rights reserved.</span>
       <span>Made in Johannesburg, South Africa.</span>
     </div>
   </div>
@@ -641,9 +688,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 (function(){
 'use strict';
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   FIREBASE CONFIG â€” starlane-stream
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+// Firebase configuration
 var firebaseConfig = {
   apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
   authDomain: "starlane-stream.firebaseapp.com",
@@ -652,6 +697,12 @@ var firebaseConfig = {
   messagingSenderId: "115625325145",
   appId: "1:115625325145:web:b14025df503bbe2b7d7748"
 };
+
+// Admin emails (must match Firestore rules)
+var ADMIN_EMAILS = [
+  'nylnathan340@gmail.com',
+  'customerservicesnovalink@gmail.com'
+];
 
 var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
 var db = null;
@@ -667,6 +718,32 @@ function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
 
+function isAdmin(user){
+  if (!user || !user.email) return false;
+  var e = String(user.email).toLowerCase().trim();
+  return ADMIN_EMAILS.some(function(a){ return a.toLowerCase() === e; });
+}
+
+function getActiveProfile(){
+  try {
+    var s = localStorage.getItem('starlane_active_profile');
+    if (!s) return null;
+    var p = JSON.parse(s);
+    if (p && p.id && p.name) return p;
+  } catch(e){}
+  return null;
+}
+
+function initials(name, email){
+  if (name && String(name).trim()){
+    var p = String(name).trim().split(/\s+/);
+    if (p.length >= 2) return (p[0][0]+p[1][0]).toUpperCase();
+    return p[0].slice(0,2).toUpperCase();
+  }
+  if (email) return String(email).slice(0,2).toUpperCase();
+  return '?';
+}
+
 function toast(msg, type, ms){
   type = type || 'info'; ms = ms || 3000;
   var t = $('toast');
@@ -679,19 +756,72 @@ function toast(msg, type, ms){
   toast._t = setTimeout(function(){ t.classList.remove('show'); }, ms);
 }
 
-function initials(name){
-  if (!name) return '?';
-  var p = String(name).trim().split(/\s+/);
-  if (p.length >= 2) return (p[0][0]+p[1][0]).toUpperCase();
-  return p[0].slice(0,2).toUpperCase();
-}
-
 function categoryLabel(c){
   return {
     sports:'Sports', movies:'Movies', news:'News', music:'Music',
     kids:'Kids', documentary:'Documentary', gaming:'Gaming',
     entertainment:'Entertainment', education:'Education', other:'Other'
   }[c] || (c ? c.charAt(0).toUpperCase() + c.slice(1) : 'Channel');
+}
+
+function updateNavAuth(user){
+  var signinBtn = $('signinBtn');
+  var signupBtn = $('signupBtn');
+  var userChip = $('userChip');
+  var signoutBtn = $('signoutBtn');
+  var adminBtn = $('adminBtn');
+
+  if (user){
+    if (signinBtn) signinBtn.classList.add('hidden');
+    if (signupBtn) signupBtn.classList.add('hidden');
+
+    if (userChip){
+      userChip.classList.remove('hidden');
+      var av = $('userAvatar');
+      var nm = $('userName');
+      var active = getActiveProfile();
+      if (active && active.name){
+        if (av) av.textContent = initials(active.name);
+        if (nm) nm.textContent = active.name;
+        if (active.color && av){
+          av.style.background = 'linear-gradient(135deg, ' + active.color + ', rgba(0,0,0,.35))';
+        }
+      } else {
+        var displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'Account');
+        if (av) av.textContent = initials(user.displayName, user.email);
+        if (nm) nm.textContent = displayName;
+      }
+    }
+    if (signoutBtn) signoutBtn.classList.remove('hidden');
+    if (adminBtn){
+      if (isAdmin(user)) adminBtn.classList.remove('hidden');
+      else adminBtn.classList.add('hidden');
+    }
+  } else {
+    if (signinBtn) signinBtn.classList.remove('hidden');
+    if (signupBtn) signupBtn.classList.remove('hidden');
+    if (userChip) userChip.classList.add('hidden');
+    if (signoutBtn) signoutBtn.classList.add('hidden');
+    if (adminBtn) adminBtn.classList.add('hidden');
+  }
+  refreshIcons();
+}
+
+function wireSignout(){
+  var btn = $('signoutBtn');
+  if (!btn) return;
+  btn.addEventListener('click', function(){
+    if (!confirm('Sign out of Starlane Stream?')) return;
+    try { localStorage.removeItem('starlane_active_profile'); } catch(e){}
+    if (auth){
+      auth.signOut().then(function(){
+        toast('Signed out.', 'success', 2000);
+      }).catch(function(err){
+        console.error('[signout]', err);
+        toast('Could not sign out.', 'error');
+      });
+    }
+  });
 }
 
 var allChannels = [];
@@ -868,6 +998,7 @@ document.addEventListener('DOMContentLoaded', function(){
   var yearEl = $('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
   refreshIcons();
+  wireSignout();
 
   var searchTimer = null;
   $('searchInput').addEventListener('input', function(){
@@ -880,11 +1011,22 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 
   renderCategoryChips();
-  loadChannels();
+
+  if (firebaseReady && auth){
+    auth.onAuthStateChanged(function(user){
+      updateNavAuth(user);
+      if (!allChannels.length){
+        loadChannels();
+      }
+    });
+  } else {
+    updateNavAuth(null);
+    loadChannels();
+  }
 });
 
 })();
 </script>
 
 </body>
-</html>
+  </html>
