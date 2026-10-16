@@ -18,26 +18,21 @@
   --red:#E50914;--red-hover:#FF3B4E;--red-dark:#B20710;
   --red-soft:rgba(229,9,20,.12);
   --red-border:rgba(229,9,20,.25);
-
   --bg:#050508;--bg-2:#0A0A0F;
   --surface:rgba(20,20,28,.75);
-  --surface-2:rgba(30,30,40,.6);
   --border:rgba(255,255,255,.08);
   --border-2:rgba(255,255,255,.14);
-
   --text:#FFFFFF;
   --text-2:rgba(255,255,255,.75);
   --text-3:rgba(255,255,255,.5);
   --text-muted:rgba(255,255,255,.35);
-
   --green:#10B981;
   --yellow:#F59E0B;
   --danger:#EF4444;
   --purple:#8B5CF6;
-
+  --blue:#3B82F6;
   --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-
   --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:22px;--r-full:999px;
   --ease:cubic-bezier(.25,.8,.25,1);
   --ease-out:cubic-bezier(.22,.9,.3,1);
@@ -113,7 +108,6 @@ h1,h2,h3{line-height:1.15;font-weight:900;letter-spacing:-.02em;color:#fff}
   .nav-brand svg{width:24px;height:30px}
   .admin-tag{display:none}
 }
-
 .nav-btn{
   display:inline-flex;align-items:center;gap:7px;
   padding:9px 14px;border-radius:var(--r-full);
@@ -147,6 +141,7 @@ main{flex:1;padding:24px 0 80px}
   max-width:680px;
 }
 
+/* Stats */
 .stats{
   display:grid;
   grid-template-columns:repeat(4, 1fr);
@@ -176,7 +171,7 @@ main{flex:1;padding:24px 0 80px}
 }
 .stat.subscribers::before{background:var(--green)}
 .stat.revenue::before{background:var(--purple)}
-.stat.streams::before{background:var(--yellow)}
+.stat.content::before{background:var(--blue)}
 
 .stat:hover{
   transform:translateY(-3px);
@@ -198,15 +193,12 @@ main{flex:1;padding:24px 0 80px}
   color:var(--text-3);
 }
 .stat-ico{
-  width:34px;
-  height:34px;
+  width:34px;height:34px;
   border-radius:10px;
   background:rgba(229,9,20,.1);
   border:1px solid var(--red-border);
   color:var(--red);
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display:flex;align-items:center;justify-content:center;
   flex-shrink:0;
 }
 .stat.subscribers .stat-ico{
@@ -219,10 +211,10 @@ main{flex:1;padding:24px 0 80px}
   border-color:rgba(139,92,246,.35);
   color:var(--purple);
 }
-.stat.streams .stat-ico{
-  background:rgba(245,158,11,.1);
-  border-color:rgba(245,158,11,.35);
-  color:var(--yellow);
+.stat.content .stat-ico{
+  background:rgba(59,130,246,.1);
+  border-color:rgba(59,130,246,.35);
+  color:var(--blue);
 }
 .stat-ico svg{width:17px;height:17px}
 
@@ -236,7 +228,7 @@ main{flex:1;padding:24px 0 80px}
 }
 .stat.subscribers .stat-val{color:var(--green)}
 .stat.revenue .stat-val{color:var(--purple)}
-.stat.streams .stat-val{color:var(--yellow)}
+.stat.content .stat-val{color:var(--blue)}
 
 .stat-sub{
   font-size:11.5px;
@@ -277,7 +269,7 @@ main{flex:1;padding:24px 0 80px}
 
 .admin-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
   gap:14px;
 }
 @media (max-width:520px){
@@ -313,15 +305,12 @@ main{flex:1;padding:24px 0 80px}
 .admin-card:hover::before{opacity:1}
 
 .admin-card-icon{
-  width:48px;
-  height:48px;
+  width:48px;height:48px;
   border-radius:13px;
   background:rgba(229,9,20,.1);
   border:1px solid var(--red-border);
   color:var(--red);
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display:flex;align-items:center;justify-content:center;
   flex-shrink:0;
   transition:all .25s var(--ease);
 }
@@ -343,6 +332,7 @@ main{flex:1;padding:24px 0 80px}
   display:flex;
   align-items:center;
   gap:8px;
+  flex-wrap:wrap;
 }
 .admin-card-title .badge{
   font-size:10px;
@@ -358,6 +348,11 @@ main{flex:1;padding:24px 0 80px}
   background:rgba(16,185,129,.15);
   border-color:rgba(16,185,129,.35);
   color:var(--green);
+}
+.admin-card-title .badge.blue{
+  background:rgba(59,130,246,.15);
+  border-color:rgba(59,130,246,.35);
+  color:var(--blue);
 }
 .admin-card-desc{
   font-size:12.5px;
@@ -385,15 +380,12 @@ main{flex:1;padding:24px 0 80px}
 .activity-item:hover{background:rgba(255,255,255,.02)}
 
 .activity-icon{
-  width:36px;
-  height:36px;
+  width:36px;height:36px;
   border-radius:50%;
   background:rgba(229,9,20,.1);
   border:1px solid var(--red-border);
   color:var(--red);
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display:flex;align-items:center;justify-content:center;
   flex-shrink:0;
 }
 .activity-icon.green{
@@ -406,6 +398,11 @@ main{flex:1;padding:24px 0 80px}
   border-color:rgba(245,158,11,.35);
   color:var(--yellow);
 }
+.activity-icon.blue{
+  background:rgba(59,130,246,.1);
+  border-color:rgba(59,130,246,.35);
+  color:var(--blue);
+}
 .activity-icon svg{width:15px;height:15px}
 
 .activity-body{flex:1;min-width:0}
@@ -413,6 +410,7 @@ main{flex:1;padding:24px 0 80px}
   font-size:13.5px;
   color:var(--text-2);
   line-height:1.4;
+  word-break:break-word;
 }
 .activity-text strong{color:#fff;font-weight:800}
 .activity-text a{color:var(--red);font-weight:800}
@@ -601,13 +599,13 @@ main{flex:1;padding:24px 0 80px}
           <div class="stat-sub" id="statRevenueSub">recurring</div>
         </div>
 
-        <a href="admin-streams-582910374.html" class="stat streams">
+        <a href="admin-streams-582910374.html" class="stat content">
           <div class="stat-top">
-            <span class="stat-lbl">Live streams</span>
-            <span class="stat-ico"><i data-lucide="radio"></i></span>
+            <span class="stat-lbl">Total content</span>
+            <span class="stat-ico"><i data-lucide="video"></i></span>
           </div>
-          <div class="stat-val" id="statLive">—</div>
-          <div class="stat-sub" id="statLiveSub">streaming now</div>
+          <div class="stat-val" id="statContent">—</div>
+          <div class="stat-sub" id="statContentSub">streams, movies, shows</div>
         </a>
       </div>
 
@@ -620,6 +618,17 @@ main{flex:1;padding:24px 0 80px}
         </div>
         <div class="admin-grid">
 
+          <a href="admin-streams-582910374.html" class="admin-card">
+            <div class="admin-card-icon"><i data-lucide="video"></i></div>
+            <div class="admin-card-body">
+              <div class="admin-card-title">
+                Content
+                <span class="badge blue" id="badgeContent" style="display:none;">0</span>
+              </div>
+              <div class="admin-card-desc">Live streams, movies, and shows</div>
+            </div>
+          </a>
+
           <a href="admin-subscribers-293847561.html" class="admin-card">
             <div class="admin-card-icon"><i data-lucide="users"></i></div>
             <div class="admin-card-body">
@@ -631,45 +640,25 @@ main{flex:1;padding:24px 0 80px}
             </div>
           </a>
 
-          <a href="admin-channels-294817365.html" class="admin-card">
-            <div class="admin-card-icon"><i data-lucide="tv"></i></div>
-            <div class="admin-card-body">
-              <div class="admin-card-title">
-                Channels
-                <span class="badge green" id="badgeChannels" style="display:none;">0</span>
-              </div>
-              <div class="admin-card-desc">Create & edit TV channels</div>
-            </div>
-          </a>
-
-          <a href="admin-streams-582910374.html" class="admin-card">
-            <div class="admin-card-icon"><i data-lucide="video"></i></div>
-            <div class="admin-card-body">
-              <div class="admin-card-title">
-                Streams
-                <span class="badge green" id="badgeStreams" style="display:none;">0</span>
-              </div>
-              <div class="admin-card-desc">Add streams, set access tiers</div>
-            </div>
-          </a>
-
-          <a href="admin-live-739284156.html" class="admin-card">
-            <div class="admin-card-icon"><i data-lucide="link"></i></div>
-            <div class="admin-card-body">
-              <div class="admin-card-title">
-                Partners
-              </div>
-              <div class="admin-card-desc">Licensed partner feeds</div>
-            </div>
-          </a>
-
-          <a href="admin-ads-482937561.html" class="admin-card">
+          <a href="admin-ads-375926184.html" class="admin-card">
             <div class="admin-card-icon"><i data-lucide="megaphone"></i></div>
             <div class="admin-card-body">
               <div class="admin-card-title">
                 Ads
+                <span class="badge green" id="badgeAds" style="display:none;">0</span>
               </div>
-              <div class="admin-card-desc">Manage advertiser campaigns</div>
+              <div class="admin-card-desc">Manage ad campaigns and rotation</div>
+            </div>
+          </a>
+
+          <a href="admin-partners-918264573.html" class="admin-card">
+            <div class="admin-card-icon"><i data-lucide="link"></i></div>
+            <div class="admin-card-body">
+              <div class="admin-card-title">
+                Sources
+                <span class="badge green" id="badgeSources" style="display:none;">0</span>
+              </div>
+              <div class="admin-card-desc">Licensed partner feeds (admin-only URLs)</div>
             </div>
           </a>
 
@@ -680,6 +669,16 @@ main{flex:1;padding:24px 0 80px}
                 Plans & pricing
               </div>
               <div class="admin-card-desc">View public pricing page</div>
+            </div>
+          </a>
+
+          <a href="streams.html" class="admin-card">
+            <div class="admin-card-icon"><i data-lucide="globe"></i></div>
+            <div class="admin-card-body">
+              <div class="admin-card-title">
+                Public site
+              </div>
+              <div class="admin-card-desc">See what viewers see</div>
             </div>
           </a>
 
@@ -717,9 +716,6 @@ main{flex:1;padding:24px 0 80px}
 (function(){
 'use strict';
 
-/* ═══════════════════════════════════════════════════════════════
-   FIREBASE CONFIG — starlane-stream
-   ═══════════════════════════════════════════════════════════════ */
 var firebaseConfig = {
   apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
   authDomain: "starlane-stream.firebaseapp.com",
@@ -741,6 +737,10 @@ var PLAN_PRICES = {
   elite: 490
 };
 
+var STREAMS = "streams";
+var ADS = "ads";
+var PARTNERS = "partners";
+
 var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
 var db = null;
 var auth = null;
@@ -753,8 +753,13 @@ if (firebaseReady && !firebase.apps.length){
 }
 
 function $(id){ return document.getElementById(id); }
-function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
+function icon(n){ return '<i data-lucide="' + n + '"></i>'; }
 
 function isAdmin(user){
   if (!user || !user.email) return false;
@@ -779,7 +784,11 @@ function timeAgo(ts){
   } catch(e){ return ''; }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   STATS
+   ═══════════════════════════════════════════════════════════════ */
 function computeStats(){
+  // Pending subscriptions
   db.collection('pending_subscriptions')
     .where('status', '==', 'pending')
     .get()
@@ -800,6 +809,7 @@ function computeStats(){
       $('statPending').textContent = '—';
     });
 
+  // Active subscriptions + revenue
   db.collection('subscriptions').get()
     .then(function(snap){
       var active = 0;
@@ -817,7 +827,6 @@ function computeStats(){
 
       $('statSubs').textContent = active;
       $('statSubsSub').textContent = active === 1 ? '1 subscriber' : (active + ' subscribers');
-
       $('statRevenue').textContent = 'R' + revenue.toLocaleString('en-ZA');
       $('statRevenueSub').textContent = revenue > 0 ? 'recurring monthly' : 'no revenue yet';
     })
@@ -826,57 +835,74 @@ function computeStats(){
       $('statRevenue').textContent = '—';
     });
 
-  db.collection('streams').get()
+  // Content count
+  db.collection(STREAMS).get()
     .then(function(snap){
-      var liveCount = 0;
-      var totalCount = snap.size;
-      var now = Date.now();
-
+      var count = 0;
       snap.forEach(function(doc){
         var d = doc.data() || {};
-        if (!d.startDate) return;
-        var startMs = new Date(d.startDate + 'T' + (d.startTime || '00:00') + ':00').getTime();
-        var durMin = parseInt(d.durationMinutes, 10) || 90;
-        var endMs = startMs + durMin * 60000;
-        if (now >= startMs && now <= endMs) liveCount++;
+        if (d.active === false) return;
+        count++;
       });
+      $('statContent').textContent = count;
+      $('statContentSub').textContent = count === 1 ? '1 item published' : (count + ' items published');
 
-      $('statLive').textContent = liveCount;
-      $('statLiveSub').textContent = totalCount === 0
-        ? 'no streams yet'
-        : (totalCount === 1 ? '1 stream total' : (totalCount + ' streams total'));
-
-      var badge = $('badgeStreams');
-      if (totalCount > 0){
+      var badge = $('badgeContent');
+      if (count > 0){
         badge.style.display = 'inline-flex';
-        badge.textContent = totalCount;
+        badge.textContent = count;
+      } else {
+        badge.style.display = 'none';
       }
     })
     .catch(function(){
-      $('statLive').textContent = '—';
+      $('statContent').textContent = '—';
     });
 
-  db.collection('channels').get()
+  // Ads count
+  db.collection(ADS).get()
     .then(function(snap){
-      var badge = $('badgeChannels');
-      if (snap.size > 0){
+      var count = 0;
+      snap.forEach(function(doc){
+        var d = doc.data() || {};
+        if (d.active !== false) count++;
+      });
+      var badge = $('badgeAds');
+      if (count > 0){
         badge.style.display = 'inline-flex';
-        badge.textContent = snap.size;
+        badge.textContent = count;
+      }
+    })
+    .catch(function(){});
+
+  // Sources count
+  db.collection(PARTNERS).get()
+    .then(function(snap){
+      var count = snap.size;
+      var badge = $('badgeSources');
+      if (count > 0){
+        badge.style.display = 'inline-flex';
+        badge.textContent = count;
       }
     })
     .catch(function(){});
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   ACTIVITY
+   ═══════════════════════════════════════════════════════════════ */
 function loadActivity(){
   var list = $('activityList');
 
   Promise.all([
     db.collection('pending_subscriptions').orderBy('submittedAt', 'desc').limit(5).get().catch(function(){ return { forEach: function(){} }; }),
-    db.collection('subscriptions').orderBy('startedAt', 'desc').limit(5).get().catch(function(){ return { forEach: function(){} }; })
+    db.collection('subscriptions').orderBy('startedAt', 'desc').limit(5).get().catch(function(){ return { forEach: function(){} }; }),
+    db.collection(STREAMS).orderBy('createdAt', 'desc').limit(5).get().catch(function(){ return { forEach: function(){} }; })
   ])
     .then(function(results){
       var pendingSnap = results[0];
       var activeSnap = results[1];
+      var contentSnap = results[2];
       var events = [];
 
       pendingSnap.forEach(function(doc){
@@ -900,6 +926,16 @@ function loadActivity(){
         });
       });
 
+      contentSnap.forEach(function(doc){
+        var d = doc.data() || {};
+        events.push({
+          type: 'content',
+          title: d.title || d.streamTitle || 'Untitled',
+          contentType: d.type || 'live',
+          time: d.createdAt
+        });
+      });
+
       events.sort(function(a, b){
         var ta = a.time && a.time.toMillis ? a.time.toMillis() : 0;
         var tb = b.time && b.time.toMillis ? b.time.toMillis() : 0;
@@ -909,14 +945,14 @@ function loadActivity(){
       if (!events.length){
         list.innerHTML =
           '<div class="empty-block">' +
-            '<i data-lucide="inbox"></i>' +
-            '<p>No recent activity yet. Once people sign up and pay, you\'ll see them here.</p>' +
+            icon('inbox') +
+            '<p>No recent activity yet. Once people sign up and you add content, you\'ll see it here.</p>' +
           '</div>';
         refreshIcons();
         return;
       }
 
-      var display = events.slice(0, 8);
+      var display = events.slice(0, 10);
       $('activityCount').style.display = 'inline-flex';
       $('activityCount').textContent = display.length;
 
@@ -925,16 +961,21 @@ function loadActivity(){
         var item = document.createElement('div');
         item.className = 'activity-item';
 
-        var iconCls = e.type === 'pending' ? 'yellow' : 'green';
-        var icon = e.type === 'pending' ? 'clock' : 'check-circle';
-        var text = e.type === 'pending'
-          ? '<strong>' + esc(e.email) + '</strong> submitted payment for <strong>' + esc(e.plan) + '</strong>'
-          : '<strong>' + esc(e.email) + '</strong> activated <strong>' + esc(e.plan) + '</strong> plan';
+        var iconCls = 'yellow', iconName = 'clock', text = '';
+
+        if (e.type === 'pending'){
+          text = '<strong>' + esc(e.email) + '</strong> submitted payment for <strong>' + esc(e.plan) + '</strong>';
+        } else if (e.type === 'active'){
+          iconCls = 'green'; iconName = 'check-circle';
+          text = '<strong>' + esc(e.email) + '</strong> activated <strong>' + esc(e.plan) + '</strong> plan';
+        } else if (e.type === 'content'){
+          iconCls = 'blue'; iconName = 'video';
+          var typeLabel = { movie: 'Movie', show: 'Show', live: 'Live stream' }[e.contentType] || 'Content';
+          text = 'Added ' + typeLabel.toLowerCase() + ' <strong>' + esc(e.title) + '</strong>';
+        }
 
         item.innerHTML =
-          '<div class="activity-icon ' + iconCls + '">' +
-            '<i data-lucide="' + icon + '"></i>' +
-          '</div>' +
+          '<div class="activity-icon ' + iconCls + '">' + icon(iconName) + '</div>' +
           '<div class="activity-body">' +
             '<div class="activity-text">' + text + '</div>' +
             '<div class="activity-time">' + esc(timeAgo(e.time)) + '</div>' +
@@ -948,13 +989,16 @@ function loadActivity(){
       console.error('[activity]', err);
       list.innerHTML =
         '<div class="empty-block">' +
-          '<i data-lucide="inbox"></i>' +
+          icon('inbox') +
           '<p>No recent activity.</p>' +
         '</div>';
       refreshIcons();
     });
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function(){
   var yearEl = $('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
@@ -991,6 +1035,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     $('loadingState').classList.add('hidden');
     $('signinRequired').classList.add('hidden');
+    $('accessDenied').classList.remove('hidden');
     $('accessDenied').classList.add('hidden');
     $('contentState').classList.remove('hidden');
 
