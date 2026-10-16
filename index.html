@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#050508" />
-<meta name="description" content="Starlane Stream — live TV, movies, sports, and more. Free to start. Upgrade for 4K, no ads, and more devices." />
+<meta name="description" content="Starlane Stream — live TV, movies, shows and more. Free to start. Upgrade for 4K, no ads, and more devices." />
 <title>Starlane Stream — Watch the stars.</title>
 
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
@@ -14,13 +14,11 @@
 
 <style>
 :root{
-  --red:#E50914;
-  --red-hover:#FF3B4E;
-  --red-dark:#B20710;
+  --red:#E50914;--red-hover:#FF3B4E;--red-dark:#B20710;
   --red-soft:rgba(229,9,20,.12);
   --red-border:rgba(229,9,20,.25);
 
-  --bg:#050508;
+  --bg:#050508;--bg-2:#0A0A0F;
   --surface:rgba(20,20,28,.75);
   --border:rgba(255,255,255,.08);
   --border-2:rgba(255,255,255,.14);
@@ -31,6 +29,7 @@
   --text-muted:rgba(255,255,255,.35);
 
   --green:#10B981;
+  --yellow:#F59E0B;
 
   --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -38,18 +37,16 @@
   --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:22px;--r-full:999px;
   --ease:cubic-bezier(.25,.8,.25,1);
   --ease-out:cubic-bezier(.22,.9,.3,1);
-  --container:1240px;
+  --container:1480px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
 body{
   font-family:var(--font);
   font-size:14px;line-height:1.55;
-  color:var(--text);
-  background:var(--bg);
+  color:var(--text);background:var(--bg);
   -webkit-font-smoothing:antialiased;
-  min-height:100vh;
-  display:flex;flex-direction:column;
+  min-height:100vh;display:flex;flex-direction:column;
   overflow-x:hidden;
 }
 img,svg{display:block;max-width:100%}
@@ -63,6 +60,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .container{max-width:var(--container);margin:0 auto;padding:0 24px;width:100%}
 @media (max-width:560px){.container{padding:0 16px}}
 
+/* Starfield */
 .starfield{
   position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
@@ -102,6 +100,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   50%{opacity:.4}
 }
 
+/* Comet */
 .comet{
   position:fixed;top:0;left:0;
   width:140px;height:2px;
@@ -314,6 +313,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   padding:15px 28px;
   border-radius:var(--r-full);
   font-size:15px;font-weight:900;
+  letter-spacing:-.005em;
   transition:all .25s var(--ease);
   text-decoration:none;
   border:1px solid transparent;
@@ -409,79 +409,9 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 }
 .row::-webkit-scrollbar{display:none}
 
-.channel-card{
-  flex:0 0 220px;scroll-snap-align:start;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--r-lg);
-  padding:20px 16px;
-  cursor:pointer;
-  transition:all .25s var(--ease);
-  display:flex;flex-direction:column;align-items:center;
-  text-align:center;gap:12px;
-  position:relative;overflow:hidden;
-  text-decoration:none;
-}
-@media (max-width:640px){.channel-card{flex:0 0 180px;padding:16px 12px}}
-
-.channel-card::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(circle at 50% 0%, rgba(229,9,20,.12), transparent 60%);
-  opacity:0;transition:opacity .3s;
-  pointer-events:none;
-}
-.channel-card:hover{
-  transform:translateY(-4px);
-  border-color:var(--red-border);
-  box-shadow:0 20px 40px rgba(0,0,0,.4);
-}
-.channel-card:hover::before{opacity:1}
-
-.channel-logo{
-  width:64px;height:64px;
-  border-radius:16px;
-  background:linear-gradient(135deg, #1A0A0F, #2A0A14);
-  border:2px solid var(--red-border);
-  display:flex;align-items:center;justify-content:center;
-  font-size:24px;font-weight:900;
-  color:var(--red);
-  font-family:var(--mono);
-  flex-shrink:0;overflow:hidden;
-  box-shadow:inset 0 0 20px rgba(229,9,20,.15);
-}
-.channel-logo img{width:100%;height:100%;object-fit:cover}
-
-.channel-name{
-  font-size:14.5px;font-weight:800;
-  color:#fff;letter-spacing:-.01em;
-  line-height:1.25;
-  overflow:hidden;text-overflow:ellipsis;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-  word-break:break-word;
-}
-.channel-meta{
-  font-size:11.5px;font-weight:700;
-  color:var(--text-3);
-  text-transform:uppercase;letter-spacing:.06em;
-  display:inline-flex;align-items:center;gap:6px;
-}
-.channel-meta .lock{
-  color:var(--red);
-  display:inline-flex;align-items:center;gap:4px;
-}
-.channel-meta .lock svg{width:11px;height:11px}
-.channel-tag{
-  position:absolute;top:12px;right:12px;
-  font-size:9.5px;font-weight:900;
-  letter-spacing:.1em;text-transform:uppercase;
-  padding:4px 9px;border-radius:var(--r-full);
-  backdrop-filter:blur(8px);
-}
-.channel-tag.free{background:rgba(16,185,129,.18);color:#10B981;border:1px solid rgba(16,185,129,.4)}
-.channel-tag.paid{background:rgba(229,9,20,.15);color:var(--red);border:1px solid var(--red-border)}
-
-.stream-card{
-  flex:0 0 300px;scroll-snap-align:start;
+/* Content card (universal for live/movie/show) */
+.content-card{
+  flex:0 0 260px;scroll-snap-align:start;
   background:var(--surface);
   border:1px solid var(--border);
   border-radius:var(--r-lg);
@@ -492,46 +422,62 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   text-decoration:none;
   position:relative;
 }
-@media (max-width:640px){.stream-card{flex:0 0 260px}}
+@media (max-width:640px){.content-card{flex:0 0 220px}}
 
-.stream-card:hover{
+.content-card:hover{
   transform:translateY(-4px);
   border-color:var(--red-border);
   box-shadow:0 20px 40px rgba(0,0,0,.45);
 }
 
-.stream-thumb{
+.content-thumb{
   aspect-ratio:16/9;position:relative;overflow:hidden;
   background:linear-gradient(135deg, #0A0A14, #1A0A14);
   background-size:cover;background-position:center;
   display:flex;align-items:center;justify-content:center;
 }
-.stream-thumb::after{
+.content-thumb::after{
   content:'';position:absolute;inset:0;
   background:linear-gradient(180deg, transparent 40%, rgba(5,5,8,.9) 100%);
   pointer-events:none;
 }
 
-.stream-badge{
-  position:absolute;top:12px;left:12px;z-index:3;
+.content-badge{
+  position:absolute;top:10px;left:10px;z-index:3;
   display:inline-flex;align-items:center;gap:6px;
   font-size:9.5px;font-weight:900;
   letter-spacing:.12em;text-transform:uppercase;
   padding:4px 10px;border-radius:var(--r-full);
   backdrop-filter:blur(8px);
 }
-.stream-badge.live{
+.content-badge.live{
   background:var(--red);color:#fff;
   box-shadow:0 0 16px rgba(229,9,20,.7);
 }
-.stream-badge.live::before{
+.content-badge.live::before{
   content:'';width:6px;height:6px;border-radius:50%;
   background:#fff;animation:pulse 1.2s infinite;
 }
-.stream-badge.locked{
+.content-badge.upcoming{
   background:rgba(0,0,0,.7);
-  border:1px solid var(--red-border);
-  color:var(--red);
+  border:1px solid rgba(255,255,255,.2);
+  color:#fff;
+}
+.content-badge.movie{
+  background:rgba(139,92,246,.9);
+  color:#fff;
+}
+.content-badge.show{
+  background:rgba(229,9,20,.9);
+  color:#fff;
+}
+.content-badge.replay{
+  background:rgba(124,58,237,.9);
+  color:#fff;
+}
+.content-badge.ended{
+  background:rgba(71,85,105,.9);
+  color:#fff;
 }
 
 .play-ico{
@@ -543,46 +489,30 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   box-shadow:0 0 30px rgba(229,9,20,.6);
   transition:transform .3s var(--ease);
 }
-.stream-card:hover .play-ico{transform:scale(1.15)}
+.content-card:hover .play-ico{transform:scale(1.15)}
 .play-ico svg{width:22px;height:22px;color:#fff;fill:#fff;margin-left:3px}
 
-.stream-body{
-  padding:14px 16px 16px;
+.content-body{
+  padding:12px 14px 14px;
   display:flex;flex-direction:column;gap:6px;flex:1;
 }
-.stream-title{
-  font-size:15px;font-weight:800;line-height:1.28;
+.content-title{
+  font-size:14.5px;font-weight:800;line-height:1.28;
   color:#fff;letter-spacing:-.01em;
   overflow:hidden;text-overflow:ellipsis;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
   word-break:break-word;
 }
-.stream-meta{
-  font-size:12px;color:var(--text-3);
+.content-meta{
+  font-size:11.5px;color:var(--text-3);
   font-weight:600;
   display:flex;align-items:center;gap:6px;
   margin-top:auto;padding-top:8px;
   border-top:1px solid var(--border);
 }
-.stream-meta svg{width:13px;height:13px;flex-shrink:0;color:var(--red)}
+.content-meta svg{width:12px;height:12px;flex-shrink:0;color:var(--red)}
 
-.locked-thumb .stream-thumb::before{
-  content:'\1F512';
-  position:absolute;z-index:2;
-  font-size:32px;
-}
-.locked-thumb .stream-thumb::after{
-  background:rgba(5,5,8,.7);
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-}
-.locked-thumb .play-ico{
-  background:rgba(0,0,0,.7);
-  border-color:var(--red-border);
-  box-shadow:none;
-}
-.locked-thumb .play-ico svg{color:var(--red);fill:var(--red)}
-
+/* Features */
 .features{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -688,22 +618,23 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   font-size:12.5px;color:var(--text-muted);
 }
 
+/* Skeleton */
 .skeleton-card{
-  flex:0 0 220px;
+  flex:0 0 260px;
   background:var(--surface);
   border:1px solid var(--border);
   border-radius:var(--r-lg);
-  padding:20px 16px;
-  display:flex;flex-direction:column;align-items:center;gap:12px;
+  overflow:hidden;
 }
-.sk-circle{
-  width:64px;height:64px;border-radius:16px;
+.sk-thumb{
+  aspect-ratio:16/9;
   background:linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.08), rgba(255,255,255,.04));
   background-size:200% 100%;
   animation:sk 1.6s ease-in-out infinite;
 }
+.sk-body{padding:14px;display:flex;flex-direction:column;gap:10px}
 .sk-line{
-  height:11px;border-radius:6px;width:80%;
+  height:12px;border-radius:6px;width:80%;
   background:linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.08), rgba(255,255,255,.04));
   background-size:200% 100%;
   animation:sk 1.6s ease-in-out infinite;
@@ -717,6 +648,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .empty-state{
   padding:60px 20px;text-align:center;
   color:var(--text-3);
+  flex:1 1 100%;
 }
 .empty-state svg{
   width:44px;height:44px;
@@ -730,6 +662,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   line-height:1.6;
 }
 
+/* Toast */
 #toast{
   position:fixed;bottom:28px;left:50%;
   transform:translateX(-50%) translateY(140%);
@@ -783,9 +716,15 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
       </svg>
       <b>STAR<span>LANE</span></b>
     </a>
-
     <div class="nav-actions">
-
+      <a href="streams.html" class="nav-btn ghost">
+        <i data-lucide="grid-3x3"></i>
+        <span class="lbl">Browse</span>
+      </a>
+      <a href="plans.html" class="nav-btn ghost">
+        <i data-lucide="tag"></i>
+        <span class="lbl">Plans</span>
+      </a>
       <a href="auth.html" class="nav-btn ghost" id="signinBtn">
         <i data-lucide="log-in"></i>
         <span class="lbl">Sign in</span>
@@ -794,20 +733,18 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
         <i data-lucide="sparkles"></i>
         <span class="lbl">Start free</span>
       </a>
-
-      <a href="profiles.html" class="user-chip hidden" id="userChip" title="Switch profile">
-        <span class="user-chip-avatar" id="userAvatar">?</span>
-        <span class="user-chip-name" id="userName">Account</span>
-      </a>
       <a href="admin-618472935.html" class="nav-btn primary hidden" id="adminBtn" title="Admin dashboard">
         <i data-lucide="shield-check"></i>
         <span class="lbl">Admin</span>
+      </a>
+      <a href="profiles.html" class="user-chip hidden" id="userChip" title="Switch profile">
+        <span class="user-chip-avatar" id="userAvatar">?</span>
+        <span class="user-chip-name" id="userName">Account</span>
       </a>
       <button type="button" class="nav-btn ghost hidden" id="signoutBtn" title="Sign out">
         <i data-lucide="log-out"></i>
         <span class="lbl">Sign out</span>
       </button>
-
     </div>
   </div>
 </nav>
@@ -822,7 +759,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
       Watch the <span class="accent">stars.</span>
     </h1>
     <p>
-      Live TV, movies, sports, and more — free to start.
+      Live TV, movies, shows, and sports — free to start.
       Upgrade for 4K, no ads, and watch on more devices.
     </p>
     <div class="hero-ctas">
@@ -832,7 +769,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
       </a>
       <a href="streams.html" class="cta-btn ghost">
         <i data-lucide="grid-3x3"></i>
-        Browse channels
+        Browse all
       </a>
     </div>
     <div class="hero-prices">
@@ -843,6 +780,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   </div>
 </section>
 
+<!-- LIVE NOW -->
 <section class="section" id="liveSection">
   <div class="container">
     <div class="section-head">
@@ -850,39 +788,62 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
         <span class="live-dot"></span>
         Live now
       </h2>
-      <a href="streams.html" class="section-link">
+      <a href="streams.html?filter=live" class="section-link">
         See all <i data-lucide="arrow-right"></i>
       </a>
     </div>
     <div class="row" id="liveRow">
-      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
-      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
-      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
-      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
     </div>
   </div>
 </section>
 
-<section class="section" id="channelsSection">
+<!-- MOVIES -->
+<section class="section" id="moviesSection">
   <div class="container">
     <div class="section-head">
       <h2 class="section-title">
-        <i data-lucide="tv"></i>
-        All channels
+        <i data-lucide="film"></i>
+        Movies
       </h2>
-      <a href="streams.html" class="section-link">
+      <a href="streams.html?filter=movie" class="section-link">
         See all <i data-lucide="arrow-right"></i>
       </a>
     </div>
-    <div class="row" id="channelsRow">
-      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
-      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
-      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
-      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
+    <div class="row" id="moviesRow">
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
     </div>
   </div>
 </section>
 
+<!-- SHOWS -->
+<section class="section" id="showsSection">
+  <div class="container">
+    <div class="section-head">
+      <h2 class="section-title">
+        <i data-lucide="layers"></i>
+        Shows
+      </h2>
+      <a href="streams.html?filter=show" class="section-link">
+        See all <i data-lucide="arrow-right"></i>
+      </a>
+    </div>
+    <div class="row" id="showsRow">
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TRENDING -->
 <section class="section" id="trendingSection">
   <div class="container">
     <div class="section-head">
@@ -895,13 +856,15 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
       </a>
     </div>
     <div class="row" id="trendingRow">
-      <div class="skeleton-card" style="flex:0 0 300px;"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
-      <div class="skeleton-card" style="flex:0 0 300px;"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
-      <div class="skeleton-card" style="flex:0 0 300px;"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
+      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
     </div>
   </div>
 </section>
 
+<!-- FEATURES -->
 <section class="section">
   <div class="container">
     <div class="section-head">
@@ -955,13 +918,13 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
           <b>STAR<span>LANE</span></b>
         </div>
         <p class="footer-tagline">
-          Live TV, movies, and sports — streaming without limits.
+          Live TV, movies, shows and sports — streaming without limits.
           Built for South Africa, made for the world.
         </p>
       </div>
       <div class="footer-col">
         <h4>Product</h4>
-        <a href="streams.html">All channels</a>
+        <a href="streams.html">Browse all</a>
         <a href="plans.html">Plans & pricing</a>
         <a href="auth.html?tab=signup">Start free</a>
       </div>
@@ -991,7 +954,9 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 (function(){
 'use strict';
 
-// Firebase configuration
+/* ═══════════════════════════════════════════════════════════════
+   FIREBASE CONFIG
+   ═══════════════════════════════════════════════════════════════ */
 var firebaseConfig = {
   apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
   authDomain: "starlane-stream.firebaseapp.com",
@@ -1001,38 +966,43 @@ var firebaseConfig = {
   appId: "1:115625325145:web:b14025df503bbe2b7d7748"
 };
 
-// Admin emails (must match Firestore rules)
 var ADMIN_EMAILS = [
   'nylnathan340@gmail.com',
   'customerservicesnovalink@gmail.com'
 ];
 
+var STREAMS = "streams";
+var REPLAY_DAYS = 30;
+
 var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
 var db = null;
 var auth = null;
+var currentUser = null;
 
-if (firebaseReady && !firebase.apps.length) {
+if (firebaseReady && !firebase.apps.length){
   firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
   auth = firebase.auth();
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════════════════════ */
 function $(id){ return document.getElementById(id); }
-function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
-
-function isAdmin(user){
-  if (!user || !user.email) return false;
-  var e = String(user.email).toLowerCase().trim();
-  return ADMIN_EMAILS.some(function(a){ return a.toLowerCase() === e; });
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
+function icon(n){ return '<i data-lucide="' + n + '"></i>'; }
 
 function toast(msg, type, ms){
   type = type || 'info'; ms = ms || 3000;
   var t = $('toast');
   var ic = type === 'error' ? 'alert-circle' : (type === 'success' ? 'check-circle' : 'info');
   t.className = type;
-  t.innerHTML = '<i data-lucide="'+ic+'"></i><span>' + esc(msg) + '</span>';
+  t.innerHTML = icon(ic) + '<span>' + esc(msg) + '</span>';
   refreshIcons();
   requestAnimationFrame(function(){ t.classList.add('show'); });
   clearTimeout(toast._t);
@@ -1049,27 +1019,10 @@ function initials(name, email){
   return '?';
 }
 
-function prettyDate(dateStr, timeStr){
-  if (!dateStr) return 'Scheduled';
-  try {
-    var d = new Date(dateStr + 'T' + (timeStr || '00:00'));
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString('en-ZA', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
-  } catch(e){ return dateStr; }
-}
-
-function gradientFor(id){
-  var g = [
-    'linear-gradient(135deg,#E50914,#B20710)',
-    'linear-gradient(135deg,#FF3B4E,#E50914)',
-    'linear-gradient(135deg,#7C3AED,#4C1D95)',
-    'linear-gradient(135deg,#0891B2,#0E7490)',
-    'linear-gradient(135deg,#F59E0B,#B45309)',
-    'linear-gradient(135deg,#10B981,#047857)'
-  ];
-  var sum = 0;
-  for (var i = 0; i < String(id).length; i++) sum += String(id).charCodeAt(i);
-  return g[sum % g.length];
+function isAdmin(user){
+  if (!user || !user.email) return false;
+  var e = String(user.email).toLowerCase().trim();
+  return ADMIN_EMAILS.some(function(a){ return a.toLowerCase() === e; });
 }
 
 function getActiveProfile(){
@@ -1082,6 +1035,34 @@ function getActiveProfile(){
   return null;
 }
 
+function formatDate(dateStr, timeStr){
+  if (!dateStr) return 'On demand';
+  try {
+    var d = new Date(dateStr + 'T' + (timeStr || '00:00'));
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
+  } catch(e){ return dateStr; }
+}
+
+function streamStatus(item){
+  var type = item.type || 'live';
+  if (type === 'movie' || type === 'show') return 'on-demand';
+  if (!item.startDate) return 'upcoming';
+  var startMs = new Date(item.startDate + 'T' + (item.startTime || '00:00') + ':00').getTime();
+  if (isNaN(startMs)) return 'upcoming';
+  var dur = (parseInt(item.durationMinutes, 10) || 90) * 60000;
+  var endMs = startMs + dur;
+  var replayMs = endMs + REPLAY_DAYS * 86400000;
+  var now = Date.now();
+  if (now < startMs) return 'upcoming';
+  if (now <= endMs) return 'live';
+  if (now <= replayMs && item.replayEnabled !== false) return 'replay';
+  return 'ended';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NAV AUTH
+   ═══════════════════════════════════════════════════════════════ */
 function updateNavAuth(user){
   var signinBtn = $('signinBtn');
   var signupBtn = $('signupBtn');
@@ -1098,8 +1079,6 @@ function updateNavAuth(user){
       userChip.classList.remove('hidden');
       var av = $('userAvatar');
       var nm = $('userName');
-
-      // Prefer the active profile name if set
       var active = getActiveProfile();
       if (active && active.name){
         if (av) av.textContent = initials(active.name);
@@ -1113,7 +1092,6 @@ function updateNavAuth(user){
         if (nm) nm.textContent = displayName;
       }
     }
-
     if (signoutBtn) signoutBtn.classList.remove('hidden');
 
     if (adminBtn){
@@ -1150,215 +1128,189 @@ function wireSignout(){
         toast('Signed out.', 'success', 2000);
       }).catch(function(err){
         console.error('[signout]', err);
-        toast('Could not sign out.', 'error');
       });
     }
   });
 }
 
-function renderChannels(channels){
-  var row = $('channelsRow');
+/* ═══════════════════════════════════════════════════════════════
+   CONTENT CARD BUILDER
+   ═══════════════════════════════════════════════════════════════ */
+function buildContentCard(item){
+  var card = document.createElement('a');
+  card.className = 'content-card';
+  card.href = 'watch-847291563.html?id=' + encodeURIComponent(item.id);
+
+  var type = item.type || 'live';
+  var status = streamStatus(item);
+  var title = item.title || item.streamTitle || item.eventName || 'Untitled';
+  var poster = item.posterUrl || item.heroImage || '';
+
+  var thumbStyle = poster
+    ? "background-image:url('" + esc(poster) + "');background-size:cover;background-position:center;"
+    : '';
+
+  // Badge
+  var badgeClass = 'upcoming';
+  var badgeLabel = 'Upcoming';
+  if (type === 'movie'){ badgeClass = 'movie'; badgeLabel = 'Movie'; }
+  else if (type === 'show'){ badgeClass = 'show'; badgeLabel = 'Show'; }
+  else {
+    if (status === 'live'){ badgeClass = 'live'; badgeLabel = 'Live'; }
+    else if (status === 'replay'){ badgeClass = 'replay'; badgeLabel = 'Replay'; }
+    else if (status === 'ended'){ badgeClass = 'ended'; badgeLabel = 'Ended'; }
+  }
+
+  // Meta
+  var metaText = '';
+  if (type === 'show' && Array.isArray(item.episodes)){
+    metaText = item.episodes.length + ' episode' + (item.episodes.length === 1 ? '' : 's');
+  } else if (type === 'movie'){
+    metaText = (parseInt(item.durationMinutes, 10) || 0) + ' min';
+  } else {
+    metaText = formatDate(item.startDate, item.startTime);
+  }
+
+  card.innerHTML =
+    '<div class="content-thumb" style="' + thumbStyle + '">' +
+      '<span class="content-badge ' + badgeClass + '">' + esc(badgeLabel) + '</span>' +
+      '<div class="play-ico">' + icon('play') + '</div>' +
+    '</div>' +
+    '<div class="content-body">' +
+      '<div class="content-title">' + esc(title) + '</div>' +
+      '<div class="content-meta">' + icon('calendar') + '<span>' + esc(metaText) + '</span></div>' +
+    '</div>';
+
+  return card;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER ROW
+   ═══════════════════════════════════════════════════════════════ */
+function renderRow(rowId, items, sectionId){
+  var row = $(rowId);
   if (!row) return;
 
-  if (!channels.length){
+  if (!items.length){
     row.innerHTML =
-      '<div class="empty-state" style="flex:1 1 100%;">' +
-        '<i data-lucide="tv"></i>' +
-        '<p>No channels yet. Check back soon.</p>' +
+      '<div class="empty-state">' +
+        icon('video-off') +
+        '<p>Nothing here yet. Check back soon.</p>' +
       '</div>';
+    // Hide the section entirely
+    var section = $(sectionId);
+    if (section) section.style.display = 'none';
     refreshIcons();
     return;
   }
 
   row.innerHTML = '';
-  channels.slice(0, 12).forEach(function(ch){
-    var card = document.createElement('a');
-    card.className = 'channel-card';
-    card.href = 'channel.html?id=' + encodeURIComponent(ch.id);
-
-    var logoHTML = ch.logoUrl
-      ? '<img alt="" src="' + esc(ch.logoUrl) + '" />'
-      : esc(initials(ch.name));
-
-    var isPaid = ch.accessTier && ch.accessTier !== 'free';
-    var tagHTML = isPaid
-      ? '<span class="channel-tag paid">Premium</span>'
-      : '<span class="channel-tag free">Free</span>';
-
-    var metaText = isPaid ? 'Premium' : 'Free to watch';
-    var lockIcon = isPaid ? '<span class="lock"><i data-lucide="lock"></i></span>' : '';
-
-    card.innerHTML =
-      tagHTML +
-      '<div class="channel-logo">' + logoHTML + '</div>' +
-      '<div class="channel-name">' + esc(ch.name || 'Untitled') + '</div>' +
-      '<div class="channel-meta">' + lockIcon + esc(metaText) + '</div>';
-
-    row.appendChild(card);
+  items.forEach(function(item){
+    row.appendChild(buildContentCard(item));
   });
   refreshIcons();
 }
 
-function streamStatus(s){
-  var dateStr = s.startDate || '';
-  var timeStr = s.startTime || '00:00';
-  var durMin = parseInt(s.durationMinutes, 10) || 90;
-  if (!dateStr) return { status:'upcoming', startMs:0 };
-  var startMs = new Date(dateStr + 'T' + timeStr + ':00').getTime();
-  if (isNaN(startMs)) return { status:'upcoming', startMs:0 };
-  var endMs = startMs + durMin * 60000 + 15 * 60000;
-  var now = Date.now();
-  if (now < startMs) return { status:'upcoming', startMs:startMs };
-  if (now <= endMs)  return { status:'live',     startMs:startMs };
-  return { status:'past', startMs:startMs };
-}
-
-function renderStreams(container, streams, opts){
-  opts = opts || {};
-  var locked = opts.locked || false;
-
-  if (!container) return;
-
-  if (!streams.length){
-    container.innerHTML =
-      '<div class="empty-state" style="flex:1 1 100%;">' +
-        '<i data-lucide="video"></i>' +
-        '<p>Nothing streaming right now. Check back soon.</p>' +
-      '</div>';
-    refreshIcons();
-    return;
-  }
-
-  container.innerHTML = '';
-  streams.slice(0, 8).forEach(function(s){
-    var card = document.createElement('a');
-    card.className = 'stream-card';
-    if (locked) card.classList.add('locked-thumb');
-    card.href = 'watch-847291563.html?id=' + encodeURIComponent(s.id);
-
-    var st = streamStatus(s);
-    var title = s.streamTitle || s.eventName || 'Untitled Stream';
-    var thumb = s.heroImage
-      ? 'background-image:url(\'' + esc(s.heroImage) + '\');background-size:cover;background-position:center;'
-      : 'background:' + gradientFor(s.id);
-
-    var badgeHTML = '';
-    if (locked){
-      badgeHTML = '<span class="stream-badge locked"><i data-lucide="lock"></i> Sign in</span>';
-    } else if (st.status === 'live'){
-      badgeHTML = '<span class="stream-badge live">Live</span>';
-    } else if (st.status === 'upcoming'){
-      badgeHTML = '<span class="stream-badge upcoming" style="background:rgba(0,0,0,.7);color:#fff;border:1px solid rgba(255,255,255,.2);">Starts soon</span>';
-    }
-
-    card.innerHTML =
-      '<div class="stream-thumb" style="' + thumb + '">' +
-        badgeHTML +
-        '<div class="play-ico"><i data-lucide="play"></i></div>' +
-      '</div>' +
-      '<div class="stream-body">' +
-        '<div class="stream-title">' + esc(title) + '</div>' +
-        '<div class="stream-meta">' +
-          '<i data-lucide="calendar"></i>' +
-          '<span>' + esc(prettyDate(s.startDate, s.startTime)) + '</span>' +
-        '</div>' +
-      '</div>';
-
-    container.appendChild(card);
-  });
-  refreshIcons();
-}
-
-function loadHomepage(user){
+/* ═══════════════════════════════════════════════════════════════
+   LOAD HOMEPAGE
+   ═══════════════════════════════════════════════════════════════ */
+function loadHomepage(){
   if (!firebaseReady || !db){
-    renderChannels([]);
-    renderStreams($('liveRow'), []);
-    renderStreams($('trendingRow'), []);
+    renderRow('liveRow', [], 'liveSection');
+    renderRow('moviesRow', [], 'moviesSection');
+    renderRow('showsRow', [], 'showsSection');
+    renderRow('trendingRow', [], 'trendingSection');
     return;
   }
 
-  db.collection('channels').limit(20).get()
+  db.collection(STREAMS)
+    .where('active', '!=', false)
+    .limit(200)
+    .get()
     .then(function(snap){
-      var channels = [];
+      var all = [];
       snap.forEach(function(doc){
         var d = doc.data() || {};
+        // Skip items explicitly marked inactive
+        if (d.active === false) return;
         d.id = doc.id;
-        channels.push(d);
+        all.push(d);
       });
-      channels.sort(function(a, b){
-        var oa = a.order || 99, ob = b.order || 99;
-        if (oa !== ob) return oa - ob;
-        return String(a.name || '').localeCompare(String(b.name || ''));
+
+      // Split by type
+      var live = [];
+      var movies = [];
+      var shows = [];
+
+      all.forEach(function(item){
+        var t = item.type || 'live';
+        if (t === 'movie') movies.push(item);
+        else if (t === 'show') shows.push(item);
+        else live.push(item);
       });
-      renderChannels(channels);
+
+      // Live now: only currently-live items
+      var liveNow = live.filter(function(s){ return streamStatus(s) === 'live'; });
+      // If nothing live right now, show upcoming ones instead
+      if (!liveNow.length){
+        liveNow = live.filter(function(s){
+          var st = streamStatus(s);
+          return st === 'upcoming' || st === 'live';
+        }).slice(0, 12);
+      }
+      liveNow = liveNow.slice(0, 12);
+
+      // Trending: highest views
+      var trending = all.slice().sort(function(a, b){
+        return (parseInt(b.views, 10) || 0) - (parseInt(a.views, 10) || 0);
+      }).slice(0, 12);
+
+      // Shuffle movies/shows a bit, take 12
+      movies = movies.slice(0, 12);
+      shows = shows.slice(0, 12);
+
+      renderRow('liveRow', liveNow, 'liveSection');
+      renderRow('moviesRow', movies, 'moviesSection');
+      renderRow('showsRow', shows, 'showsSection');
+      renderRow('trendingRow', trending, 'trendingSection');
     })
     .catch(function(err){
-      console.warn('[channels]', err);
-      renderChannels([]);
-    });
-
-  db.collection('streams').limit(50).get()
-    .then(function(snap){
-      var streams = [];
-      snap.forEach(function(doc){
-        var d = doc.data() || {};
-        d.id = doc.id;
-        streams.push(d);
-      });
-
-      var live = streams.filter(function(s){ return streamStatus(s).status === 'live'; });
-      var trending = streams.slice().sort(function(a, b){
-        return (b.views || 0) - (a.views || 0);
-      }).slice(0, 6);
-
-      var isLocked = !user;
-      renderStreams($('liveRow'), live, { locked: isLocked });
-      renderStreams($('trendingRow'), trending, { locked: isLocked });
-    })
-    .catch(function(err){
-      console.warn('[streams]', err);
-      renderStreams($('liveRow'), []);
-      renderStreams($('trendingRow'), []);
+      console.warn('[homepage load]', err);
+      renderRow('liveRow', [], 'liveSection');
+      renderRow('moviesRow', [], 'moviesSection');
+      renderRow('showsRow', [], 'showsSection');
+      renderRow('trendingRow', [], 'trendingSection');
     });
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function(){
   var yearEl = $('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
   refreshIcons();
   wireSignout();
 
-  var initialised = false;
-
   if (firebaseReady && auth){
     auth.onAuthStateChanged(function(user){
+      currentUser = user;
       updateNavAuth(user);
-      if (!initialised){
-        initialised = true;
-        loadHomepage(user);
+      if (!allLoaded){
+        allLoaded = true;
+        loadHomepage();
       }
     });
   } else {
     updateNavAuth(null);
-    loadHomepage(null);
+    loadHomepage();
   }
-
-  setTimeout(function(){
-    var liveRow = $('liveRow');
-    if (liveRow && liveRow.querySelector('.empty-state')){
-      var sec = $('liveSection');
-      if (sec) sec.style.display = 'none';
-    }
-    var trendRow = $('trendingRow');
-    if (trendRow && trendRow.querySelector('.empty-state')){
-      var sec2 = $('trendingSection');
-      if (sec2) sec2.style.display = 'none';
-    }
-  }, 3000);
 });
+
+var allLoaded = false;
 
 })();
 </script>
 
 </body>
-  </html>
+                                   </html>
