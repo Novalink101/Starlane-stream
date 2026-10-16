@@ -17,14 +17,11 @@
   --red:#E50914;
   --red-hover:#FF3B4E;
   --red-dark:#B20710;
-  --red-glow:rgba(229,9,20,.45);
   --red-soft:rgba(229,9,20,.12);
   --red-border:rgba(229,9,20,.25);
 
   --bg:#050508;
-  --bg-2:#0A0A0F;
   --surface:rgba(20,20,28,.75);
-  --surface-2:rgba(30,30,40,.6);
   --border:rgba(255,255,255,.08);
   --border-2:rgba(255,255,255,.14);
 
@@ -34,7 +31,6 @@
   --text-muted:rgba(255,255,255,.35);
 
   --green:#10B981;
-  --yellow:#F59E0B;
 
   --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -67,7 +63,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .container{max-width:var(--container);margin:0 auto;padding:0 24px;width:100%}
 @media (max-width:560px){.container{padding:0 16px}}
 
-/* Starfield */
 .starfield{
   position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
@@ -107,7 +102,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   50%{opacity:.4}
 }
 
-/* Comet */
 .comet{
   position:fixed;top:0;left:0;
   width:140px;height:2px;
@@ -191,7 +185,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   .nav-btn{padding:9px 12px}
 }
 
-/* User chip (signed-in state) */
 .user-chip{
   display:inline-flex;align-items:center;gap:9px;
   padding:6px 14px 6px 6px;
@@ -321,7 +314,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   padding:15px 28px;
   border-radius:var(--r-full);
   font-size:15px;font-weight:900;
-  letter-spacing:-.005em;
   transition:all .25s var(--ease);
   text-decoration:none;
   border:1px solid transparent;
@@ -333,11 +325,11 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .cta-btn.primary{
   background:linear-gradient(135deg,var(--red),#FF2A3D);
   color:#fff;
-  box-shadow:0 12px 32px rgba(229,9,20,.45), 0 0 0 1px rgba(255,255,255,.05) inset;
+  box-shadow:0 12px 32px rgba(229,9,20,.45);
 }
 .cta-btn.primary:hover{
   transform:translateY(-2px);
-  box-shadow:0 18px 44px rgba(229,9,20,.6), 0 0 0 1px rgba(255,255,255,.1) inset;
+  box-shadow:0 18px 44px rgba(229,9,20,.6);
 }
 .cta-btn.ghost{
   background:rgba(255,255,255,.04);
@@ -370,6 +362,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .hero-prices a{color:var(--red);font-weight:900}
 .hero-prices a:hover{text-decoration:underline}
 
+/* Sections */
 .section{padding:56px 0}
 .section + .section{padding-top:0}
 @media (max-width:640px){.section{padding:40px 0}}
@@ -440,7 +433,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .channel-card:hover{
   transform:translateY(-4px);
   border-color:var(--red-border);
-  box-shadow:0 20px 40px rgba(0,0,0,.4), 0 0 0 1px var(--red-border);
+  box-shadow:0 20px 40px rgba(0,0,0,.4);
 }
 .channel-card:hover::before{opacity:1}
 
@@ -639,6 +632,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   line-height:1.6;font-weight:500;
 }
 
+/* Footer */
 .footer{
   background:#020204;
   border-top:1px solid var(--border);
@@ -693,8 +687,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   align-items:center;flex-wrap:wrap;gap:14px;
   font-size:12.5px;color:var(--text-muted);
 }
-.footer-bottom a{color:var(--text-3)}
-.footer-bottom a:hover{color:var(--red)}
 
 .skeleton-card{
   flex:0 0 220px;
@@ -794,7 +786,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 
     <div class="nav-actions">
 
-      <!-- Signed-out state -->
       <a href="auth.html" class="nav-btn ghost" id="signinBtn">
         <i data-lucide="log-in"></i>
         <span class="lbl">Sign in</span>
@@ -804,10 +795,13 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
         <span class="lbl">Start free</span>
       </a>
 
-      <!-- Signed-in state (hidden until auth resolves) -->
-      <a href="account-527394816.html" class="user-chip hidden" id="userChip" title="My account">
+      <a href="profiles.html" class="user-chip hidden" id="userChip" title="Switch profile">
         <span class="user-chip-avatar" id="userAvatar">?</span>
         <span class="user-chip-name" id="userName">Account</span>
+      </a>
+      <a href="admin-618472935.html" class="nav-btn primary hidden" id="adminBtn" title="Admin dashboard">
+        <i data-lucide="shield-check"></i>
+        <span class="lbl">Admin</span>
       </a>
       <button type="button" class="nav-btn ghost hidden" id="signoutBtn" title="Sign out">
         <i data-lucide="log-out"></i>
@@ -1007,6 +1001,12 @@ var firebaseConfig = {
   appId: "1:115625325145:web:b14025df503bbe2b7d7748"
 };
 
+// Admin emails (must match Firestore rules)
+var ADMIN_EMAILS = [
+  'nylnathan340@gmail.com',
+  'customerservicesnovalink@gmail.com'
+];
+
 var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
 var db = null;
 var auth = null;
@@ -1020,6 +1020,12 @@ if (firebaseReady && !firebase.apps.length) {
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
+
+function isAdmin(user){
+  if (!user || !user.email) return false;
+  var e = String(user.email).toLowerCase().trim();
+  return ADMIN_EMAILS.some(function(a){ return a.toLowerCase() === e; });
+}
 
 function toast(msg, type, ms){
   type = type || 'info'; ms = ms || 3000;
@@ -1066,37 +1072,65 @@ function gradientFor(id){
   return g[sum % g.length];
 }
 
-/* Update nav based on auth state */
+function getActiveProfile(){
+  try {
+    var s = localStorage.getItem('starlane_active_profile');
+    if (!s) return null;
+    var p = JSON.parse(s);
+    if (p && p.id && p.name) return p;
+  } catch(e){}
+  return null;
+}
+
 function updateNavAuth(user){
   var signinBtn = $('signinBtn');
   var signupBtn = $('signupBtn');
   var userChip = $('userChip');
   var signoutBtn = $('signoutBtn');
+  var adminBtn = $('adminBtn');
   var heroCtaSignup = $('heroCtaSignup');
 
   if (user){
-    // Signed in
     if (signinBtn) signinBtn.classList.add('hidden');
     if (signupBtn) signupBtn.classList.add('hidden');
+
     if (userChip){
       userChip.classList.remove('hidden');
       var av = $('userAvatar');
       var nm = $('userName');
-      var displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'Account');
-      if (av) av.textContent = initials(user.displayName, user.email);
-      if (nm) nm.textContent = displayName;
+
+      // Prefer the active profile name if set
+      var active = getActiveProfile();
+      if (active && active.name){
+        if (av) av.textContent = initials(active.name);
+        if (nm) nm.textContent = active.name;
+        if (active.color && av){
+          av.style.background = 'linear-gradient(135deg, ' + active.color + ', rgba(0,0,0,.35))';
+        }
+      } else {
+        var displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'Account');
+        if (av) av.textContent = initials(user.displayName, user.email);
+        if (nm) nm.textContent = displayName;
+      }
     }
+
     if (signoutBtn) signoutBtn.classList.remove('hidden');
+
+    if (adminBtn){
+      if (isAdmin(user)) adminBtn.classList.remove('hidden');
+      else adminBtn.classList.add('hidden');
+    }
+
     if (heroCtaSignup){
       heroCtaSignup.innerHTML = '<i data-lucide="play"></i> Continue watching';
       heroCtaSignup.href = 'streams.html';
     }
   } else {
-    // Signed out
     if (signinBtn) signinBtn.classList.remove('hidden');
     if (signupBtn) signupBtn.classList.remove('hidden');
     if (userChip) userChip.classList.add('hidden');
     if (signoutBtn) signoutBtn.classList.add('hidden');
+    if (adminBtn) adminBtn.classList.add('hidden');
     if (heroCtaSignup){
       heroCtaSignup.innerHTML = '<i data-lucide="play"></i> Start free';
       heroCtaSignup.href = 'auth.html?tab=signup';
@@ -1110,10 +1144,10 @@ function wireSignout(){
   if (!btn) return;
   btn.addEventListener('click', function(){
     if (!confirm('Sign out of Starlane Stream?')) return;
+    try { localStorage.removeItem('starlane_active_profile'); } catch(e){}
     if (auth){
       auth.signOut().then(function(){
         toast('Signed out.', 'success', 2000);
-        // No reload needed — onAuthStateChanged handles the UI swap
       }).catch(function(err){
         console.error('[signout]', err);
         toast('Could not sign out.', 'error');
@@ -1296,30 +1330,12 @@ document.addEventListener('DOMContentLoaded', function(){
 
   var initialised = false;
 
-  // Auth state drives nav + homepage load
   if (firebaseReady && auth){
     auth.onAuthStateChanged(function(user){
       updateNavAuth(user);
       if (!initialised){
         initialised = true;
         loadHomepage(user);
-      } else {
-        // Already loaded — just re-render streams with new lock state
-        db.collection('streams').limit(50).get().then(function(snap){
-          var streams = [];
-          snap.forEach(function(doc){
-            var d = doc.data() || {};
-            d.id = doc.id;
-            streams.push(d);
-          });
-          var live = streams.filter(function(s){ return streamStatus(s).status === 'live'; });
-          var trending = streams.slice().sort(function(a, b){
-            return (b.views || 0) - (a.views || 0);
-          }).slice(0, 6);
-          var isLocked = !user;
-          renderStreams($('liveRow'), live, { locked: isLocked });
-          renderStreams($('trendingRow'), trending, { locked: isLocked });
-        }).catch(function(){});
       }
     });
   } else {
@@ -1327,7 +1343,6 @@ document.addEventListener('DOMContentLoaded', function(){
     loadHomepage(null);
   }
 
-  // Auto-hide empty sections
   setTimeout(function(){
     var liveRow = $('liveRow');
     if (liveRow && liveRow.querySelector('.empty-state')){
