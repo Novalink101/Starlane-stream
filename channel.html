@@ -30,6 +30,9 @@
   --text-muted:rgba(255,255,255,.35);
 
   --green:#10B981;
+  --yellow:#F59E0B;
+  --danger:#EF4444;
+  --purple:#8B5CF6;
 
   --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -59,7 +62,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .container{max-width:var(--container);margin:0 auto;padding:0 24px;width:100%}
 @media (max-width:560px){.container{padding:0 16px}}
 
-/* Starfield */
 .starfield{
   position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
@@ -79,7 +81,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 }
 @keyframes twinkle{0%,100%{opacity:.85}50%{opacity:.4}}
 
-/* Nav */
 .nav{
   position:sticky;top:0;z-index:50;
   background:rgba(5,5,8,.85);
@@ -104,24 +105,65 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 
 .nav-btn{
   display:inline-flex;align-items:center;gap:7px;
-  padding:9px 16px;border-radius:var(--r-full);
+  padding:9px 14px;border-radius:var(--r-full);
   font-size:13px;font-weight:800;
   transition:all .2s var(--ease);
   white-space:nowrap;text-decoration:none;
   font-family:inherit;cursor:pointer;
   border:1px solid transparent;line-height:1;
 }
-.nav-btn svg{width:15px;height:15px;flex-shrink:0}
+.nav-btn svg{width:14px;height:14px;flex-shrink:0}
 .nav-btn.ghost{background:transparent;color:var(--text-2);border-color:var(--border-2)}
 .nav-btn.ghost:hover{color:#fff;border-color:var(--red);background:var(--red-soft)}
 .nav-btn.primary{background:var(--red);color:#fff;box-shadow:0 4px 14px rgba(229,9,20,.35)}
-.nav-btn.primary:hover{background:var(--red-hover);transform:translateY(-1px);box-shadow:0 8px 22px rgba(229,9,20,.5)}
-@media (max-width:480px){
+.nav-btn.primary:hover{background:var(--red-hover);transform:translateY(-1px)}
+@media (max-width:640px){
   .nav-btn .lbl{display:none}
-  .nav-btn{padding:9px 12px}
+  .nav-btn{padding:9px 11px}
 }
 
-/* Hero */
+.user-chip{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:6px 14px 6px 6px;
+  border-radius:var(--r-full);
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--border-2);
+  transition:all .2s var(--ease);
+  text-decoration:none;
+  line-height:1;
+  max-width:220px;
+  overflow:hidden;
+}
+.user-chip:hover{
+  border-color:var(--red);
+  background:var(--red-soft);
+}
+.user-chip-avatar{
+  width:28px;height:28px;
+  border-radius:50%;
+  background:linear-gradient(135deg, var(--red), #FF5566);
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:900;
+  font-family:var(--mono);
+  flex-shrink:0;
+  letter-spacing:.02em;
+}
+.user-chip-name{
+  font-size:13px;
+  font-weight:800;
+  color:#fff;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:140px;
+}
+@media (max-width:640px){
+  .user-chip{padding:5px;gap:0}
+  .user-chip-name{display:none}
+  .user-chip-avatar{width:30px;height:30px;font-size:12px}
+}
+
 .ch-hero{
   position:relative;
   padding:40px 0 32px;
@@ -224,7 +266,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   font-weight:500;
 }
 
-/* Sections */
 .section{padding:32px 0 56px}
 @media (max-width:640px){.section{padding:24px 0 40px}}
 
@@ -260,7 +301,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   animation:pulse 1.4s ease-in-out infinite;
 }
 
-/* Streams grid */
 .streams-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
@@ -269,7 +309,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 }
 @media (max-width:640px){.streams-grid{grid-template-columns:1fr;gap:12px}}
 
-/* Stream card */
 .stream-card{
   background:var(--surface);
   border:1px solid var(--border);
@@ -376,7 +415,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 }
 .stream-meta svg{width:13px;height:13px;flex-shrink:0;color:var(--red)}
 
-/* Empty state */
 .empty-block{
   text-align:center;
   padding:60px 24px;
@@ -401,7 +439,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   line-height:1.6;
 }
 
-/* Error state */
 .error-state{
   text-align:center;
   padding:100px 24px;
@@ -431,7 +468,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
 }
 
-/* Skeleton loading */
 .skeleton-card{
   background:var(--surface);
   border:1px solid var(--border);
@@ -457,7 +493,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   100%{background-position:-200% 0}
 }
 
-/* Primary button */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
   padding:11px 20px;
@@ -489,7 +524,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   border-color:rgba(255,255,255,.28);
 }
 
-/* Footer */
 .footer{
   background:#020204;
   border-top:1px solid var(--border);
@@ -507,10 +541,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 @media (max-width:800px){.footer-grid{grid-template-columns:1fr 1fr;gap:32px}}
 @media (max-width:480px){.footer-grid{grid-template-columns:1fr;gap:28px}}
 
-.footer-brand{
-  display:inline-flex;align-items:center;gap:11px;
-  margin-bottom:14px;
-}
+.footer-brand{display:inline-flex;align-items:center;gap:11px;margin-bottom:14px;}
 .footer-brand svg{width:26px;height:32px}
 .footer-brand b{font-weight:900;font-size:16px;color:#fff;letter-spacing:-.01em}
 .footer-brand b span{color:var(--red)}
@@ -551,6 +582,10 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 }
 #toast.show{transform:translateX(-50%) translateY(0)}
 #toast svg{width:16px;height:16px;flex-shrink:0}
+#toast.success{background:var(--green);color:#fff}
+#toast.error{background:var(--red);color:#fff}
+
+@keyframes spin{to{transform:rotate(360deg)}}
 
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{
@@ -586,18 +621,29 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
       <b>STAR<span>LANE</span></b>
     </a>
     <div class="nav-actions">
+
       <a href="streams.html" class="nav-btn ghost">
         <i data-lucide="arrow-left"></i>
         <span class="lbl">All channels</span>
       </a>
-      <a href="plans.html" class="nav-btn ghost">
-        <i data-lucide="tag"></i>
-        <span class="lbl">Plans</span>
+
+      <a href="admin-618472935.html" class="nav-btn primary hidden" id="adminBtn" title="Admin dashboard">
+        <i data-lucide="shield-check"></i>
+        <span class="lbl">Admin</span>
       </a>
-      <a href="auth.html?tab=signup" class="nav-btn primary">
+      <a href="profiles.html" class="user-chip hidden" id="userChip" title="Switch profile">
+        <span class="user-chip-avatar" id="userAvatar">?</span>
+        <span class="user-chip-name" id="userName">Account</span>
+      </a>
+      <button type="button" class="nav-btn ghost hidden" id="signoutBtn" title="Sign out">
+        <i data-lucide="log-out"></i>
+        <span class="lbl">Sign out</span>
+      </button>
+      <a href="auth.html?tab=signup" class="nav-btn primary" id="signupBtn">
         <i data-lucide="sparkles"></i>
         <span class="lbl">Start free</span>
       </a>
+
     </div>
   </div>
 </nav>
@@ -756,17 +802,11 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 
 <div id="toast"></div>
 
-<style>
-@keyframes spin{to{transform:rotate(360deg)}}
-</style>
-
 <script>
 (function(){
 'use strict';
 
-/* ═══════════════════════════════════════════════════════════════
-   FIREBASE CONFIG — starlane-stream
-   ═══════════════════════════════════════════════════════════════ */
+// Firebase configuration
 var firebaseConfig = {
   apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
   authDomain: "starlane-stream.firebaseapp.com",
@@ -775,6 +815,12 @@ var firebaseConfig = {
   messagingSenderId: "115625325145",
   appId: "1:115625325145:web:b14025df503bbe2b7d7748"
 };
+
+// Admin emails (must match Firestore rules)
+var ADMIN_EMAILS = [
+  'nylnathan340@gmail.com',
+  'customerservicesnovalink@gmail.com'
+];
 
 var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
 var db = null;
@@ -791,6 +837,22 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ re
 function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
 function getParam(n){ try { return new URLSearchParams(location.search).get(n); } catch(e){ return null; } }
 
+function isAdmin(user){
+  if (!user || !user.email) return false;
+  var e = String(user.email).toLowerCase().trim();
+  return ADMIN_EMAILS.some(function(a){ return a.toLowerCase() === e; });
+}
+
+function getActiveProfile(){
+  try {
+    var s = localStorage.getItem('starlane_active_profile');
+    if (!s) return null;
+    var p = JSON.parse(s);
+    if (p && p.id && p.name) return p;
+  } catch(e){}
+  return null;
+}
+
 function toast(msg, type, ms){
   type = type || 'info'; ms = ms || 3000;
   var t = $('toast');
@@ -803,11 +865,14 @@ function toast(msg, type, ms){
   toast._t = setTimeout(function(){ t.classList.remove('show'); }, ms);
 }
 
-function initials(name){
-  if (!name) return '?';
-  var p = String(name).trim().split(/\s+/);
-  if (p.length >= 2) return (p[0][0]+p[1][0]).toUpperCase();
-  return p[0].slice(0,2).toUpperCase();
+function initials(name, email){
+  if (name && String(name).trim()){
+    var p = String(name).trim().split(/\s+/);
+    if (p.length >= 2) return (p[0][0]+p[1][0]).toUpperCase();
+    return p[0].slice(0,2).toUpperCase();
+  }
+  if (email) return String(email).slice(0,2).toUpperCase();
+  return '?';
 }
 
 function categoryLabel(c){
@@ -853,6 +918,62 @@ function gradientFor(id){
   var sum = 0;
   for (var i = 0; i < String(id).length; i++) sum += String(id).charCodeAt(i);
   return g[sum % g.length];
+}
+
+function updateNavAuth(user){
+  var signupBtn = $('signupBtn');
+  var userChip = $('userChip');
+  var signoutBtn = $('signoutBtn');
+  var adminBtn = $('adminBtn');
+
+  if (user){
+    if (signupBtn) signupBtn.classList.add('hidden');
+    if (userChip){
+      userChip.classList.remove('hidden');
+      var av = $('userAvatar');
+      var nm = $('userName');
+      var active = getActiveProfile();
+      if (active && active.name){
+        if (av) av.textContent = initials(active.name);
+        if (nm) nm.textContent = active.name;
+        if (active.color && av){
+          av.style.background = 'linear-gradient(135deg, ' + active.color + ', rgba(0,0,0,.35))';
+        }
+      } else {
+        var displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'Account');
+        if (av) av.textContent = initials(user.displayName, user.email);
+        if (nm) nm.textContent = displayName;
+      }
+    }
+    if (signoutBtn) signoutBtn.classList.remove('hidden');
+    if (adminBtn){
+      if (isAdmin(user)) adminBtn.classList.remove('hidden');
+      else adminBtn.classList.add('hidden');
+    }
+  } else {
+    if (signupBtn) signupBtn.classList.remove('hidden');
+    if (userChip) userChip.classList.add('hidden');
+    if (signoutBtn) signoutBtn.classList.add('hidden');
+    if (adminBtn) adminBtn.classList.add('hidden');
+  }
+  refreshIcons();
+}
+
+function wireSignout(){
+  var btn = $('signoutBtn');
+  if (!btn) return;
+  btn.addEventListener('click', function(){
+    if (!confirm('Sign out of Starlane Stream?')) return;
+    try { localStorage.removeItem('starlane_active_profile'); } catch(e){}
+    if (auth){
+      auth.signOut().then(function(){
+        toast('Signed out.', 'success', 2000);
+      }).catch(function(err){
+        console.error('[signout]', err);
+        toast('Could not sign out.', 'error');
+      });
+    }
+  });
 }
 
 function buildStreamCard(stream, isLocked){
@@ -933,7 +1054,6 @@ function renderChannel(channel, streams, isLocked){
   }
 
   var liveStreams = streams.filter(function(s){ return streamStatus(s).status === 'live'; });
-  var upcomingStreams = streams.filter(function(s){ return streamStatus(s).status === 'upcoming'; });
   var pastStreams = streams.filter(function(s){
     var st = streamStatus(s);
     return st.status === 'past' && s.replayEnabled !== false;
@@ -1063,23 +1183,19 @@ function loadChannel(){
     });
 }
 
-function isAdmin(email){
-  if (!email) return false;
-  var admins = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
-  var e = String(email).toLowerCase().trim();
-  return admins.some(function(a){ return a.toLowerCase() === e; });
-}
-
 document.addEventListener('DOMContentLoaded', function(){
   var yearEl = $('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
   refreshIcons();
+  wireSignout();
 
   if (firebaseReady && auth){
     auth.onAuthStateChanged(function(user){
+      updateNavAuth(user);
       loadChannel();
     });
   } else {
+    updateNavAuth(null);
     loadChannel();
   }
 });
@@ -1088,4 +1204,4 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 </body>
-</html>
+  </html>
