@@ -33,7 +33,6 @@
   --green:#10B981;
   --yellow:#F59E0B;
   --danger:#EF4444;
-  --purple:#8B5CF6;
 
   --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -135,6 +134,131 @@ main{flex:1;padding:40px 0 80px}
   font-size:14.5px;
   color:var(--text-3);
   font-weight:500;
+}
+
+/* PENDING BANNER */
+.pending-banner{
+  background:linear-gradient(180deg, rgba(245,158,11,.12), rgba(20,20,28,.85) 60%);
+  border:1px solid rgba(245,158,11,.4);
+  border-radius:var(--r-xl);
+  padding:24px 26px;
+  margin-bottom:24px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 20px 48px rgba(245,158,11,.12);
+  display:flex;
+  gap:18px;
+  align-items:flex-start;
+}
+.pending-banner::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg, transparent, var(--yellow), transparent);
+}
+@media (max-width:480px){
+  .pending-banner{padding:20px 18px;gap:14px;flex-direction:column}
+}
+
+.pending-icon{
+  width:54px;height:54px;
+  border-radius:50%;
+  background:rgba(245,158,11,.15);
+  border:2px solid rgba(245,158,11,.4);
+  color:var(--yellow);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  box-shadow:0 0 24px rgba(245,158,11,.25);
+  animation:pendingPulse 2s ease-in-out infinite;
+}
+@keyframes pendingPulse{
+  0%,100%{box-shadow:0 0 24px rgba(245,158,11,.25)}
+  50%{box-shadow:0 0 32px rgba(245,158,11,.5)}
+}
+.pending-icon svg{width:26px;height:26px}
+
+.pending-content{flex:1;min-width:0}
+
+.pending-title{
+  font-size:16.5px;
+  font-weight:900;
+  color:#fff;
+  margin-bottom:8px;
+  letter-spacing:-.01em;
+  display:flex;align-items:center;gap:9px;
+  flex-wrap:wrap;
+}
+.pending-title .badge{
+  font-size:9.5px;
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  padding:3px 9px;
+  background:rgba(245,158,11,.18);
+  color:var(--yellow);
+  border:1px solid rgba(245,158,11,.4);
+  border-radius:var(--r-full);
+}
+.pending-title .badge::before{
+  content:'';display:inline-block;
+  width:5px;height:5px;border-radius:50%;
+  background:currentColor;
+  margin-right:5px;
+  animation:pulse 1.5s ease-in-out infinite;
+  vertical-align:middle;
+}
+
+.pending-msg{
+  font-size:14px;
+  color:var(--text-2);
+  line-height:1.65;
+  margin-bottom:14px;
+  font-weight:500;
+}
+.pending-msg strong{color:#fff;font-weight:800}
+
+.pending-meta{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+  padding-top:14px;
+  border-top:1px dashed rgba(245,158,11,.25);
+  font-size:12.5px;
+}
+.pending-meta-item .lbl{
+  font-size:10.5px;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--text-muted);
+  margin-bottom:4px;
+}
+.pending-meta-item .val{
+  font-family:var(--mono);
+  font-size:13px;
+  font-weight:800;
+  color:var(--yellow);
+  letter-spacing:.02em;
+}
+.pending-meta-item .val.plain{
+  font-family:var(--font);
+  color:#fff;
+}
+
+.pending-note{
+  font-size:12.5px;
+  color:var(--text-3);
+  line-height:1.6;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px dashed rgba(245,158,11,.25);
+  display:flex;
+  gap:9px;
+  align-items:flex-start;
+}
+.pending-note svg{
+  width:14px;height:14px;
+  color:var(--yellow);
+  flex-shrink:0;
+  margin-top:2px;
 }
 
 .profile-card{
@@ -691,6 +815,37 @@ main{flex:1;padding:40px 0 80px}
         <p class="page-sub">Manage your subscription, devices, and billing.</p>
       </div>
 
+      <!-- PENDING BANNER (hidden unless there's a pending subscription) -->
+      <div class="pending-banner hidden" id="pendingBanner">
+        <div class="pending-icon">
+          <i data-lucide="clock"></i>
+        </div>
+        <div class="pending-content">
+          <h2 class="pending-title">
+            <span id="pendingTitleText">Your Starlane account will be activated soon</span>
+            <span class="badge">Pending verification</span>
+          </h2>
+          <p class="pending-msg">
+            We received your payment for the <strong id="pendingPlan">—</strong> plan.
+            Our team is verifying your Yoco reference now.
+          </p>
+          <div class="pending-meta">
+            <div class="pending-meta-item">
+              <div class="lbl">Reference</div>
+              <div class="val" id="pendingRef">—</div>
+            </div>
+            <div class="pending-meta-item">
+              <div class="lbl">Submitted</div>
+              <div class="val plain" id="pendingSubmitted">—</div>
+            </div>
+          </div>
+          <p class="pending-note">
+            <i data-lucide="mail"></i>
+            <span>Verification usually takes a few minutes to a few hours. We'll email you at <strong id="pendingEmail">—</strong> once your plan is active. Refresh this page to check status.</span>
+          </p>
+        </div>
+      </div>
+
       <div class="profile-card">
         <div class="profile-avatar" id="profileAvatar">?</div>
         <div class="profile-info">
@@ -945,13 +1100,36 @@ function planDevices(tier){
   }[tier] || 1;
 }
 
-function renderAccount(user, profile, subscription, devices, billing){
-  // Account avatar (uses account initials — profile is separate)
+/* ============================================================
+   PENDING BANNER
+   ============================================================ */
+function showPendingBanner(pendingSub){
+  var banner = $('pendingBanner');
+  if (!banner) return;
+
+  var planName = pendingSub.planName || planLabel(pendingSub.plan) || 'chosen';
+  $('pendingPlan').textContent = planName;
+  $('pendingRef').textContent = pendingSub.reference || '—';
+  $('pendingSubmitted').textContent = timeAgo(pendingSub.submittedAt) || fmtDateShort(pendingSub.submittedAt) || '—';
+  $('pendingEmail').textContent = pendingSub.email || (currentUser ? currentUser.email : 'your email');
+
+  banner.classList.remove('hidden');
+  refreshIcons();
+}
+
+function hidePendingBanner(){
+  var banner = $('pendingBanner');
+  if (banner) banner.classList.add('hidden');
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function renderAccount(user, profile, subscription, devices, billing, pendingSubs){
   $('profileAvatar').textContent = initials(profile.displayName, user.email);
   $('profileName').textContent = profile.displayName || user.email.split('@')[0];
   $('profileEmail').textContent = user.email || '';
 
-  // Active profile chip
   var active = getActiveProfile();
   if (active && active.name){
     $('activeProfileChip').style.display = 'inline-flex';
@@ -960,7 +1138,7 @@ function renderAccount(user, profile, subscription, devices, billing){
     $('activeProfileChip').style.display = 'none';
   }
 
-  // Plan
+  // Determine current plan state
   var tier = subscription.tier || 'free';
   var isActive = subscription.active !== false && subscription.expiresAt && subscription.expiresAt.toDate && subscription.expiresAt.toDate() > new Date();
 
@@ -969,11 +1147,29 @@ function renderAccount(user, profile, subscription, devices, billing){
     isActive = false;
   }
 
+  // Detect pending subscription (only relevant if user is NOT on an active paid plan)
+  var hasActivePaid = tier !== 'free' && isActive;
+  var pendingList = (pendingSubs || []).filter(function(p){ return p.status === 'pending'; });
+  var hasPending = pendingList.length > 0;
+  var activePending = hasPending ? pendingList[0] : null;
+
+  // Show or hide pending banner
+  if (!hasActivePaid && hasPending){
+    showPendingBanner(activePending);
+  } else {
+    hidePendingBanner();
+  }
+
+  // Plan display
   $('planName').textContent = planLabel(tier);
   $('planPrice').textContent = tier === 'free' ? '' : planPrice(tier);
 
   var statusEl = $('planStatus');
-  if (!isActive && tier === 'free'){
+  if (!hasActivePaid && hasPending){
+    // Show "Pending activation" instead of "Free"
+    statusEl.className = 'sub-status pending';
+    statusEl.textContent = 'Pending';
+  } else if (!isActive && tier === 'free'){
     statusEl.className = 'sub-status active';
     statusEl.textContent = 'Free';
   } else if (isActive){
@@ -997,6 +1193,16 @@ function renderAccount(user, profile, subscription, devices, billing){
   }
   if (tier === 'free'){
     $('cancelSubBtn').style.display = 'none';
+  }
+
+  // If pending, change "Upgrade plan" to point to plans page normally, but rename
+  // to "View plans" so it's clear they can still browse.
+  if (!hasActivePaid && hasPending){
+    var upBtn = $('upgradeBtn');
+    if (upBtn){
+      upBtn.innerHTML = '<i data-lucide="tag"></i> View all plans';
+      upBtn.href = 'plans.html';
+    }
   }
 
   renderDevices(devices);
@@ -1033,7 +1239,6 @@ function renderDevices(devices){
     var icon = iconForDevice(d.userAgent);
     var label = labelForDevice(d.userAgent);
 
-    // Show profile name if set
     var profileTag = '';
     if (d.profileName){
       profileTag = '<span class="device-profile">' + esc(d.profileName) + '</span>';
@@ -1135,7 +1340,6 @@ function getDeviceId(){
 
 function signOutDevice(deviceId){
   if (!confirm('Sign out this device? It will need to sign in again to stream.')) return;
-
   if (!firebaseReady || !db || !currentUser) return;
 
   db.collection('sessions').doc(currentUser.uid)
@@ -1152,7 +1356,6 @@ function signOutDevice(deviceId){
 
 function cancelSubscription(){
   if (!confirm('Cancel your subscription?\n\nYou\'ll keep access until the end of your billing period, then move to the Free plan.')) return;
-
   if (!firebaseReady || !db || !currentUser) return;
 
   db.collection('subscriptions').doc(currentUser.uid).update({
@@ -1209,7 +1412,6 @@ function deleteAccount(){
 function loadAccountData(){
   if (!currentUser){ showSignin(); return; }
 
-  // Show admin button if admin
   if (isAdmin(currentUser)){
     var adminBtn = $('adminBtn');
     if (adminBtn) adminBtn.classList.remove('hidden');
@@ -1217,32 +1419,37 @@ function loadAccountData(){
 
   var uid = currentUser.uid;
 
+  // Parallel fetch: profile, subscription, devices, payments, pending subs
   Promise.all([
     db.collection('users').doc(uid).get(),
     db.collection('subscriptions').doc(uid).get(),
     db.collection('sessions').doc(uid).collection('devices').get(),
-    db.collection('payments').where('uid', '==', uid).limit(50).get().catch(function(){ return { forEach: function(){} }; })
+    db.collection('payments').where('uid', '==', uid).limit(50).get()
+      .catch(function(){ return { forEach: function(){} }; }),
+    db.collection('pending_subscriptions').where('uid', '==', uid).limit(20).get()
+      .catch(function(){ return { forEach: function(){} }; })
   ])
     .then(function(results){
       var profileSnap = results[0];
       var subSnap = results[1];
       var devicesSnap = results[2];
       var paymentsSnap = results[3];
+      var pendingSnap = results[4];
 
       var profile = profileSnap.exists ? profileSnap.data() : {};
       var subscription = subSnap.exists ? subSnap.data() : { tier: 'free' };
 
+      // Devices — filter out stale (>3 min old)
       var devices = [];
       devicesSnap.forEach(function(doc){
         var d = doc.data() || {};
         d.id = doc.id;
         var lastSeenMs = d.lastSeen && d.lastSeen.toMillis ? d.lastSeen.toMillis() : 0;
-        if (lastSeenMs > 0 && Date.now() - lastSeenMs > 3 * 60 * 1000){
-          return;
-        }
+        if (lastSeenMs > 0 && Date.now() - lastSeenMs > 3 * 60 * 1000) return;
         devices.push(d);
       });
 
+      // Billing
       var billing = [];
       if (paymentsSnap.forEach){
         paymentsSnap.forEach(function(doc){
@@ -1252,7 +1459,17 @@ function loadAccountData(){
         });
       }
 
-      renderAccount(currentUser, profile, subscription, devices, billing);
+      // Pending subscriptions (client-side filter to avoid Firestore index requirement)
+      var pendingSubs = [];
+      if (pendingSnap.forEach){
+        pendingSnap.forEach(function(doc){
+          var d = doc.data() || {};
+          d.id = doc.id;
+          pendingSubs.push(d);
+        });
+      }
+
+      renderAccount(currentUser, profile, subscription, devices, billing, pendingSubs);
 
       $('loadingState').classList.add('hidden');
       $('signinState').classList.add('hidden');
@@ -1311,4 +1528,4 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 </body>
-                                                                                </html>
+            </html>
