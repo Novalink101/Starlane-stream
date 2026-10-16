@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#050508" />
+<meta name="description" content="Browse every channel on Starlane Stream — Sports, Movies, News, Music, and more. Free to start." />
+<title>All Channels · Starlane Stream</title>
+
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<style>
+:root{
+  --red:#E50914;--red-hover:#FF3B4E;--red-dark:#B20710;
+  --red-soft:rgba(229,9,20,.12);
+  --red-border:rgba(229,9,20,.25);
+
+  --bg:#050508;--bg-2:#0A0A0F;
+  --surface:rgba(20,20,28,.75);
+  --surface-2:rgba(30,30,40,.6);
+  --border:rgba(255,255,255,.08);
+  --border-2:rgba(255,255,255,.14);
+
+  --text:#FFFFFF;
+  --text-2:rgba(255,255,255,.75);
+  --text-3:rgba(255,255,255,.5);
+  --text-muted:rgba(255,255,255,.35);
+
+  --green:#10B981;
+  --yellow:#F59E0B;
+
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:22px;--r-full:999px;
+  --ease:cubic-bezier(.25,.8,.25,1);
+  --ease-out:cubic-bezier(.22,.9,.3,1);
+  --container:1240px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font);font-size:14px;line-height:1.55;
+  color:var(--text);background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;flex-direction:column;
+  overflow-x:hidden;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
+::selection{background:var(--red);color:#fff}
+.hidden{display:none!important}
+
+.container{max-width:var(--container);margin:0 auto;padding:0 24px;width:100%}
+@media (max-width:560px){.container{padding:0 16px}}
+
+/* Starfield */
+.starfield{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(229,9,20,.06) 0%, transparent 55%),
+    linear-gradient(180deg, #050508 0%, #0A0A14 100%);
+}
+.starfield::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.7), transparent 100%),
+    radial-gradient(1px 1px at 87% 32%, rgba(255,255,255,.5), transparent 100%),
+    radial-gradient(1.5px 1.5px at 34% 78%, rgba(255,255,255,.6), transparent 100%),
+    radial-gradient(1px 1px at 67% 12%, rgba(255,255,255,.4), transparent 100%),
+    radial-gradient(1.5px 1.5px at 92% 82%, rgba(255,255,255,.65), transparent 100%),
+    radial-gradient(1px 1px at 8% 62%, rgba(255,255,255,.5), transparent 100%);
+  animation:twinkle 8s ease-in-out infinite;
+}
+@keyframes twinkle{0%,100%{opacity:.85}50%{opacity:.4}}
+
+/* Nav */
+.nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(5,5,8,.85);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:var(--container);margin:0 auto;
+  padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+}
+.nav-brand{display:inline-flex;align-items:center;gap:11px;flex-shrink:0}
+.nav-brand svg{width:28px;height:34px;display:block}
+.nav-brand b{font-weight:900;font-size:17px;letter-spacing:-.01em;color:#fff}
+.nav-brand b span{color:var(--red)}
+.nav-actions{display:flex;gap:10px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+@media (max-width:560px){
+  .nav-inner{padding:12px 16px;gap:10px}
+  .nav-brand b{font-size:15px}
+  .nav-brand svg{width:24px;height:30px}
+}
+
+.nav-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 16px;border-radius:var(--r-full);
+  font-size:13px;font-weight:800;
+  transition:all .2s var(--ease);
+  white-space:nowrap;text-decoration:none;
+  font-family:inherit;cursor:pointer;
+  border:1px solid transparent;line-height:1;
+}
+.nav-btn svg{width:15px;height:15px;flex-shrink:0}
+.nav-btn.ghost{background:transparent;color:var(--text-2);border-color:var(--border-2)}
+.nav-btn.ghost:hover{color:#fff;border-color:var(--red);background:var(--red-soft)}
+.nav-btn.primary{background:var(--red);color:#fff;box-shadow:0 4px 14px rgba(229,9,20,.35)}
+.nav-btn.primary:hover{background:var(--red-hover);transform:translateY(-1px);box-shadow:0 8px 22px rgba(229,9,20,.5)}
+@media (max-width:480px){
+  .nav-btn .lbl{display:none}
+  .nav-btn{padding:9px 12px}
+}
+
+/* Page head */
+.page-head{padding:56px 0 32px;}
+@media (max-width:640px){.page-head{padding:36px 0 20px}}
+
+.page-crumb{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:12px;font-weight:800;
+  letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-3);
+  margin-bottom:16px;
+  transition:color .2s;
+}
+.page-crumb:hover{color:var(--red)}
+.page-crumb svg{width:14px;height:14px}
+
+.page-head h1{
+  font-size:clamp(1.8rem,4vw,2.6rem);
+  margin-bottom:10px;
+  letter-spacing:-.03em;
+}
+.page-head h1 .accent{
+  background:linear-gradient(135deg, var(--red) 0%, #FF5566 50%, var(--red) 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.page-head p{
+  font-size:15px;
+  color:var(--text-2);
+  max-width:600px;
+  line-height:1.6;
+  font-weight:500;
+}
+
+.page-stats{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;}
+.page-stat{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 14px;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border);
+  border-radius:var(--r-full);
+  font-size:12.5px;font-weight:800;
+  color:var(--text-2);
+}
+.page-stat svg{width:14px;height:14px;color:var(--red)}
+.page-stat .num{color:#fff;font-family:var(--mono)}
+
+/* Filter bar */
+.filter-bar{
+  position:sticky;top:62px;z-index:40;
+  padding:16px 0;
+  background:rgba(5,5,8,.92);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  margin-bottom:32px;
+}
+@media (max-width:560px){.filter-bar{top:56px;padding:12px 0}}
+
+.filter-inner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+
+.search-box{position:relative;flex:1;min-width:220px;}
+.search-box svg{
+  position:absolute;left:16px;top:50%;
+  transform:translateY(-50%);
+  width:16px;height:16px;
+  color:var(--text-3);
+  pointer-events:none;
+}
+.search-box input{
+  width:100%;
+  padding:11px 16px 11px 44px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border-2);
+  border-radius:var(--r-full);
+  font-size:14px;
+  color:#fff;
+  transition:all .2s var(--ease);
+  font-family:inherit;
+}
+.search-box input::placeholder{color:var(--text-muted)}
+.search-box input:focus{
+  outline:none;
+  border-color:var(--red);
+  background:rgba(255,255,255,.06);
+  box-shadow:0 0 0 3px rgba(229,9,20,.15);
+}
+
+.cat-chips{
+  display:flex;gap:6px;
+  overflow-x:auto;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+  flex:1;min-width:0;
+}
+.cat-chips::-webkit-scrollbar{display:none}
+
+.chip{
+  flex-shrink:0;
+  padding:8px 14px;
+  border-radius:var(--r-full);
+  font-size:12.5px;font-weight:800;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);
+  color:var(--text-2);
+  transition:all .2s var(--ease);
+  cursor:pointer;
+  white-space:nowrap;
+  font-family:inherit;
+}
+.chip:hover{border-color:var(--red-border);color:#fff}
+.chip.active{
+  background:var(--red);
+  color:#fff;
+  border-color:var(--red);
+  box-shadow:0 4px 12px rgba(229,9,20,.35);
+}
+
+/* Section */
+.section{padding:0 0 56px}
+@media (max-width:640px){.section{padding:0 0 40px}}
+
+.section-head{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  gap:14px;flex-wrap:wrap;margin-bottom:20px;padding:0 4px;
+}
+.section-title{
+  display:inline-flex;align-items:center;gap:11px;
+  font-size:clamp(1.1rem,2vw,1.5rem);
+  font-weight:900;color:#fff;
+  letter-spacing:-.02em;
+}
+.section-title svg{width:20px;height:20px;color:var(--red)}
+.section-title .count{
+  font-size:12px;font-weight:800;
+  color:var(--text-3);
+  padding:3px 10px;
+  background:rgba(255,255,255,.04);
+  border-radius:var(--r-full);
+  font-family:var(--mono);
+}
+.section-link{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:13px;font-weight:800;
+  color:var(--text-3);
+  transition:all .2s var(--ease);
+}
+.section-link:hover{color:var(--red);gap:9px}
+.section-link svg{width:14px;height:14px}
+
+/* Channel grid */
+.channels-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:16px;
+  padding:0 4px;
+}
+@media (max-width:640px){
+  .channels-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+}
+
+.channel-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:22px 18px;
+  cursor:pointer;
+  transition:all .28s var(--ease);
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;gap:14px;
+  position:relative;overflow:hidden;
+  text-decoration:none;
+}
+@media (max-width:480px){.channel-card{padding:16px 12px;gap:10px}}
+
+.channel-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 0%, rgba(229,9,20,.14), transparent 60%);
+  opacity:0;transition:opacity .3s;
+  pointer-events:none;
+}
+.channel-card:hover{
+  transform:translateY(-4px);
+  border-color:var(--red-border);
+  box-shadow:0 20px 40px rgba(0,0,0,.4), 0 0 0 1px var(--red-border);
+}
+.channel-card:hover::before{opacity:1}
+
+.channel-logo{
+  width:72px;height:72px;
+  border-radius:18px;
+  background:linear-gradient(135deg, #1A0A0F, #2A0A14);
+  border:2px solid var(--red-border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;font-weight:900;
+  color:var(--red);
+  font-family:var(--mono);
+  flex-shrink:0;overflow:hidden;
+  box-shadow:inset 0 0 24px rgba(229,9,20,.15);
+  transition:transform .3s var(--ease);
+}
+.channel-card:hover .channel-logo{transform:scale(1.05)}
+@media (max-width:480px){.channel-logo{width:56px;height:56px;font-size:20px;border-radius:14px}}
+
+.channel-logo img{width:100%;height:100%;object-fit:cover}
+
+.channel-body{
+  display:flex;flex-direction:column;gap:5px;
+  width:100%;min-width:0;
+}
+.channel-name{
+  font-size:15px;font-weight:800;
+  color:#fff;letter-spacing:-.01em;
+  line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  word-break:break-word;
+}
+.channel-meta{
+  font-size:11.5px;font-weight:700;
+  color:var(--text-3);
+  letter-spacing:.04em;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  flex-wrap:wrap;
+}
+.channel-meta svg{width:12px;height:12px}
+.channel-meta .live{
+  color:var(--red);
+  display:inline-flex;align-items:center;gap:4px;
+  font-weight:900;
+}
+.channel-meta .live::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:var(--red);
+  box-shadow:0 0 8px var(--red);
+  animation:pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.channel-tag{
+  position:absolute;top:12px;right:12px;
+  font-size:9.5px;font-weight:900;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:4px 9px;border-radius:var(--r-full);
+  backdrop-filter:blur(8px);
+}
+.channel-tag.free{background:rgba(16,185,129,.2);color:#10B981;border:1px solid rgba(16,185,129,.4)}
+.channel-tag.paid{background:rgba(229,9,20,.2);color:#fff;border:1px solid var(--red)}
+
+/* Empty state */
+.empty-state{
+  grid-column:1/-1;
+  text-align:center;
+  padding:80px 20px;
+}
+.empty-state svg{
+  width:56px;height:56px;
+  margin:0 auto 18px;
+  color:var(--red);
+  opacity:.4;
+}
+.empty-state h3{
+  font-size:18px;font-weight:900;
+  color:#fff;margin-bottom:8px;
+  letter-spacing:-.01em;
+}
+.empty-state p{
+  font-size:14px;color:var(--text-3);
+  max-width:340px;margin:0 auto;
+  line-height:1.6;
+}
+
+/* Loading skeleton */
+.skeleton-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:22px 18px;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+}
+.sk-circle{
+  width:72px;height:72px;border-radius:18px;
+  background:linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.08), rgba(255,255,255,.04));
+  background-size:200% 100%;
+  animation:sk 1.6s ease-in-out infinite;
+}
+.sk-line{
+  height:12px;border-radius:6px;width:80%;
+  background:linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.08), rgba(255,255,255,.04));
+  background-size:200% 100%;
+  animation:sk 1.6s ease-in-out infinite;
+}
+.sk-line.short{width:50%}
+@keyframes sk{
+  0%{background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+
+/* Footer */
+.footer{
+  background:#020204;
+  border-top:1px solid var(--border);
+  padding:56px 0 28px;
+  margin-top:auto;
+}
+@media (max-width:640px){.footer{padding:40px 0 24px}}
+
+.footer-grid{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:40px;
+  margin-bottom:48px;
+}
+@media (max-width:800px){.footer-grid{grid-template-columns:1fr 1fr;gap:32px}}
+@media (max-width:480px){.footer-grid{grid-template-columns:1fr;gap:28px}}
+
+.footer-brand{display:inline-flex;align-items:center;gap:11px;margin-bottom:14px;}
+.footer-brand svg{width:26px;height:32px}
+.footer-brand b{font-weight:900;font-size:16px;color:#fff;letter-spacing:-.01em}
+.footer-brand b span{color:var(--red)}
+.footer-tagline{font-size:13px;color:var(--text-3);line-height:1.7;max-width:320px;font-weight:500}
+.footer-col h4{
+  font-size:11px;font-weight:900;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-muted);
+  margin-bottom:16px;
+}
+.footer-col a{
+  display:block;color:var(--text-2);
+  font-size:13.5px;font-weight:500;
+  padding:5px 0;
+  transition:color .2s;
+}
+.footer-col a:hover{color:var(--red)}
+
+.footer-bottom{
+  padding-top:28px;
+  border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;
+  align-items:center;flex-wrap:wrap;gap:14px;
+  font-size:12.5px;color:var(--text-muted);
+}
+
+#toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(140%);
+  background:#fff;color:#050508;
+  font-size:13.5px;font-weight:800;
+  padding:13px 22px;border-radius:var(--r-full);
+  box-shadow:0 20px 48px rgba(0,0,0,.6);
+  transition:transform .4s var(--ease-out);
+  z-index:200;max-width:90vw;text-align:center;
+  display:flex;align-items:center;gap:10px;
+  pointer-events:none;
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast svg{width:16px;height:16px;flex-shrink:0}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    transition-duration:.01ms!important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="starfield" aria-hidden="true"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand" aria-label="Starlane Stream home">
+      <svg viewBox="0 0 60 74" aria-hidden="true">
+        <defs>
+          <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#E50914"/>
+            <stop offset="100%" stop-color="#FF5566"/>
+          </linearGradient>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <path d="M10 60 Q 22 32 44 20" stroke="url(#starGrad)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+        <path d="M16 62 Q 26 40 46 26" stroke="url(#starGrad)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+        <circle cx="46" cy="18" r="5" fill="#fff" filter="url(#glow)"/>
+        <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
+      </svg>
+      <b>STAR<span>LANE</span></b>
+    </a>
+    <div class="nav-actions">
+      <a href="index.html" class="nav-btn ghost">
+        <i data-lucide="home"></i>
+        <span class="lbl">Home</span>
+      </a>
+      <a href="plans.html" class="nav-btn ghost">
+        <i data-lucide="tag"></i>
+        <span class="lbl">Plans</span>
+      </a>
+      <a href="auth.html?tab=signup" class="nav-btn primary">
+        <i data-lucide="sparkles"></i>
+        <span class="lbl">Start free</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<section class="page-head">
+  <div class="container">
+    <a href="index.html" class="page-crumb">
+      <i data-lucide="arrow-left"></i>
+      Back to home
+    </a>
+    <h1>All <span class="accent">channels.</span></h1>
+    <p>Sports, movies, news, music, and more. Filter by category or search for something specific.</p>
+    <div class="page-stats" id="pageStats" style="display:none;">
+      <span class="page-stat">
+        <i data-lucide="tv"></i>
+        <span class="num" id="statChannels">0</span>
+        <span>channels</span>
+      </span>
+      <span class="page-stat">
+        <i data-lucide="radio"></i>
+        <span class="num" id="statLive">0</span>
+        <span>live now</span>
+      </span>
+    </div>
+  </div>
+</section>
+
+<div class="filter-bar">
+  <div class="container">
+    <div class="filter-inner">
+      <div class="search-box">
+        <i data-lucide="search"></i>
+        <input type="text" id="searchInput" placeholder="Search channels…" autocomplete="off" />
+      </div>
+      <div class="cat-chips" id="catChips">
+        <button class="chip active" data-cat="" type="button">All</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <h2 class="section-title">
+        <i data-lucide="grid-3x3"></i>
+        Channels
+        <span class="count" id="resultCount">—</span>
+      </h2>
+    </div>
+    <div class="channels-grid" id="channelsGrid">
+      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
+      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
+      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
+      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
+      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
+      <div class="skeleton-card"><div class="sk-circle"></div><div class="sk-line"></div><div class="sk-line short"></div></div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <svg viewBox="0 0 60 74" aria-hidden="true">
+            <defs>
+              <linearGradient id="starGradFooter" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#E50914"/>
+                <stop offset="100%" stop-color="#FF5566"/>
+              </linearGradient>
+            </defs>
+            <path d="M10 60 Q 22 32 44 20" stroke="url(#starGradFooter)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+            <path d="M16 62 Q 26 40 46 26" stroke="url(#starGradFooter)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+            <circle cx="46" cy="18" r="5" fill="#fff"/>
+            <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
+          </svg>
+          <b>STAR<span>LANE</span></b>
+        </div>
+        <p class="footer-tagline">
+          Live TV, movies, and sports — streaming without limits.
+          Built for South Africa, made for the world.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="streams.html">All channels</a>
+        <a href="plans.html">Plans & pricing</a>
+        <a href="auth.html?tab=signup">Start free</a>
+      </div>
+      <div class="footer-col">
+        <h4>Account</h4>
+        <a href="auth.html">Sign in</a>
+        <a href="account-527394816.html">My account</a>
+        <a href="plans.html">Upgrade plan</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="legal.html#terms">Terms</a>
+        <a href="legal.html#privacy">Privacy</a>
+        <a href="legal.html#popia">POPIA</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> Starlane Stream. All rights reserved.</span>
+      <span>Made in Johannesburg, South Africa.</span>
+    </div>
+  </div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════════
+   FIREBASE CONFIG — starlane-stream
+   ═══════════════════════════════════════════════════════════════ */
+var firebaseConfig = {
+  apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+  authDomain: "starlane-stream.firebaseapp.com",
+  projectId: "starlane-stream",
+  storageBucket: "starlane-stream.firebasestorage.app",
+  messagingSenderId: "115625325145",
+  appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+};
+
+var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
+var db = null;
+var auth = null;
+
+if (firebaseReady && !firebase.apps.length){
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  auth = firebase.auth();
+}
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
+
+function toast(msg, type, ms){
+  type = type || 'info'; ms = ms || 3000;
+  var t = $('toast');
+  var ic = type === 'error' ? 'alert-circle' : (type === 'success' ? 'check-circle' : 'info');
+  t.className = type;
+  t.innerHTML = '<i data-lucide="'+ic+'"></i><span>' + esc(msg) + '</span>';
+  refreshIcons();
+  requestAnimationFrame(function(){ t.classList.add('show'); });
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ t.classList.remove('show'); }, ms);
+}
+
+function initials(name){
+  if (!name) return '?';
+  var p = String(name).trim().split(/\s+/);
+  if (p.length >= 2) return (p[0][0]+p[1][0]).toUpperCase();
+  return p[0].slice(0,2).toUpperCase();
+}
+
+function categoryLabel(c){
+  return {
+    sports:'Sports', movies:'Movies', news:'News', music:'Music',
+    kids:'Kids', documentary:'Documentary', gaming:'Gaming',
+    entertainment:'Entertainment', education:'Education', other:'Other'
+  }[c] || (c ? c.charAt(0).toUpperCase() + c.slice(1) : 'Channel');
+}
+
+var allChannels = [];
+var streamCounts = {};
+var activeCategory = '';
+var searchQuery = '';
+
+function renderChannels(){
+  var grid = $('channelsGrid');
+  var q = searchQuery.toLowerCase();
+  var cat = activeCategory;
+
+  var filtered = allChannels.filter(function(ch){
+    if (cat && ch.category !== cat) return false;
+    if (q){
+      var name = String(ch.name || '').toLowerCase();
+      var tag = String(ch.tagline || '').toLowerCase();
+      var catL = String(ch.category || '').toLowerCase();
+      if (name.indexOf(q) === -1 && tag.indexOf(q) === -1 && catL.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+
+  $('resultCount').textContent = filtered.length + (filtered.length === 1 ? ' channel' : ' channels');
+
+  if (!filtered.length){
+    grid.innerHTML =
+      '<div class="empty-state">' +
+        '<i data-lucide="search-x"></i>' +
+        '<h3>No channels found</h3>' +
+        '<p>' + (searchQuery ? 'Try a different search term.' : 'No channels in this category yet. Check back soon.') + '</p>' +
+      '</div>';
+    refreshIcons();
+    return;
+  }
+
+  grid.innerHTML = '';
+  filtered.forEach(function(ch){
+    grid.appendChild(buildChannelCard(ch));
+  });
+  refreshIcons();
+}
+
+function buildChannelCard(ch){
+  var card = document.createElement('a');
+  card.className = 'channel-card';
+  card.href = 'channel.html?id=' + encodeURIComponent(ch.id);
+
+  var logoHTML = ch.logoUrl
+    ? '<img alt="" src="' + esc(ch.logoUrl) + '" />'
+    : esc(initials(ch.name));
+
+  var isPaid = ch.accessTier && ch.accessTier !== 'free';
+  var tagHTML = isPaid
+    ? '<span class="channel-tag paid">Premium</span>'
+    : '<span class="channel-tag free">Free</span>';
+
+  var counts = streamCounts[ch.id] || { total: 0, live: 0 };
+  var metaHTML = '';
+  if (counts.live > 0){
+    metaHTML = '<span class="live">' + counts.live + ' live</span>';
+  } else if (counts.total > 0){
+    metaHTML = '<i data-lucide="video"></i><span>' + counts.total + ' stream' + (counts.total === 1 ? '' : 's') + '</span>';
+  } else {
+    metaHTML = '<span>Coming soon</span>';
+  }
+
+  card.innerHTML =
+    tagHTML +
+    '<div class="channel-logo">' + logoHTML + '</div>' +
+    '<div class="channel-body">' +
+      '<div class="channel-name">' + esc(ch.name || 'Untitled') + '</div>' +
+      '<div class="channel-meta">' + metaHTML + '</div>' +
+    '</div>';
+
+  return card;
+}
+
+function renderCategoryChips(){
+  var wrap = $('catChips');
+  var cats = {};
+  allChannels.forEach(function(ch){
+    if (ch.category) cats[ch.category] = (cats[ch.category] || 0) + 1;
+  });
+
+  var html = '<button class="chip' + (!activeCategory ? ' active' : '') + '" data-cat="" type="button">All</button>';
+
+  Object.keys(cats).sort().forEach(function(c){
+    html += '<button class="chip' + (activeCategory === c ? ' active' : '') + '" data-cat="' + esc(c) + '" type="button">'
+      + esc(categoryLabel(c)) + '</button>';
+  });
+
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll('.chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      activeCategory = chip.dataset.cat || '';
+      renderCategoryChips();
+      renderChannels();
+    });
+  });
+}
+
+function loadChannels(){
+  if (!firebaseReady || !db){
+    allChannels = [];
+    streamCounts = {};
+    renderCategoryChips();
+    renderChannels();
+    $('pageStats').style.display = 'none';
+    return;
+  }
+
+  Promise.all([
+    db.collection('channels').limit(200).get(),
+    db.collection('streams').limit(500).get()
+  ])
+    .then(function(results){
+      var channelsSnap = results[0];
+      allChannels = [];
+      channelsSnap.forEach(function(doc){
+        var d = doc.data() || {};
+        if (d.active === false) return;
+        d.id = doc.id;
+        allChannels.push(d);
+      });
+      allChannels.sort(function(a, b){
+        var oa = a.order || 99, ob = b.order || 99;
+        if (oa !== ob) return oa - ob;
+        return String(a.name || '').localeCompare(String(b.name || ''));
+      });
+
+      var streamsSnap = results[1];
+      streamCounts = {};
+      var now = Date.now();
+      streamsSnap.forEach(function(doc){
+        var d = doc.data() || {};
+        var cid = d.channelId;
+        if (!cid) return;
+        if (!streamCounts[cid]) streamCounts[cid] = { total: 0, live: 0 };
+        streamCounts[cid].total++;
+
+        if (d.startDate){
+          var timeStr = d.startTime || '00:00';
+          var startMs = new Date(d.startDate + 'T' + timeStr + ':00').getTime();
+          var durMin = parseInt(d.durationMinutes, 10) || 90;
+          var endMs = startMs + durMin * 60000 + 15 * 60000;
+          if (!isNaN(startMs) && now >= startMs && now <= endMs){
+            streamCounts[cid].live++;
+          }
+        }
+      });
+
+      var totalLive = Object.keys(streamCounts).reduce(function(sum, k){
+        return sum + (streamCounts[k].live || 0);
+      }, 0);
+      $('statChannels').textContent = allChannels.length;
+      $('statLive').textContent = totalLive;
+      $('pageStats').style.display = 'flex';
+
+      renderCategoryChips();
+      renderChannels();
+    })
+    .catch(function(err){
+      console.warn('[channels load]', err);
+      allChannels = [];
+      streamCounts = {};
+      renderCategoryChips();
+      renderChannels();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  var yearEl = $('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+  refreshIcons();
+
+  var searchTimer = null;
+  $('searchInput').addEventListener('input', function(){
+    var v = this.value.trim();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function(){
+      searchQuery = v;
+      renderChannels();
+    }, 200);
+  });
+
+  renderCategoryChips();
+  loadChannels();
+});
+
+})();
+</script>
+
+</body>
+</html>�═══════════════════════════════════════════════════════════
+   CATEGORY CHIPS
+   ═══════════════════════════════════════════════════════════════ */
+function renderCategoryChips(){
+  var wrap = $('catChips');
+  var cats = {};
+  allChannels.forEach(function(ch){
+    if (ch.category) cats[ch.category] = (cats[ch.category] || 0) + 1;
+  });
+
+  var html = '<button class="chip' + (!activeCategory ? ' active' : '') + '" data-cat="" type="button">All</button>';
+
+  Object.keys(cats).sort().forEach(function(c){
+    html += '<button class="chip' + (activeCategory === c ? ' active' : '') + '" data-cat="' + esc(c) + '" type="button">'
+      + esc(categoryLabel(c)) + '</button>';
+  });
+
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll('.chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      activeCategory = chip.dataset.cat || '';
+      renderCategoryChips();
+      renderChannels();
+    });
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOAD DATA
+   ═══════════════════════════════════════════════════════════════ */
+function loadChannels(){
+  if (!firebaseReady || !db){
+    // Placeholder mode
+    allChannels = [];
+    streamCounts = {};
+    renderCategoryChips();
+    renderChannels();
+    $('pageStats').style.display = 'none';
+    return;
+  }
+
+  Promise.all([
+    db.collection('channels').limit(200).get(),
+    db.collection('streams').limit(500).get()
+  ])
+    .then(function(results){
+      // Channels
+      var channelsSnap = results[0];
+      allChannels = [];
+      channelsSnap.forEach(function(doc){
+        var d = doc.data() || {};
+        if (d.active === false) return;
+        d.id = doc.id;
+        allChannels.push(d);
+      });
+      allChannels.sort(function(a, b){
+        var oa = a.order || 99, ob = b.order || 99;
+        if (oa !== ob) return oa - ob;
+        return String(a.name || '').localeCompare(String(b.name || ''));
+      });
+
+      // Streams (count per channel)
+      var streamsSnap = results[1];
+      streamCounts = {};
+      var now = Date.now();
+      streamsSnap.forEach(function(doc){
+        var d = doc.data() || {};
+        var cid = d.channelId;
+        if (!cid) return;
+        if (!streamCounts[cid]) streamCounts[cid] = { total: 0, live: 0 };
+        streamCounts[cid].total++;
+
+        // Check if live
+        if (d.startDate){
+          var timeStr = d.startTime || '00:00';
+          var startMs = new Date(d.startDate + 'T' + timeStr + ':00').getTime();
+          var durMin = parseInt(d.durationMinutes, 10) || 90;
+          var endMs = startMs + durMin * 60000 + 15 * 60000;
+          if (!isNaN(startMs) && now >= startMs && now <= endMs){
+            streamCounts[cid].live++;
+          }
+        }
+      });
+
+      // Stats bar
+      var totalLive = Object.keys(streamCounts).reduce(function(sum, k){
+        return sum + (streamCounts[k].live || 0);
+      }, 0);
+      $('statChannels').textContent = allChannels.length;
+      $('statLive').textContent = totalLive;
+      $('pageStats').style.display = 'flex';
+
+      renderCategoryChips();
+      renderChannels();
+    })
+    .catch(function(err){
+      console.warn('[channels load]', err);
+      allChannels = [];
+      streamCounts = {};
+      renderCategoryChips();
+      renderChannels();
+    });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function(){
+  var yearEl = $('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+  refreshIcons();
+
+  // Search
+  var searchTimer = null;
+  $('searchInput').addEventListener('input', function(){
+    var v = this.value.trim();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function(){
+      searchQuery = v;
+      renderChannels();
+    }, 200);
+  });
+
+  // Initial category chips (before data loads)
+  renderCategoryChips();
+
+  // Load data
+  loadChannels();
+});
+
+})();
+</script>
+
+</body>
+</html>

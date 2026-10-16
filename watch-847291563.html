@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#050508" />
+<meta name="robots" content="noindex, nofollow, noarchive" />
+<meta name="referrer" content="no-referrer" />
+<title>Watch · Starlane Stream</title>
+
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<style>
+:root{
+  --red:#E50914;--red-hover:#FF3B4E;--red-dark:#B20710;
+  --red-soft:rgba(229,9,20,.12);
+  --red-border:rgba(229,9,20,.25);
+
+  --bg:#050508;--bg-2:#0A0A0F;
+  --surface:rgba(20,20,28,.75);
+  --surface-2:rgba(30,30,40,.6);
+  --border:rgba(255,255,255,.08);
+  --border-2:rgba(255,255,255,.14);
+
+  --text:#FFFFFF;
+  --text-2:rgba(255,255,255,.75);
+  --text-3:rgba(255,255,255,.5);
+  --text-muted:rgba(255,255,255,.35);
+
+  --green:#10B981;
+  --yellow:#F59E0B;
+  --danger:#EF4444;
+  --purple:#8B5CF6;
+
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:22px;--r-full:999px;
+  --ease:cubic-bezier(.25,.8,.25,1);
+  --ease-out:cubic-bezier(.22,.9,.3,1);
+  --container:1480px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font);font-size:14px;line-height:1.55;
+  color:var(--text);background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;flex-direction:column;
+  overflow-x:hidden;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{line-height:1.15;font-weight:900;letter-spacing:-.02em;color:#fff}
+::selection{background:var(--red);color:#fff}
+.hidden{display:none!important}
+
+.container{max-width:var(--container);margin:0 auto;padding:0 24px;width:100%}
+@media (max-width:560px){.container{padding:0 16px}}
+
+.starfield{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(229,9,20,.05) 0%, transparent 55%),
+    linear-gradient(180deg, #050508 0%, #0A0A14 100%);
+}
+.starfield::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.5), transparent 100%),
+    radial-gradient(1px 1px at 87% 32%, rgba(255,255,255,.35), transparent 100%),
+    radial-gradient(1.5px 1.5px at 34% 78%, rgba(255,255,255,.4), transparent 100%),
+    radial-gradient(1px 1px at 67% 12%, rgba(255,255,255,.3), transparent 100%);
+  animation:twinkle 8s ease-in-out infinite;
+}
+@keyframes twinkle{0%,100%{opacity:.85}50%{opacity:.4}}
+
+.nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(5,5,8,.9);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:var(--container);margin:0 auto;
+  padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+}
+.nav-brand{display:inline-flex;align-items:center;gap:11px;flex-shrink:0}
+.nav-brand svg{width:28px;height:34px;display:block}
+.nav-brand b{font-weight:900;font-size:17px;letter-spacing:-.01em;color:#fff}
+.nav-brand b span{color:var(--red)}
+.nav-actions{display:flex;gap:10px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+@media (max-width:560px){
+  .nav-inner{padding:12px 16px;gap:10px}
+  .nav-brand b{font-size:15px}
+  .nav-brand svg{width:24px;height:30px}
+}
+
+.nav-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 14px;border-radius:var(--r-full);
+  font-size:13px;font-weight:800;
+  transition:all .2s var(--ease);
+  white-space:nowrap;text-decoration:none;
+  font-family:inherit;cursor:pointer;
+  border:1px solid transparent;line-height:1;
+}
+.nav-btn svg{width:14px;height:14px;flex-shrink:0}
+.nav-btn.ghost{background:transparent;color:var(--text-2);border-color:var(--border-2)}
+.nav-btn.ghost:hover{color:#fff;border-color:var(--red);background:var(--red-soft)}
+.nav-btn .avatar{
+  width:22px;height:22px;border-radius:50%;
+  background:linear-gradient(135deg,var(--red),#FF5566);
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:900;
+  flex-shrink:0;font-family:var(--mono);
+}
+@media (max-width:560px){
+  .nav-btn .lbl{display:none}
+  .nav-btn{padding:9px 12px}
+}
+
+main{flex:1;padding:24px 0 60px}
+@media (max-width:640px){main{padding:16px 0 48px}}
+
+.crumb{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:12px;font-weight:800;
+  letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-3);
+  margin-bottom:16px;
+  transition:color .2s;
+}
+.crumb:hover{color:var(--red)}
+.crumb svg{width:14px;height:14px}
+
+.player-wrap{
+  background:#000;
+  border-radius:var(--r-xl);
+  overflow:hidden;
+  border:1px solid var(--border);
+  box-shadow:0 32px 80px rgba(0,0,0,.6);
+  position:relative;
+  margin-bottom:24px;
+}
+
+.player{
+  position:relative;
+  aspect-ratio:16/9;
+  background:#000;
+  overflow:hidden;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.player iframe,
+.player video{
+  position:absolute!important;
+  inset:0;
+  width:100%!important;
+  height:100%!important;
+  border:0;
+  z-index:1;
+  background:#000;
+}
+
+.watermark{
+  position:absolute;
+  bottom:80px;
+  right:20px;
+  z-index:10;
+  background:rgba(0,0,0,.65);
+  color:rgba(255,255,255,.85);
+  font-family:var(--mono);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.03em;
+  padding:5px 11px;
+  border-radius:6px;
+  backdrop-filter:blur(8px);
+  pointer-events:none;
+  user-select:none;
+  border:1px solid rgba(255,255,255,.08);
+}
+@media (max-width:640px){
+  .watermark{bottom:70px;right:12px;font-size:10px;padding:4px 9px;}
+}
+
+.curtain{
+  position:absolute;
+  inset:0;
+  z-index:15;
+  background:
+    radial-gradient(circle at 78% 30%, rgba(229,9,20,.12), transparent 55%),
+    radial-gradient(circle at 22% 82%, rgba(229,9,20,.06), transparent 45%),
+    linear-gradient(160deg, #0A0A0F 0%, #150a0e 45%, #0A0A0F 100%);
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  text-align:center;
+  padding:32px 24px;
+  color:#fff;
+  overflow:hidden;
+}
+.curtain.show{display:flex}
+.curtain::after{
+  content:'';
+  position:absolute;inset:0;
+  background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.035) 1px, transparent 0);
+  background-size:24px 24px;
+  pointer-events:none;
+}
+.curtain-logo{
+  width:64px;height:78px;
+  filter:drop-shadow(0 8px 28px rgba(229,9,20,.4));
+  animation:float 3s ease-in-out infinite;
+  position:relative;z-index:1;
+}
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-6px)}
+}
+.curtain-title{
+  font-size:clamp(1rem,2.2vw,1.3rem);
+  font-weight:900;
+  color:#fff;
+  margin-top:4px;
+  position:relative;z-index:1;
+}
+.curtain-sub{
+  font-size:13px;
+  color:rgba(255,255,255,.6);
+  max-width:400px;
+  line-height:1.55;
+  position:relative;z-index:1;
+}
+.curtain-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:6px 13px;
+  border-radius:var(--r-full);
+  background:rgba(229,9,20,.15);
+  border:1px solid var(--red-border);
+  font-size:10.5px;font-weight:900;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:var(--red);
+  position:relative;z-index:1;
+}
+.curtain-badge svg{width:12px;height:12px}
+
+.paywall{
+  position:absolute;
+  inset:0;
+  z-index:20;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(229,9,20,.15), transparent 60%),
+    linear-gradient(160deg, #0A0A0F 0%, #150a0e 50%, #0A0A0F 100%);
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:40px 24px;
+  color:#fff;
+  overflow-y:auto;
+}
+.paywall.show{display:flex}
+.paywall-icon{
+  width:72px;height:72px;
+  border-radius:50%;
+  background:rgba(229,9,20,.15);
+  border:2px solid var(--red-border);
+  color:var(--red);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:20px;
+  box-shadow:0 0 40px rgba(229,9,20,.3);
+}
+.paywall-icon svg{width:32px;height:32px}
+.paywall-title{
+  font-size:clamp(1.3rem,3vw,1.8rem);
+  font-weight:900;
+  color:#fff;
+  margin-bottom:10px;
+  letter-spacing:-.02em;
+  max-width:520px;
+}
+.paywall-msg{
+  font-size:14.5px;
+  color:var(--text-2);
+  line-height:1.6;
+  max-width:520px;
+  margin:0 auto 24px;
+  font-weight:500;
+}
+.paywall-benefits{
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:18px 22px;
+  margin:0 auto 26px;
+  max-width:420px;
+  text-align:left;
+}
+.paywall-benefits h4{
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--red);
+  margin-bottom:12px;
+}
+.paywall-benefits ul{
+  list-style:none;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+}
+.paywall-benefits li{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  font-size:13.5px;
+  color:var(--text-2);
+  font-weight:500;
+  line-height:1.5;
+}
+.paywall-benefits li svg{
+  width:16px;height:16px;
+  flex-shrink:0;
+  margin-top:2px;
+  color:var(--green);
+}
+.paywall-actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  justify-content:center;
+  max-width:520px;
+}
+@media (max-width:480px){
+  .paywall{padding:28px 18px}
+  .paywall-actions{flex-direction:column;width:100%;max-width:340px}
+  .paywall-actions .btn{width:100%}
+}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  padding:13px 24px;
+  border-radius:var(--r-md);
+  font-size:14px;font-weight:900;
+  transition:all .22s var(--ease);
+  text-decoration:none;
+  border:1px solid transparent;
+  font-family:inherit;cursor:pointer;
+  line-height:1;min-height:48px;
+}
+.btn svg{width:16px;height:16px;flex-shrink:0}
+.btn.primary{
+  background:linear-gradient(135deg,var(--red),#FF2A3D);
+  color:#fff;
+  box-shadow:0 8px 22px rgba(229,9,20,.4);
+}
+.btn.primary:hover{
+  transform:translateY(-2px);
+  box-shadow:0 14px 32px rgba(229,9,20,.55);
+}
+.btn.ghost{
+  background:rgba(255,255,255,.04);
+  color:#fff;
+  border-color:var(--border-2);
+}
+.btn.ghost:hover{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.28);
+}
+.btn.sm{padding:10px 18px;font-size:13px;min-height:42px}
+
+.stream-info{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  padding:24px;
+  margin-bottom:24px;
+  backdrop-filter:blur(12px);
+}
+@media (max-width:640px){.stream-info{padding:18px}}
+
+.stream-title{
+  font-size:clamp(1.3rem,2.6vw,1.7rem);
+  font-weight:900;
+  color:#fff;
+  letter-spacing:-.02em;
+  margin-bottom:10px;
+  line-height:1.2;
+  word-break:break-word;
+}
+.stream-meta{
+  display:flex;
+  gap:16px;
+  flex-wrap:wrap;
+  font-size:13px;
+  color:var(--text-3);
+  font-weight:600;
+  align-items:center;
+  margin-bottom:14px;
+}
+.stream-meta span{
+  display:inline-flex;align-items:center;gap:6px;
+}
+.stream-meta svg{width:13px;height:13px;color:var(--red)}
+.stream-meta .live{
+  color:var(--red);
+  font-weight:900;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.stream-meta .live::before{
+  content:'';width:7px;height:7px;border-radius:50%;
+  background:var(--red);
+  box-shadow:0 0 10px var(--red);
+  animation:pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.stream-desc{
+  font-size:14.5px;
+  color:var(--text-2);
+  line-height:1.7;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+.back-link{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:11px 20px;
+  border-radius:var(--r-md);
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border-2);
+  color:var(--text-2);
+  font-size:13.5px;
+  font-weight:800;
+  transition:all .22s var(--ease);
+  text-decoration:none;
+}
+.back-link:hover{
+  color:#fff;
+  border-color:var(--red);
+  background:var(--red-soft);
+}
+.back-link svg{width:15px;height:15px}
+
+.footer{
+  background:#020204;
+  border-top:1px solid var(--border);
+  padding:32px 0 24px;
+  margin-top:auto;
+}
+.footer-inner{
+  max-width:var(--container);margin:0 auto;padding:0 24px;
+  display:flex;justify-content:space-between;
+  align-items:center;flex-wrap:wrap;gap:14px;
+  font-size:12.5px;color:var(--text-muted);
+}
+.footer-links{display:flex;gap:18px;flex-wrap:wrap}
+.footer-links a{color:var(--text-3);transition:color .2s}
+.footer-links a:hover{color:var(--red)}
+
+.spinner-lg{
+  width:40px;height:40px;
+  border:3px solid rgba(229,9,20,.2);
+  border-top-color:var(--red);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+  display:inline-block;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(140%);
+  background:#fff;color:#050508;
+  font-size:13.5px;font-weight:800;
+  padding:13px 22px;border-radius:var(--r-full);
+  box-shadow:0 20px 48px rgba(0,0,0,.6);
+  transition:transform .4s var(--ease-out);
+  z-index:200;max-width:90vw;text-align:center;
+  display:flex;align-items:center;gap:10px;
+  pointer-events:none;
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast svg{width:16px;height:16px;flex-shrink:0}
+#toast.success{background:var(--green);color:#fff}
+#toast.error{background:var(--danger);color:#fff}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    transition-duration:.01ms!important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="starfield" aria-hidden="true"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand" aria-label="Starlane Stream home">
+      <svg viewBox="0 0 60 74" aria-hidden="true">
+        <defs>
+          <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#E50914"/>
+            <stop offset="100%" stop-color="#FF5566"/>
+          </linearGradient>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <path d="M10 60 Q 22 32 44 20" stroke="url(#starGrad)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+        <path d="M16 62 Q 26 40 46 26" stroke="url(#starGrad)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+        <circle cx="46" cy="18" r="5" fill="#fff" filter="url(#glow)"/>
+        <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
+      </svg>
+      <b>STAR<span>LANE</span></b>
+    </a>
+    <div class="nav-actions">
+      <a href="streams.html" class="nav-btn ghost">
+        <i data-lucide="arrow-left"></i>
+        <span class="lbl">All channels</span>
+      </a>
+      <a href="account-527394816.html" class="nav-btn ghost" id="userChip" style="display:none;">
+        <span class="avatar" id="userAvatar">?</span>
+        <span class="lbl" id="userName">Account</span>
+      </a>
+      <a href="auth.html" class="nav-btn ghost" id="signinBtn">
+        <i data-lucide="log-in"></i>
+        <span class="lbl">Sign in</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="container">
+
+    <a href="streams.html" class="crumb" id="crumb">
+      <i data-lucide="arrow-left"></i>
+      <span id="crumbText">Back to channels</span>
+    </a>
+
+    <div id="loadingState" style="padding:80px 20px;text-align:center;">
+      <div class="spinner-lg"></div>
+      <p style="color:var(--text-3);font-size:14px;margin-top:16px;">Loading stream…</p>
+    </div>
+
+    <div id="errorState" class="hidden" style="text-align:center;padding:80px 20px;max-width:520px;margin:0 auto;">
+      <div class="paywall-icon" style="background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:var(--danger);">
+        <i data-lucide="alert-triangle"></i>
+      </div>
+      <h1 style="font-size:1.5rem;margin-bottom:10px;" id="errorTitle">Stream not available</h1>
+      <p style="color:var(--text-3);font-size:14.5px;line-height:1.6;margin-bottom:24px;" id="errorMsg">—</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <a href="streams.html" class="btn primary">
+          <i data-lucide="arrow-left"></i>
+          All channels
+        </a>
+        <a href="index.html" class="btn ghost">
+          <i data-lucide="home"></i>
+          Home
+        </a>
+      </div>
+    </div>
+
+    <div id="contentState" class="hidden">
+
+      <div class="player-wrap">
+        <div class="player" id="player">
+          <div id="playerHost"></div>
+          <div class="watermark" id="watermark" style="display:none;"></div>
+
+          <div class="curtain" id="loadingCurtain">
+            <svg class="curtain-logo" viewBox="0 0 60 74" aria-hidden="true">
+              <defs>
+                <linearGradient id="cg" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#E50914"/>
+                  <stop offset="100%" stop-color="#FF5566"/>
+                </linearGradient>
+              </defs>
+              <path d="M10 60 Q 22 32 44 20" stroke="url(#cg)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+              <circle cx="46" cy="18" r="6" fill="#fff"/>
+              <circle cx="46" cy="18" r="3" fill="#E50914"/>
+            </svg>
+            <span class="curtain-badge">
+              <i data-lucide="loader-2"></i>
+              Connecting
+            </span>
+            <div class="curtain-title">Loading stream…</div>
+            <div class="curtain-sub">Fetching playback source.</div>
+          </div>
+
+          <div class="paywall" id="paywall">
+            <div class="paywall-icon" id="paywallIcon">
+              <i data-lucide="lock"></i>
+            </div>
+            <h2 class="paywall-title" id="paywallTitle">Sign in to watch</h2>
+            <p class="paywall-msg" id="paywallMsg">This stream is available to Starlane members. Sign in or create a free account to watch.</p>
+
+            <div class="paywall-benefits hidden" id="paywallBenefits">
+              <h4>What you get</h4>
+              <ul id="paywallBenefitsList"></ul>
+            </div>
+
+            <div class="paywall-actions" id="paywallActions"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="stream-info">
+        <h1 class="stream-title" id="streamTitle">—</h1>
+        <div class="stream-meta">
+          <span id="metaLive" style="display:none;" class="live">Live now</span>
+          <span id="metaDate" style="display:none;">
+            <i data-lucide="calendar"></i>
+            <span id="metaDateText">—</span>
+          </span>
+          <span id="metaChannel" style="display:none;">
+            <i data-lucide="tv"></i>
+            <span id="metaChannelText">—</span>
+          </span>
+          <span id="metaTier" style="display:none;">
+            <i data-lucide="tag"></i>
+            <span id="metaTierText">—</span>
+          </span>
+        </div>
+        <div class="stream-desc" id="streamDesc" style="display:none;"></div>
+      </div>
+
+      <a href="streams.html" class="back-link">
+        <i data-lucide="arrow-left"></i>
+        Back to channels
+      </a>
+
+    </div>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span>© <span id="year"></span> Starlane Stream. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="streams.html">Channels</a>
+      <a href="plans.html">Plans</a>
+      <a href="legal.html">Legal</a>
+    </div>
+  </div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════════
+   FIREBASE CONFIG — starlane-stream
+   ═══════════════════════════════════════════════════════════════ */
+var firebaseConfig = {
+  apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+  authDomain: "starlane-stream.firebaseapp.com",
+  projectId: "starlane-stream",
+  storageBucket: "starlane-stream.firebasestorage.app",
+  messagingSenderId: "115625325145",
+  appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+};
+
+var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
+var db = null;
+var auth = null;
+var currentUser = null;
+
+if (firebaseReady && !firebase.apps.length){
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  auth = firebase.auth();
+}
+
+var PLANS = {
+  free:     { name: 'Free',     devices: 1, price: 0   },
+  starter:  { name: 'Starter',  devices: 1, price: 90  },
+  standard: { name: 'Standard', devices: 2, price: 180 },
+  premium:  { name: 'Premium',  devices: 3, price: 300 },
+  elite:    { name: 'Elite',    devices: 4, price: 490 }
+};
+
+var TIER_ORDER = ['free', 'starter', 'standard', 'premium', 'elite'];
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
+function getParam(n){ try { return new URLSearchParams(location.search).get(n); } catch(e){ return null; } }
+
+function toast(msg, type, ms){
+  type = type || 'info'; ms = ms || 3000;
+  var t = $('toast');
+  var ic = type === 'error' ? 'alert-circle' : (type === 'success' ? 'check-circle' : 'info');
+  t.className = type;
+  t.innerHTML = '<i data-lucide="'+ic+'"></i><span>' + esc(msg) + '</span>';
+  refreshIcons();
+  requestAnimationFrame(function(){ t.classList.add('show'); });
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ t.classList.remove('show'); }, ms);
+}
+
+function initials(name){
+  if (!name) return '?';
+  var p = String(name).trim().split(/\s+/);
+  if (p.length >= 2) return (p[0][0]+p[1][0]).toUpperCase();
+  return p[0].slice(0,2).toUpperCase();
+}
+
+function prettyDate(dateStr, timeStr){
+  if (!dateStr) return '';
+  try {
+    var d = new Date(dateStr + 'T' + (timeStr || '00:00'));
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  } catch(e){ return dateStr; }
+}
+
+function isAdmin(email){
+  if (!email) return false;
+  var admins = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
+  var e = String(email).toLowerCase().trim();
+  return admins.some(function(a){ return a.toLowerCase() === e; });
+}
+
+function tierLabel(t){
+  return PLANS[t] ? PLANS[t].name : t;
+}
+
+function detectPlatform(url){
+  if (!url) return 'custom';
+  var u = String(url).toLowerCase();
+  if (u.indexOf('youtube.com') !== -1 || u.indexOf('youtu.be') !== -1) return 'youtube';
+  if (u.indexOf('.m3u8') !== -1) return 'hls';
+  if (/\.(mp4|webm|mov)(\?|#|$)/i.test(u)) return 'video';
+  return 'iframe';
+}
+
+function extractYouTubeId(input){
+  if (!input) return null;
+  var u = String(input).trim();
+  if (/^[A-Za-z0-9_-]{11}$/.test(u)) return u;
+  var patterns = [
+    /(?:youtube\.com\/watch\?(?:.*&)?v=)([A-Za-z0-9_-]{11})/,
+    /(?:youtu\.be\/)([A-Za-z0-9_-]{11})/,
+    /(?:youtube\.com\/live\/)([A-Za-z0-9_-]{11})/,
+    /(?:youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/,
+    /(?:youtube\.com\/shorts\/)([A-Za-z0-9_-]{11})/
+  ];
+  for (var i = 0; i < patterns.length; i++){
+    var m = u.match(patterns[i]);
+    if (m && m[1]) return m[1];
+  }
+  var m2 = u.match(/([A-Za-z0-9_-]{11})/);
+  return m2 ? m2[1] : null;
+}
+
+var streamId = null;
+var streamData = null;
+var channelData = null;
+var userSubscription = null;
+var userTier = 'free';
+var deviceId = null;
+var heartbeatTimer = null;
+var currentPlayer = null;
+
+function getDeviceId(){
+  var key = 'starlane_device_id';
+  var id = null;
+  try { id = localStorage.getItem(key); } catch(e){}
+  if (!id){
+    id = 'dev_' + Math.random().toString(36).slice(2, 12) + Date.now().toString(36);
+    try { localStorage.setItem(key, id); } catch(e){}
+  }
+  return id;
+}
+
+function updateAuthChip(user){
+  if (user){
+    $('signinBtn').style.display = 'none';
+    $('userChip').style.display = 'inline-flex';
+    $('userAvatar').textContent = initials(user.displayName || user.email);
+    $('userName').textContent = user.displayName || user.email.split('@')[0];
+  } else {
+    $('signinBtn').style.display = 'inline-flex';
+    $('userChip').style.display = 'none';
+  }
+  refreshIcons();
+}
+
+function showPaywall(kind, options){
+  options = options || {};
+  var paywall = $('paywall');
+  var icon = $('paywallIcon');
+  var title = $('paywallTitle');
+  var msg = $('paywallMsg');
+  var benefits = $('paywallBenefits');
+  var actions = $('paywallActions');
+
+  benefits.classList.add('hidden');
+  actions.innerHTML = '';
+
+  if (kind === 'signin'){
+    icon.innerHTML = '<i data-lucide="lock"></i>';
+    title.textContent = 'Sign in to watch';
+    msg.textContent = 'This stream is available to Starlane members. Sign in or create a free account to watch.';
+
+    actions.innerHTML =
+      '<a href="auth.html?redirect=' + encodeURIComponent(location.href) + '" class="btn primary">' +
+        '<i data-lucide="log-in"></i>' +
+        'Sign in' +
+      '</a>' +
+      '<a href="auth.html?tab=signup&redirect=' + encodeURIComponent(location.href) + '" class="btn ghost">' +
+        '<i data-lucide="sparkles"></i>' +
+        'Create free account' +
+      '</a>';
+  } else if (kind === 'upgrade'){
+    var requiredTier = options.requiredTier || 'starter';
+    var requiredPlan = PLANS[requiredTier];
+    var currentTier = options.currentTier || 'free';
+
+    icon.innerHTML = '<i data-lucide="crown"></i>';
+    title.textContent = requiredPlan.name + ' required';
+    msg.innerHTML = 'You\'re on the <strong style="color:#fff;">' + tierLabel(currentTier) + '</strong> plan. This stream requires <strong style="color:#fff;">' + requiredPlan.name + '</strong> or higher.';
+
+    benefits.classList.remove('hidden');
+    var benefitsList = $('paywallBenefitsList');
+    var benefitMap = {
+      starter: ['720p HD quality', 'No ads', '1 device at a time', 'Starter+ channels'],
+      standard: ['1080p Full HD', 'No ads', '2 devices at a time', '30-day replays'],
+      premium: ['4K Ultra HD', 'No ads', '3 devices at a time', '90-day replays'],
+      elite: ['4K Ultra HD', 'No ads', '4 devices at a time', '180-day replays', 'Family profiles']
+    };
+    var list = benefitMap[requiredTier] || [];
+    benefitsList.innerHTML = list.map(function(b){
+      return '<li><i data-lucide="check"></i><span>' + esc(b) + '</span></li>';
+    }).join('');
+
+    var upgradeUrl = 'plans.html?upgrade=' + requiredTier + '&from=' + encodeURIComponent(location.href);
+
+    actions.innerHTML =
+      '<a href="' + upgradeUrl + '" class="btn primary">' +
+        '<i data-lucide="arrow-up-circle"></i>' +
+        'Upgrade to ' + esc(requiredPlan.name) + ' — R' + requiredPlan.price +
+      '</a>' +
+      '<a href="plans.html" class="btn ghost">' +
+        '<i data-lucide="tag"></i>' +
+        'See all plans' +
+      '</a>';
+  } else if (kind === 'devices'){
+    var limit = options.limit || 1;
+    var devices = options.devices || [];
+
+    icon.innerHTML = '<i data-lucide="monitor-smartphone"></i>';
+    title.textContent = 'Too many devices';
+    msg.innerHTML = 'You\'re already streaming on <strong style="color:#fff;">' + devices.length + ' of ' + limit + '</strong> devices allowed on your plan.';
+
+    benefits.classList.remove('hidden');
+    var benefitsList2 = $('paywallBenefitsList');
+    benefitsList2.innerHTML =
+      '<li><i data-lucide="info"></i><span>Sign out one of the devices below, or wait for it to close on its own.</span></li>';
+
+    var deviceListHTML = devices.slice(0, 4).map(function(d){
+      return '<div style="font-family:var(--mono);font-size:12px;color:var(--text-2);padding:4px 0;">' +
+        esc(d.userAgent || 'Unknown device') + ' · ' + esc(d.timeAgo || 'recently') +
+      '</div>';
+    }).join('');
+
+    actions.innerHTML =
+      '<div style="width:100%;text-align:left;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:8px;">' +
+        '<div style="font-size:10.5px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;">Currently watching</div>' +
+        deviceListHTML +
+      '</div>' +
+      '<a href="account-527394816.html" class="btn primary">' +
+        '<i data-lucide="settings"></i>' +
+        'Manage devices' +
+      '</a>' +
+      '<a href="plans.html?upgrade=elite" class="btn ghost">' +
+        '<i data-lucide="arrow-up-circle"></i>' +
+        'Upgrade for more devices' +
+      '</a>';
+  }
+
+  paywall.classList.add('show');
+  $('loadingCurtain').classList.remove('show');
+  refreshIcons();
+}
+
+function hidePaywall(){
+  $('paywall').classList.remove('show');
+}
+
+function showCurtain(title, sub){
+  var c = $('loadingCurtain');
+  if (title) c.querySelector('.curtain-title').textContent = title;
+  if (sub) c.querySelector('.curtain-sub').textContent = sub;
+  c.classList.add('show');
+}
+function hideCurtain(){
+  $('loadingCurtain').classList.remove('show');
+}
+
+function loadStream(){
+  streamId = getParam('id');
+  if (!streamId){
+    showError('No stream specified', 'This page needs a stream ID. Go back to the channel and pick one.');
+    return;
+  }
+
+  if (!firebaseReady || !db){
+    showError('Firebase not configured', 'Add your Starlane Firebase config.');
+    return;
+  }
+
+  db.collection('streams').doc(streamId).get()
+    .then(function(doc){
+      if (!doc.exists){
+        showError('Stream not found', 'This stream may have been removed.');
+        return;
+      }
+      streamData = doc.data() || {};
+      streamData.id = doc.id;
+
+      if (streamData.channelId){
+        return db.collection('channels').doc(streamData.channelId).get().then(function(chDoc){
+          if (chDoc.exists){
+            channelData = chDoc.data() || {};
+            channelData.id = chDoc.id;
+          }
+          checkAccessAndPlay();
+        });
+      } else {
+        checkAccessAndPlay();
+      }
+    })
+    .catch(function(err){
+      console.error('[load stream]', err);
+      showError('Could not load stream', err.message || 'Please try again.');
+    });
+}
+
+function checkAccessAndPlay(){
+  renderStreamInfo();
+
+  if (!currentUser){
+    showPaywall('signin');
+    return;
+  }
+
+  db.collection('subscriptions').doc(currentUser.uid).get()
+    .then(function(subDoc){
+      userSubscription = subDoc.exists ? subDoc.data() : { tier: 'free' };
+
+      userTier = userSubscription.tier || 'free';
+      if (userSubscription.expiresAt){
+        var exp = userSubscription.expiresAt.toDate ? userSubscription.expiresAt.toDate() : new Date(userSubscription.expiresAt);
+        if (exp < new Date()){
+          userTier = 'free';
+        }
+      }
+
+      var requiredTiers = streamData.accessTiers || ['free'];
+      if (requiredTiers.indexOf('free') !== -1 || requiredTiers.length === 0){
+        checkDeviceLimitThenPlay();
+        return;
+      }
+
+      if (requiredTiers.indexOf(userTier) !== -1){
+        checkDeviceLimitThenPlay();
+        return;
+      }
+
+      var userIdx = TIER_ORDER.indexOf(userTier);
+      var requiredIdx = Infinity;
+      requiredTiers.forEach(function(t){
+        var idx = TIER_ORDER.indexOf(t);
+        if (idx !== -1 && idx < requiredIdx) requiredIdx = idx;
+      });
+
+      if (userIdx >= requiredIdx && requiredIdx !== Infinity){
+        checkDeviceLimitThenPlay();
+        return;
+      }
+
+      var minTier = requiredTiers[0];
+      requiredTiers.forEach(function(t){
+        if (TIER_ORDER.indexOf(t) < TIER_ORDER.indexOf(minTier)) minTier = t;
+      });
+      showPaywall('upgrade', { requiredTier: minTier, currentTier: userTier });
+    })
+    .catch(function(err){
+      console.error('[access check]', err);
+      showError('Could not verify access', err.message || 'Please try again.');
+    });
+}
+
+function checkDeviceLimitThenPlay(){
+  var limit = (PLANS[userTier] && PLANS[userTier].devices) || 1;
+
+  db.collection('sessions').doc(currentUser.uid).collection('devices').get()
+    .then(function(snap){
+      var activeDevices = [];
+      var now = Date.now();
+
+      snap.forEach(function(doc){
+        var d = doc.data() || {};
+        var lastSeenMs = d.lastSeen && d.lastSeen.toMillis ? d.lastSeen.toMillis() : 0;
+        if (lastSeenMs > 0 && now - lastSeenMs > 3 * 60 * 1000) return;
+        d.id = doc.id;
+        activeDevices.push(d);
+      });
+
+      var existing = activeDevices.find(function(d){ return d.id === deviceId; });
+      if (existing){
+        playStream();
+        startHeartbeat();
+        return;
+      }
+
+      if (activeDevices.length < limit){
+        db.collection('sessions').doc(currentUser.uid).collection('devices').doc(deviceId).set({
+          userAgent: navigator.userAgent,
+          lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+          startedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          streamId: streamId
+        })
+          .then(function(){
+            playStream();
+            startHeartbeat();
+          })
+          .catch(function(err){
+            console.error('[register device]', err);
+            playStream();
+            startHeartbeat();
+          });
+      } else {
+        activeDevices.sort(function(a, b){
+          var ta = a.lastSeen && a.lastSeen.toMillis ? a.lastSeen.toMillis() : 0;
+          var tb = b.lastSeen && b.lastSeen.toMillis ? b.lastSeen.toMillis() : 0;
+          return tb - ta;
+        });
+        var deviceList = activeDevices.map(function(d){
+          return {
+            userAgent: labelDevice(d.userAgent),
+            timeAgo: timeAgo(d.lastSeen)
+          };
+        });
+        showPaywall('devices', { limit: limit, devices: deviceList });
+      }
+    })
+    .catch(function(err){
+      console.error('[device check]', err);
+      playStream();
+      startHeartbeat();
+    });
+}
+
+function labelDevice(ua){
+  ua = String(ua || '').toLowerCase();
+  if (ua.indexOf('iphone') !== -1) return 'iPhone';
+  if (ua.indexOf('ipad') !== -1) return 'iPad';
+  if (ua.indexOf('android') !== -1) return 'Android';
+  if (ua.indexOf('mac') !== -1) return 'Mac';
+  if (ua.indexOf('windows') !== -1) return 'Windows';
+  if (ua.indexOf('linux') !== -1) return 'Linux';
+  return 'Unknown device';
+}
+
+function timeAgo(ts){
+  if (!ts) return 'recently';
+  try {
+    var d = ts.toDate ? ts.toDate() : new Date(ts);
+    var diff = Date.now() - d.getTime();
+    var mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    return Math.floor(mins / 60) + 'h ago';
+  } catch(e){ return 'recently'; }
+}
+
+function startHeartbeat(){
+  stopHeartbeat();
+  heartbeatTimer = setInterval(function(){
+    if (!currentUser || !deviceId) return;
+    db.collection('sessions').doc(currentUser.uid).collection('devices').doc(deviceId)
+      .update({ lastSeen: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(function(){});
+  }, 30000);
+}
+function stopHeartbeat(){
+  if (heartbeatTimer){
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
+}
+
+function endDeviceSession(){
+  if (!currentUser || !deviceId) return;
+  db.collection('sessions').doc(currentUser.uid).collection('devices').doc(deviceId)
+    .delete()
+    .catch(function(){});
+}
+
+function playStream(){
+  hidePaywall();
+  hideCurtain();
+  showCurtain('Loading stream…', 'Connecting to source.');
+
+  if (currentUser && currentUser.email){
+    var wm = $('watermark');
+    wm.textContent = currentUser.email;
+    wm.style.display = 'block';
+  }
+
+  var url = streamData.streamUrl || streamData.hlsUrl || '';
+  if (!url){
+    showError('No source configured', 'This stream has no playback URL.');
+    return;
+  }
+
+  var platform = streamData.streamPlatform || detectPlatform(url);
+
+  if (platform === 'youtube'){
+    playYouTube(url);
+  } else if (platform === 'hls' || platform === 'native-hls' || url.indexOf('.m3u8') !== -1){
+    playHLS(url);
+  } else if (platform === 'video' || /\.(mp4|webm|mov)(\?|#|$)/i.test(url)){
+    playVideoFile(url);
+  } else {
+    playIframe(url);
+  }
+
+  setTimeout(hideCurtain, 2500);
+}
+
+function playYouTube(url){
+  var vid = extractYouTubeId(url);
+  if (!vid){
+    showError('Invalid YouTube URL', 'Could not extract video ID.');
+    return;
+  }
+
+  var host = $('playerHost');
+  host.innerHTML = '<div id="ytPlayer"></div>';
+
+  if (window.YT && window.YT.Player){
+    createYT(vid);
+  } else {
+    window.onYouTubeIframeAPIReady = function(){ createYT(vid); };
+  }
+}
+
+function createYT(vid){
+  currentPlayer = new YT.Player('ytPlayer', {
+    videoId: vid,
+    playerVars: {
+      autoplay: 1,
+      mute: 1,
+      rel: 0,
+      playsinline: 1,
+      modestbranding: 1,
+      controls: 1,
+      origin: window.location.origin
+    },
+    events: {
+      onReady: function(e){
+        try { e.target.playVideo(); } catch(err){}
+        hideCurtain();
+      },
+      onError: function(e){
+        console.error('[yt]', e);
+        toast('YouTube playback error', 'error', 4000);
+      }
+    }
+  });
+}
+
+function playHLS(url){
+  var host = $('playerHost');
+  host.innerHTML = '<video id="hlsVideo" controls autoplay muted playsinline style="width:100%;height:100%;position:absolute;inset:0;background:#000;object-fit:contain;"></video>';
+
+  var video = document.getElementById('hlsVideo');
+
+  if (window.Hls && Hls.isSupported()){
+    var hls = new Hls({ liveDurationInfinity: true });
+    hls.loadSource(url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, function(){
+      video.play().catch(function(){});
+      hideCurtain();
+    });
+    hls.on(Hls.Events.ERROR, function(event, data){
+      if (data && data.fatal){
+        console.error('[hls]', data);
+        toast('Stream playback error', 'error', 4000);
+      }
+    });
+    currentPlayer = hls;
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')){
+    video.src = url;
+    video.addEventListener('loadedmetadata', function(){
+      video.play().catch(function(){});
+      hideCurtain();
+    });
+  } else {
+    showError('HLS not supported', 'Your browser cannot play HLS streams.');
+  }
+}
+
+function playVideoFile(url){
+  var host = $('playerHost');
+  host.innerHTML = '<video id="fileVideo" controls autoplay muted playsinline style="width:100%;height:100%;position:absolute;inset:0;background:#000;object-fit:contain;"></video>';
+
+  var video = document.getElementById('fileVideo');
+  video.src = url;
+  video.addEventListener('loadedmetadata', function(){
+    video.play().catch(function(){});
+    hideCurtain();
+  });
+  video.addEventListener('error', function(){
+    showError('Video failed to load', 'The video source returned an error.');
+  });
+}
+
+function playIframe(url){
+  var host = $('playerHost');
+  host.innerHTML = '';
+
+  var iframe = document.createElement('iframe');
+  iframe.src = url;
+  iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture; encrypted-media');
+  iframe.setAttribute('allowfullscreen', '');
+  iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+  iframe.style.cssText = 'width:100%;height:100%;position:absolute;inset:0;border:0;background:#000;';
+  host.appendChild(iframe);
+
+  setTimeout(hideCurtain, 2000);
+}
+
+function renderStreamInfo(){
+  var title = streamData.streamTitle || streamData.eventName || 'Untitled Stream';
+  var desc = streamData.eventDescription || streamData.streamDescription || '';
+  var dateStr = prettyDate(streamData.startDate, streamData.startTime);
+  var channelName = channelData ? (channelData.name || 'Channel') : (streamData.channelName || 'Channel');
+
+  $('streamTitle').textContent = title;
+  document.title = title + ' · Starlane Stream';
+
+  if (channelData && channelData.id){
+    $('crumb').href = 'channel.html?id=' + encodeURIComponent(channelData.id);
+    $('crumbText').textContent = 'Back to ' + channelName;
+  }
+
+  var now = Date.now();
+  var startMs = streamData.startDate ? new Date(streamData.startDate + 'T' + (streamData.startTime || '00:00') + ':00').getTime() : 0;
+  var durMin = parseInt(streamData.durationMinutes, 10) || 90;
+  var endMs = startMs + durMin * 60000;
+  var isLive = startMs && now >= startMs && now <= endMs;
+
+  if (isLive){
+    $('metaLive').style.display = 'inline-flex';
+  }
+  if (dateStr){
+    $('metaDate').style.display = 'inline-flex';
+    $('metaDateText').textContent = dateStr;
+  }
+  if (channelName){
+    $('metaChannel').style.display = 'inline-flex';
+    $('metaChannelText').textContent = channelName;
+  }
+
+  var requiredTiers = streamData.accessTiers || ['free'];
+  var tierText = 'Free to watch';
+  if (requiredTiers.indexOf('free') === -1 && requiredTiers.length > 0){
+    var minTier = requiredTiers[0];
+    requiredTiers.forEach(function(t){
+      if (TIER_ORDER.indexOf(t) < TIER_ORDER.indexOf(minTier)) minTier = t;
+    });
+    tierText = PLANS[minTier] ? PLANS[minTier].name + ' or higher' : 'Premium';
+  }
+  $('metaTier').style.display = 'inline-flex';
+  $('metaTierText').textContent = tierText;
+
+  if (desc){
+    $('streamDesc').style.display = 'block';
+    $('streamDesc').textContent = desc;
+  }
+
+  $('loadingState').classList.add('hidden');
+  $('errorState').classList.add('hidden');
+  $('contentState').classList.remove('hidden');
+  refreshIcons();
+}
+
+function showError(title, msg){
+  $('loadingState').classList.add('hidden');
+  $('contentState').classList.add('hidden');
+  $('errorState').classList.remove('hidden');
+  if (title) $('errorTitle').textContent = title;
+  if (msg) $('errorMsg').textContent = msg;
+  refreshIcons();
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  var yearEl = $('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+  refreshIcons();
+
+  deviceId = getDeviceId();
+
+  if (!firebaseReady || !auth){
+    showError('Firebase not configured', 'Add your Starlane Firebase config to load streams.');
+    return;
+  }
+
+  auth.onAuthStateChanged(function(user){
+    currentUser = user;
+    updateAuthChip(user);
+    if (!streamData){
+      loadStream();
+    }
+  });
+
+  window.addEventListener('beforeunload', function(){
+    stopHeartbeat();
+    endDeviceSession();
+  });
+
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden){
+    } else {
+      if (!currentUser && streamData){
+        location.reload();
+      }
+    }
+  });
+});
+
+})();
+</script>
+
+</body>
+</html>��══════════════════════════════════════════════════════════════ */
+function startHeartbeat(){
+  stopHeartbeat();
+  heartbeatTimer = setInterval(function(){
+    if (!currentUser || !deviceId) return;
+    db.collection('sessions').doc(currentUser.uid).collection('devices').doc(deviceId)
+      .update({ lastSeen: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(function(){});
+  }, 30000); // every 30 seconds
+}
+function stopHeartbeat(){
+  if (heartbeatTimer){
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
+}
+
+function endDeviceSession(){
+  if (!currentUser || !deviceId) return;
+  // Fire and forget
+  db.collection('sessions').doc(currentUser.uid).collection('devices').doc(deviceId)
+    .delete()
+    .catch(function(){});
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PLAY
+   ═══════════════════════════════════════════════════════════════ */
+function playStream(){
+  hidePaywall();
+  hideCurtain();
+  showCurtain('Loading stream…', 'Connecting to source.');
+
+  // Watermark
+  if (currentUser && currentUser.email){
+    var wm = $('watermark');
+    wm.textContent = currentUser.email;
+    wm.style.display = 'block';
+  }
+
+  // Source URL
+  var url = streamData.streamUrl || streamData.hlsUrl || '';
+  if (!url){
+    showError('No source configured', 'This stream has no playback URL.');
+    return;
+  }
+
+  var platform = streamData.streamPlatform || detectPlatform(url);
+
+  if (platform === 'youtube'){
+    playYouTube(url);
+  } else if (platform === 'hls' || platform === 'native-hls' || url.indexOf('.m3u8') !== -1){
+    playHLS(url);
+  } else if (platform === 'video' || /\.(mp4|webm|mov)(\?|#|$)/i.test(url)){
+    playVideoFile(url);
+  } else {
+    playIframe(url);
+  }
+
+  // Hide curtain after a delay
+  setTimeout(hideCurtain, 2500);
+}
+
+function playYouTube(url){
+  var vid = extractYouTubeId(url);
+  if (!vid){
+    showError('Invalid YouTube URL', 'Could not extract video ID.');
+    return;
+  }
+
+  var host = $('playerHost');
+  host.innerHTML = '<div id="ytPlayer"></div>';
+
+  if (window.YT && window.YT.Player){
+    createYT(vid);
+  } else {
+    window.onYouTubeIframeAPIReady = function(){ createYT(vid); };
+  }
+}
+
+function createYT(vid){
+  currentPlayer = new YT.Player('ytPlayer', {
+    videoId: vid,
+    playerVars: {
+      autoplay: 1,
+      mute: 1,
+      rel: 0,
+      playsinline: 1,
+      modestbranding: 1,
+      controls: 1,
+      origin: window.location.origin
+    },
+    events: {
+      onReady: function(e){
+        try { e.target.playVideo(); } catch(err){}
+        hideCurtain();
+      },
+      onError: function(e){
+        console.error('[yt]', e);
+        toast('YouTube playback error', 'error', 4000);
+      }
+    }
+  });
+}
+
+function playHLS(url){
+  var host = $('playerHost');
+  host.innerHTML = '<video id="hlsVideo" controls autoplay muted playsinline style="width:100%;height:100%;position:absolute;inset:0;background:#000;object-fit:contain;"></video>';
+
+  var video = document.getElementById('hlsVideo');
+
+  if (window.Hls && Hls.isSupported()){
+    var hls = new Hls({ liveDurationInfinity: true });
+    hls.loadSource(url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, function(){
+      video.play().catch(function(){});
+      hideCurtain();
+    });
+    hls.on(Hls.Events.ERROR, function(event, data){
+      if (data && data.fatal){
+        console.error('[hls]', data);
+        toast('Stream playback error', 'error', 4000);
+      }
+    });
+    currentPlayer = hls;
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')){
+    video.src = url;
+    video.addEventListener('loadedmetadata', function(){
+      video.play().catch(function(){});
+      hideCurtain();
+    });
+  } else {
+    showError('HLS not supported', 'Your browser cannot play HLS streams.');
+  }
+}
+
+function playVideoFile(url){
+  var host = $('playerHost');
+  host.innerHTML = '<video id="fileVideo" controls autoplay muted playsinline style="width:100%;height:100%;position:absolute;inset:0;background:#000;object-fit:contain;"></video>';
+
+  var video = document.getElementById('fileVideo');
+  video.src = url;
+  video.addEventListener('loadedmetadata', function(){
+    video.play().catch(function(){});
+    hideCurtain();
+  });
+  video.addEventListener('error', function(){
+    showError('Video failed to load', 'The video source returned an error.');
+  });
+}
+
+function playIframe(url){
+  var host = $('playerHost');
+  host.innerHTML = '';
+
+  var iframe = document.createElement('iframe');
+  iframe.src = url;
+  iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture; encrypted-media');
+  iframe.setAttribute('allowfullscreen', '');
+  iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+  iframe.style.cssText = 'width:100%;height:100%;position:absolute;inset:0;border:0;background:#000;';
+  host.appendChild(iframe);
+
+  setTimeout(hideCurtain, 2000);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER STREAM INFO
+   ═══════════════════════════════════════════════════════════════ */
+function renderStreamInfo(){
+  var title = streamData.streamTitle || streamData.eventName || 'Untitled Stream';
+  var desc = streamData.eventDescription || streamData.streamDescription || '';
+  var dateStr = prettyDate(streamData.startDate, streamData.startTime);
+  var channelName = channelData ? (channelData.name || 'Channel') : (streamData.channelName || 'Channel');
+
+  $('streamTitle').textContent = title;
+  document.title = title + ' · Starlane Stream';
+
+  // Crumb text
+  if (channelData && channelData.id){
+    $('crumb').href = 'channel.html?id=' + encodeURIComponent(channelData.id);
+    $('crumbText').textContent = 'Back to ' + channelName;
+  }
+
+  // Meta
+  var now = Date.now();
+  var startMs = streamData.startDate ? new Date(streamData.startDate + 'T' + (streamData.startTime || '00:00') + ':00').getTime() : 0;
+  var durMin = parseInt(streamData.durationMinutes, 10) || 90;
+  var endMs = startMs + durMin * 60000;
+  var isLive = startMs && now >= startMs && now <= endMs;
+
+  if (isLive){
+    $('metaLive').style.display = 'inline-flex';
+  }
+  if (dateStr){
+    $('metaDate').style.display = 'inline-flex';
+    $('metaDateText').textContent = dateStr;
+  }
+  if (channelName){
+    $('metaChannel').style.display = 'inline-flex';
+    $('metaChannelText').textContent = channelName;
+  }
+
+  // Tier badge
+  var requiredTiers = streamData.accessTiers || ['free'];
+  var tierText = 'Free to watch';
+  if (requiredTiers.indexOf('free') === -1 && requiredTiers.length > 0){
+    var minTier = requiredTiers[0];
+    requiredTiers.forEach(function(t){
+      if (TIER_ORDER.indexOf(t) < TIER_ORDER.indexOf(minTier)) minTier = t;
+    });
+    tierText = PLANS[minTier] ? PLANS[minTier].name + ' or higher' : 'Premium';
+  }
+  $('metaTier').style.display = 'inline-flex';
+  $('metaTierText').textContent = tierText;
+
+  if (desc){
+    $('streamDesc').style.display = 'block';
+    $('streamDesc').textContent = desc;
+  }
+
+  $('loadingState').classList.add('hidden');
+  $('errorState').classList.add('hidden');
+  $('contentState').classList.remove('hidden');
+  refreshIcons();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ERROR
+   ═══════════════════════════════════════════════════════════════ */
+function showError(title, msg){
+  $('loadingState').classList.add('hidden');
+  $('contentState').classList.add('hidden');
+  $('errorState').classList.remove('hidden');
+  if (title) $('errorTitle').textContent = title;
+  if (msg) $('errorMsg').textContent = msg;
+  refreshIcons();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function(){
+  var yearEl = $('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+  refreshIcons();
+
+  deviceId = getDeviceId();
+
+  if (!firebaseReady || !auth){
+    showError('Firebase not configured', 'Add your Starlane Firebase config to load streams.');
+    return;
+  }
+
+  auth.onAuthStateChanged(function(user){
+    currentUser = user;
+    updateAuthChip(user);
+    // Load the stream once we know auth state
+    if (!streamData){
+      loadStream();
+    }
+  });
+
+  // End session on unload
+  window.addEventListener('beforeunload', function(){
+    stopHeartbeat();
+    endDeviceSession();
+  });
+
+  // Also end session if user navigates away within SPA
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden){
+      // Tab hidden — don't end session yet
+    } else {
+      // Tab visible — check auth is still valid
+      if (!currentUser && streamData){
+        // Signed out elsewhere — reload
+        location.reload();
+      }
+    }
+  });
+});
+
+})();
+</script>
+
+</body>
+</html>

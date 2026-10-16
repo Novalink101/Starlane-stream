@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://starlane-stream.onrender.com/sitemap.xml

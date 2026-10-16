@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#050508" />
+<meta name="robots" content="noindex, nofollow, noarchive" />
+<meta name="referrer" content="no-referrer" />
+<title>Checkout · Starlane Stream</title>
+
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<style>
+:root{
+  --red:#E50914;--red-hover:#FF3B4E;--red-dark:#B20710;
+  --red-soft:rgba(229,9,20,.12);
+  --red-border:rgba(229,9,20,.25);
+
+  --bg:#050508;--bg-2:#0A0A0F;
+  --surface:rgba(20,20,28,.75);
+  --surface-2:rgba(30,30,40,.6);
+  --border:rgba(255,255,255,.08);
+  --border-2:rgba(255,255,255,.14);
+
+  --text:#FFFFFF;
+  --text-2:rgba(255,255,255,.75);
+  --text-3:rgba(255,255,255,.5);
+  --text-muted:rgba(255,255,255,.35);
+
+  --green:#10B981;
+  --yellow:#F59E0B;
+  --danger:#EF4444;
+
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:22px;--r-full:999px;
+  --ease:cubic-bezier(.25,.8,.25,1);
+  --ease-out:cubic-bezier(.22,.9,.3,1);
+  --container:900px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font);font-size:14px;line-height:1.55;
+  color:var(--text);background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;flex-direction:column;
+  overflow-x:hidden;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{line-height:1.15;font-weight:900;letter-spacing:-.02em;color:#fff}
+::selection{background:var(--red);color:#fff}
+.hidden{display:none!important}
+
+.container{max-width:var(--container);margin:0 auto;padding:0 24px;width:100%}
+@media (max-width:560px){.container{padding:0 16px}}
+
+/* Starfield */
+.starfield{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(229,9,20,.06) 0%, transparent 55%),
+    linear-gradient(180deg, #050508 0%, #0A0A14 100%);
+}
+.starfield::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.6), transparent 100%),
+    radial-gradient(1px 1px at 87% 32%, rgba(255,255,255,.4), transparent 100%),
+    radial-gradient(1.5px 1.5px at 34% 78%, rgba(255,255,255,.5), transparent 100%),
+    radial-gradient(1px 1px at 67% 12%, rgba(255,255,255,.35), transparent 100%),
+    radial-gradient(1.5px 1.5px at 92% 82%, rgba(255,255,255,.55), transparent 100%);
+  animation:twinkle 8s ease-in-out infinite;
+}
+@keyframes twinkle{0%,100%{opacity:.85}50%{opacity:.4}}
+
+/* Nav */
+.nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(5,5,8,.85);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:var(--container);margin:0 auto;
+  padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+}
+.nav-brand{display:inline-flex;align-items:center;gap:11px;flex-shrink:0}
+.nav-brand svg{width:28px;height:34px;display:block}
+.nav-brand b{font-weight:900;font-size:17px;letter-spacing:-.01em;color:#fff}
+.nav-brand b span{color:var(--red)}
+.nav-back{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 14px;border-radius:var(--r-full);
+  font-size:13px;font-weight:800;
+  color:var(--text-2);
+  border:1px solid var(--border-2);
+  transition:all .2s var(--ease);
+}
+.nav-back:hover{color:#fff;border-color:var(--red);background:var(--red-soft)}
+.nav-back svg{width:15px;height:15px}
+@media (max-width:560px){
+  .nav-inner{padding:12px 16px}
+  .nav-brand b{font-size:15px}
+  .nav-brand svg{width:24px;height:30px}
+  .nav-back .lbl{display:none}
+}
+
+/* Main */
+main{flex:1;padding:40px 0 80px}
+@media (max-width:640px){main{padding:28px 0 56px}}
+
+/* Page head */
+.page-head{margin-bottom:32px;text-align:center}
+.page-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 14px;
+  background:rgba(229,9,20,.1);
+  border:1px solid var(--red-border);
+  border-radius:var(--r-full);
+  font-size:11px;font-weight:900;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--red);
+  margin-bottom:18px;
+}
+.page-tag svg{width:13px;height:13px}
+.page-head h1{
+  font-size:clamp(1.6rem,3.5vw,2.2rem);
+  margin-bottom:10px;
+}
+.page-head p{
+  font-size:14.5px;
+  color:var(--text-3);
+  max-width:520px;
+  margin:0 auto;
+  line-height:1.6;
+}
+
+/* Steps */
+.steps{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  margin-bottom:32px;
+}
+.step-dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  background:rgba(255,255,255,.15);
+  transition:all .3s var(--ease);
+}
+.step-dot.active{
+  background:var(--red);
+  box-shadow:0 0 12px var(--red);
+  width:28px;
+  border-radius:var(--r-full);
+}
+.step-dot.done{background:var(--green)}
+
+/* Card */
+.checkout-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  padding:36px 32px;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  box-shadow:0 32px 80px rgba(0,0,0,.5);
+  position:relative;
+  overflow:hidden;
+}
+.checkout-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg, transparent, var(--red), transparent);
+}
+@media (max-width:560px){
+  .checkout-card{padding:24px 20px;border-radius:var(--r-lg)}
+}
+
+/* Plan summary */
+.plan-summary{
+  background:rgba(229,9,20,.06);
+  border:1px solid var(--red-border);
+  border-radius:var(--r-lg);
+  padding:22px;
+  margin-bottom:26px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  flex-wrap:wrap;
+}
+.plan-summary-left{flex:1;min-width:0}
+.plan-summary-label{
+  font-size:11px;font-weight:900;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-3);
+  margin-bottom:6px;
+}
+.plan-summary-name{
+  font-size:22px;font-weight:900;
+  color:#fff;
+  letter-spacing:-.02em;
+  margin-bottom:6px;
+}
+.plan-summary-features{
+  font-size:12.5px;
+  color:var(--text-3);
+  font-weight:600;
+  line-height:1.5;
+}
+.plan-summary-price{
+  text-align:right;
+  flex-shrink:0;
+}
+.plan-summary-price .amount{
+  font-size:2rem;font-weight:900;
+  color:var(--red);
+  letter-spacing:-.03em;
+  line-height:1;
+  display:block;
+}
+.plan-summary-price .period{
+  font-size:12px;
+  color:var(--text-3);
+  font-weight:700;
+  margin-top:4px;
+}
+
+/* How to pay */
+.instruction{
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:20px 22px;
+  margin-bottom:22px;
+}
+.instruction h3{
+  font-size:12px;font-weight:900;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--red);
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.instruction h3 svg{width:14px;height:14px}
+.instruction ol{
+  margin:0;
+  padding-left:22px;
+  font-size:14px;
+  color:var(--text-2);
+  line-height:1.75;
+}
+.instruction ol li{margin-bottom:8px}
+.instruction ol li:last-child{margin-bottom:0}
+.instruction strong{color:#fff;font-weight:800}
+
+/* Button pay */
+.btn-yoco{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  width:100%;
+  padding:16px 24px;
+  border-radius:var(--r-lg);
+  background:linear-gradient(135deg,var(--red),#FF2A3D);
+  color:#fff;
+  font-size:15px;
+  font-weight:900;
+  text-decoration:none;
+  transition:all .25s var(--ease);
+  box-shadow:0 12px 32px rgba(229,9,20,.4);
+  min-height:56px;
+  border:none;
+  cursor:pointer;
+  font-family:inherit;
+  margin-bottom:12px;
+}
+.btn-yoco:hover{
+  transform:translateY(-2px);
+  box-shadow:0 18px 44px rgba(229,9,20,.55);
+}
+.btn-yoco-left{
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+}
+.btn-yoco-mark{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:#0A0F14;
+  color:#fff;
+  padding:6px 11px;
+  border-radius:var(--r-sm);
+  font-weight:900;
+  font-size:13px;
+  letter-spacing:-.02em;
+  line-height:1;
+}
+.btn-yoco-right{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  opacity:.9;
+}
+.btn-yoco-right svg{width:16px;height:16px}
+
+.secured-note{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-size:12px;
+  color:var(--text-muted);
+  font-weight:700;
+  letter-spacing:.02em;
+  margin-bottom:24px;
+}
+.secured-note svg{width:13px;height:13px;color:var(--green)}
+
+/* Divider */
+.divider{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin:24px 0;
+  color:var(--text-muted);
+  font-size:11.5px;
+  font-weight:800;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.divider::before,.divider::after{
+  content:'';flex:1;height:1px;
+  background:var(--border);
+}
+
+/* Reference submit */
+.reference-form{
+  margin-top:22px;
+}
+.reference-form label{
+  display:block;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--text-3);
+  margin-bottom:8px;
+}
+.reference-form input{
+  width:100%;
+  padding:14px 18px;
+  background:rgba(255,255,255,.04);
+  border:1.5px solid var(--border-2);
+  border-radius:var(--r-md);
+  font-size:15px;
+  color:#fff;
+  font-family:var(--mono);
+  font-weight:700;
+  letter-spacing:.02em;
+  transition:all .2s var(--ease);
+  text-transform:uppercase;
+}
+.reference-form input::placeholder{
+  color:var(--text-muted);
+  font-weight:500;
+  text-transform:none;
+  font-family:var(--font);
+  letter-spacing:0;
+}
+.reference-form input:focus{
+  outline:none;
+  border-color:var(--red);
+  background:rgba(255,255,255,.06);
+  box-shadow:0 0 0 3px rgba(229,9,20,.15);
+}
+.reference-form .hint{
+  font-size:11.5px;
+  color:var(--text-muted);
+  margin-top:8px;
+  font-style:italic;
+  line-height:1.55;
+}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  padding:14px 24px;
+  border-radius:var(--r-md);
+  font-size:14px;font-weight:900;
+  transition:all .22s var(--ease);
+  text-decoration:none;
+  border:1px solid transparent;
+  font-family:inherit;cursor:pointer;
+  line-height:1;min-height:50px;
+  width:100%;
+  margin-top:14px;
+}
+.btn svg{width:16px;height:16px}
+.btn.primary{
+  background:linear-gradient(135deg,var(--red),#FF2A3D);
+  color:#fff;
+  box-shadow:0 8px 22px rgba(229,9,20,.4);
+}
+.btn.primary:hover:not(:disabled){
+  transform:translateY(-2px);
+  box-shadow:0 14px 32px rgba(229,9,20,.55);
+}
+.btn.primary:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+.btn.ghost{
+  background:rgba(255,255,255,.04);
+  color:#fff;
+  border-color:var(--border-2);
+}
+.btn.ghost:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.28)}
+
+/* Support note */
+.support-note{
+  margin-top:24px;
+  padding-top:20px;
+  border-top:1px solid var(--border);
+  font-size:12.5px;
+  color:var(--text-muted);
+  text-align:center;
+  line-height:1.65;
+}
+.support-note a{
+  color:var(--red);
+  font-weight:800;
+}
+.support-note a:hover{text-decoration:underline}
+
+/* Success state */
+.success-icon{
+  width:80px;height:80px;
+  border-radius:50%;
+  background:rgba(16,185,129,.15);
+  border:2px solid rgba(16,185,129,.4);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 24px;
+  color:var(--green);
+  animation:successPop .5s var(--ease-out);
+}
+.success-icon svg{width:40px;height:40px}
+@keyframes successPop{
+  0%{transform:scale(.5);opacity:0}
+  100%{transform:scale(1);opacity:1}
+}
+
+/* Info box */
+.info-box{
+  background:rgba(229,9,20,.06);
+  border:1px solid var(--red-border);
+  border-radius:var(--r-md);
+  padding:16px 18px;
+  margin:20px 0;
+  font-size:13.5px;
+  color:var(--text-2);
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  line-height:1.6;
+}
+.info-box svg{
+  width:18px;height:18px;
+  color:var(--red);
+  flex-shrink:0;
+  margin-top:2px;
+}
+.info-box strong{color:#fff;font-weight:800}
+
+/* Spinner */
+.spinner{
+  width:16px;height:16px;
+  border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  display:inline-block;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Footer */
+.footer{
+  background:#020204;
+  border-top:1px solid var(--border);
+  padding:32px 0 24px;
+  margin-top:auto;
+}
+.footer-inner{
+  max-width:var(--container);margin:0 auto;padding:0 24px;
+  display:flex;justify-content:space-between;
+  align-items:center;flex-wrap:wrap;gap:14px;
+  font-size:12.5px;color:var(--text-muted);
+}
+.footer-links{display:flex;gap:18px;flex-wrap:wrap}
+.footer-links a{color:var(--text-3);transition:color .2s}
+.footer-links a:hover{color:var(--red)}
+
+/* Toast */
+#toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(140%);
+  background:#fff;color:#050508;
+  font-size:13.5px;font-weight:800;
+  padding:13px 22px;border-radius:var(--r-full);
+  box-shadow:0 20px 48px rgba(0,0,0,.6);
+  transition:transform .4s var(--ease-out);
+  z-index:200;max-width:90vw;text-align:center;
+  display:flex;align-items:center;gap:10px;
+  pointer-events:none;
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast svg{width:16px;height:16px;flex-shrink:0}
+#toast.success{background:var(--green);color:#fff}
+#toast.error{background:var(--danger);color:#fff}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    transition-duration:.01ms!important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="starfield" aria-hidden="true"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand" aria-label="Starlane Stream home">
+      <svg viewBox="0 0 60 74" aria-hidden="true">
+        <defs>
+          <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#E50914"/>
+            <stop offset="100%" stop-color="#FF5566"/>
+          </linearGradient>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <path d="M10 60 Q 22 32 44 20" stroke="url(#starGrad)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+        <path d="M16 62 Q 26 40 46 26" stroke="url(#starGrad)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+        <circle cx="46" cy="18" r="5" fill="#fff" filter="url(#glow)"/>
+        <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
+      </svg>
+      <b>STAR<span>LANE</span></b>
+    </a>
+    <a href="plans.html" class="nav-back">
+      <i data-lucide="arrow-left"></i>
+      <span class="lbl">Back to plans</span>
+    </a>
+  </div>
+</nav>
+
+<main>
+  <div class="container">
+
+    <div id="loadingState" style="text-align:center;padding:80px 0;">
+      <div class="spinner" style="width:36px;height:36px;border-width:3px;margin:0 auto 16px;"></div>
+      <p style="color:var(--text-3);font-size:14px;">Loading checkout…</p>
+    </div>
+
+    <div id="errorState" class="hidden" style="text-align:center;padding:80px 20px;max-width:480px;margin:0 auto;">
+      <div class="success-icon" style="background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:var(--danger);">
+        <i data-lucide="alert-circle"></i>
+      </div>
+      <h2 style="font-size:22px;margin-bottom:10px;">Cannot open checkout</h2>
+      <p style="color:var(--text-3);font-size:14px;line-height:1.6;margin-bottom:24px;" id="errorMsg">—</p>
+      <a href="plans.html" class="btn ghost" style="max-width:280px;margin:0 auto;">
+        <i data-lucide="arrow-left"></i>
+        Back to plans
+      </a>
+    </div>
+
+    <div id="contentState" class="hidden">
+
+      <div class="page-head">
+        <span class="page-tag">
+          <i data-lucide="credit-card"></i>
+          Secure checkout
+        </span>
+        <h1>Almost there.</h1>
+        <p>Complete your payment on Yoco, then enter your reference below to activate your subscription.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step-dot done"></div>
+        <div class="step-dot active"></div>
+        <div class="step-dot" id="step3"></div>
+      </div>
+
+      <div class="checkout-card" id="checkoutStep">
+
+        <div class="plan-summary">
+          <div class="plan-summary-left">
+            <div class="plan-summary-label">Your plan</div>
+            <div class="plan-summary-name" id="planName">—</div>
+            <div class="plan-summary-features" id="planFeatures">—</div>
+          </div>
+          <div class="plan-summary-price">
+            <span class="amount" id="planPrice">—</span>
+            <span class="period">per month</span>
+          </div>
+        </div>
+
+        <div class="instruction">
+          <h3>
+            <i data-lucide="list-ordered"></i>
+            How to complete your payment
+          </h3>
+          <ol>
+            <li>Tap <strong>"Pay on Yoco"</strong> below — secure checkout opens in a new tab.</li>
+            <li>Complete the payment of <strong id="instrAmount">—</strong> with card, Google Pay, or Instant EFT.</li>
+            <li>Copy the <strong>reference number</strong> shown on your Yoco receipt.</li>
+            <li>Come back here and paste it in the field below.</li>
+            <li>Tap <strong>"Activate my subscription"</strong> — we'll verify within minutes.</li>
+          </ol>
+        </div>
+
+        <a href="#" id="yocoBtn" class="btn-yoco" target="_blank" rel="noopener">
+          <span class="btn-yoco-left">
+            <span class="btn-yoco-mark">yoco</span>
+            <span>Pay on Yoco</span>
+          </span>
+          <span class="btn-yoco-right">
+            <span id="yocoAmount">—</span>
+            <i data-lucide="external-link"></i>
+          </span>
+        </a>
+        <div class="secured-note">
+          <i data-lucide="lock"></i>
+          Secured by Yoco · Card · Google Pay · Instant EFT
+        </div>
+
+        <div class="divider">After paying</div>
+
+        <div class="reference-form">
+          <label for="refInput">Your Yoco payment reference</label>
+          <input type="text" id="refInput" placeholder="e.g. 8A7B-3C2D-9E4F" autocomplete="off" spellcheck="false" maxlength="40" />
+          <p class="hint">It's on your Yoco confirmation email and receipt. Copy-paste it exactly.</p>
+          <button type="button" class="btn primary" id="submitRefBtn">
+            <i data-lucide="check-circle"></i>
+            Activate my subscription
+          </button>
+        </div>
+
+        <div class="info-box">
+          <i data-lucide="info"></i>
+          <div>
+            We verify each payment manually within a few hours (usually much faster).
+            Once approved, you'll get an email and your plan unlocks instantly.
+          </div>
+        </div>
+
+        <p class="support-note">
+          Having trouble? Email <a href="mailto:support@starlanestream.com">support@starlanestream.com</a>
+          or message us on <a href="https://wa.me/27696835184" target="_blank" rel="noopener">WhatsApp</a>.
+        </p>
+
+      </div>
+
+      <div class="checkout-card hidden" id="successStep" style="text-align:center;">
+        <div class="success-icon">
+          <i data-lucide="check"></i>
+        </div>
+        <h1 style="font-size:1.8rem;margin-bottom:12px;">Reference submitted!</h1>
+        <p style="color:var(--text-2);font-size:15px;line-height:1.65;max-width:480px;margin:0 auto 24px;">
+          We've received your reference <strong id="successRef" style="font-family:var(--mono);color:var(--red);"></strong>.
+          Our team will verify it and activate your plan — usually within a few minutes.
+        </p>
+
+        <div class="info-box" style="text-align:left;max-width:520px;margin:24px auto;">
+          <i data-lucide="mail"></i>
+          <div>
+            <strong>What happens next:</strong><br>
+            We'll email you at <span id="successEmail" style="color:var(--red);font-weight:700;">—</span> once your plan is active.
+            You can also refresh this page to check status.
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:24px;">
+          <a href="index.html" class="btn primary" style="max-width:220px;">
+            <i data-lucide="home"></i>
+            Back to home
+          </a>
+          <a href="account-527394816.html" class="btn ghost" style="max-width:220px;">
+            <i data-lucide="user"></i>
+            My account
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span>© <span id="year"></span> Starlane Stream. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="plans.html">Plans</a>
+      <a href="legal.html">Legal</a>
+    </div>
+  </div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════════
+   FIREBASE CONFIG — starlane-stream
+   ═══════════════════════════════════════════════════════════════ */
+var firebaseConfig = {
+  apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+  authDomain: "starlane-stream.firebaseapp.com",
+  projectId: "starlane-stream",
+  storageBucket: "starlane-stream.firebasestorage.app",
+  messagingSenderId: "115625325145",
+  appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+};
+
+var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
+var db = null;
+var auth = null;
+var currentUser = null;
+
+if (firebaseReady && !firebase.apps.length){
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  auth = firebase.auth();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PLAN DEFINITIONS
+   ⚠️⚠️⚠️ REPLACE these Yoco links with YOUR real ones ⚠️⚠️⚠️
+   ═══════════════════════════════════════════════════════════════ */
+var PLANS = {
+  starter: {
+    name: 'Starter',
+    price: 90,
+    features: '720p HD · No ads · 1 device',
+    yocoLink: 'https://pay.yoco.com/YOUR-STARTER-LINK'   // ← REPLACE
+  },
+  standard: {
+    name: 'Standard',
+    price: 180,
+    features: '1080p FHD · No ads · 2 devices · 30-day replays',
+    yocoLink: 'https://pay.yoco.com/YOUR-STANDARD-LINK'  // ← REPLACE
+  },
+  premium: {
+    name: 'Premium',
+    price: 300,
+    features: '4K UHD · No ads · 3 devices · 90-day replays · Downloads',
+    yocoLink: 'https://pay.yoco.com/YOUR-PREMIUM-LINK'   // ← REPLACE
+  },
+  elite: {
+    name: 'Elite',
+    price: 490,
+    features: '4K UHD · No ads · 4 devices · 180-day replays · Family profiles',
+    yocoLink: 'https://pay.yoco.com/YOUR-ELITE-LINK'     // ← REPLACE
+  }
+};
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
+function getParam(n){ try { return new URLSearchParams(location.search).get(n); } catch(e){ return null; } }
+
+function toast(msg, type, ms){
+  type = type || 'info'; ms = ms || 3000;
+  var t = $('toast');
+  var ic = type === 'error' ? 'alert-circle' : (type === 'success' ? 'check-circle' : 'info');
+  t.className = type;
+  t.innerHTML = '<i data-lucide="'+ic+'"></i><span>' + esc(msg) + '</span>';
+  refreshIcons();
+  requestAnimationFrame(function(){ t.classList.add('show'); });
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ t.classList.remove('show'); }, ms);
+}
+
+function showError(msg){
+  $('loadingState').classList.add('hidden');
+  $('contentState').classList.add('hidden');
+  $('errorState').classList.remove('hidden');
+  if (msg) $('errorMsg').textContent = msg;
+  refreshIcons();
+}
+
+function setupCheckout(planKey){
+  var plan = PLANS[planKey];
+  if (!plan){
+    showError('That plan doesn\'t exist. Choose one from the pricing page.');
+    return;
+  }
+
+  $('planName').textContent = plan.name + ' plan';
+  $('planFeatures').textContent = plan.features;
+  $('planPrice').textContent = 'R' + plan.price;
+  $('instrAmount').textContent = 'R' + plan.price;
+  $('yocoAmount').textContent = 'R' + plan.price;
+
+  var yocoBtn = $('yocoBtn');
+  yocoBtn.href = plan.yocoLink;
+
+  try { localStorage.setItem('starlane_pending_plan', planKey); } catch(e){}
+
+  $('loadingState').classList.add('hidden');
+  $('contentState').classList.remove('hidden');
+  refreshIcons();
+}
+
+function submitReference(planKey){
+  var ref = ($('refInput').value || '').trim();
+
+  if (!ref){
+    toast('Please paste your Yoco reference first.', 'error', 3000);
+    $('refInput').focus();
+    return;
+  }
+  if (ref.length < 6){
+    toast('That reference looks too short. Copy-paste it from your Yoco receipt.', 'error', 4000);
+    $('refInput').focus();
+    return;
+  }
+  if (!currentUser){
+    toast('Please sign in first.', 'error', 3000);
+    setTimeout(function(){
+      window.location.href = 'auth.html?redirect=' + encodeURIComponent(location.href);
+    }, 1200);
+    return;
+  }
+
+  var btn = $('submitRefBtn');
+  var orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Submitting…';
+
+  var plan = PLANS[planKey];
+
+  db.collection('pending_subscriptions').add({
+    uid: currentUser.uid,
+    email: currentUser.email || '',
+    displayName: currentUser.displayName || '',
+    plan: planKey,
+    planName: plan.name,
+    amount: plan.price,
+    reference: ref,
+    status: 'pending',
+    submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+  })
+    .then(function(){
+      $('checkoutStep').classList.add('hidden');
+      $('successStep').classList.remove('hidden');
+      $('step3').classList.add('done');
+
+      $('successRef').textContent = ref;
+      $('successEmail').textContent = currentUser.email || 'your email';
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast('Reference submitted!', 'success', 4000);
+      refreshIcons();
+    })
+    .catch(function(err){
+      console.error('[submit ref]', err);
+      toast('Could not submit. Please try again or contact support.', 'error', 5000);
+      btn.disabled = false;
+      btn.innerHTML = orig;
+      refreshIcons();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  var yearEl = $('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+  refreshIcons();
+
+  var planKey = (getParam('plan') || '').toLowerCase();
+
+  if (!firebaseReady || !auth){
+    showError('Firebase not configured yet. Add your Starlane Firebase config.');
+    return;
+  }
+
+  auth.onAuthStateChanged(function(user){
+    if (!user){
+      var redirect = 'checkout-193847265.html?plan=' + encodeURIComponent(planKey);
+      window.location.href = 'auth.html?redirect=' + encodeURIComponent(redirect);
+      return;
+    }
+
+    currentUser = user;
+
+    if (!planKey){
+      showError('No plan selected. Go back to the pricing page and choose one.');
+      return;
+    }
+
+    if (!PLANS[planKey]){
+      showError('That plan doesn\'t exist. Go back to the pricing page.');
+      return;
+    }
+
+    setupCheckout(planKey);
+
+    $('submitRefBtn').addEventListener('click', function(){
+      submitReference(planKey);
+    });
+
+    $('refInput').addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){
+        e.preventDefault();
+        submitReference(planKey);
+      }
+    });
+
+    $('refInput').addEventListener('input', function(){
+      this.value = this.value.toUpperCase();
+    });
+  });
+});
+
+})();
+</script>
+
+</body>
+</html>ipt.', 'error', 4000);
+    $('refInput').focus();
+    return;
+  }
+  if (!currentUser){
+    toast('Please sign in first.', 'error', 3000);
+    setTimeout(function(){
+      window.location.href = 'auth.html?redirect=' + encodeURIComponent(location.href);
+    }, 1200);
+    return;
+  }
+
+  var btn = $('submitRefBtn');
+  var orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Submitting…';
+
+  var plan = PLANS[planKey];
+
+  // Create a pending subscription record for admin to verify
+  db.collection('pending_subscriptions').add({
+    uid: currentUser.uid,
+    email: currentUser.email || '',
+    displayName: currentUser.displayName || '',
+    plan: planKey,
+    planName: plan.name,
+    amount: plan.price,
+    reference: ref,
+    status: 'pending',
+    submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+  })
+    .then(function(){
+      // Show success step
+      $('checkoutStep').classList.add('hidden');
+      $('successStep').classList.remove('hidden');
+      $('step3').classList.add('done');
+
+      $('successRef').textContent = ref;
+      $('successEmail').textContent = currentUser.email || 'your email';
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast('Reference submitted!', 'success', 4000);
+      refreshIcons();
+    })
+    .catch(function(err){
+      console.error('[submit ref]', err);
+      toast('Could not submit. Please try again or contact support.', 'error', 5000);
+      btn.disabled = false;
+      btn.innerHTML = orig;
+      refreshIcons();
+    });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function(){
+  var yearEl = $('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+  refreshIcons();
+
+  // Get plan from URL
+  var planKey = (getParam('plan') || '').toLowerCase();
+
+  // Check auth first
+  if (!firebaseReady || !auth){
+    showError('Firebase not configured yet. Add your Starlane Firebase config.');
+    return;
+  }
+
+  auth.onAuthStateChanged(function(user){
+    if (!user){
+      // Not signed in — redirect to auth with plan preserved
+      var redirect = 'checkout-193847265.html?plan=' + encodeURIComponent(planKey);
+      window.location.href = 'auth.html?redirect=' + encodeURIComponent(redirect);
+      return;
+    }
+
+    currentUser = user;
+
+    // Now setup checkout
+    if (!planKey){
+      showError('No plan selected. Go back to the pricing page and choose one.');
+      return;
+    }
+
+    if (!PLANS[planKey]){
+      showError('That plan doesn\'t exist. Go back to the pricing page.');
+      return;
+    }
+
+    setupCheckout(planKey);
+
+    // Submit reference handler
+    $('submitRefBtn').addEventListener('click', function(){
+      submitReference(planKey);
+    });
+
+    // Allow Enter key in input
+    $('refInput').addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){
+        e.preventDefault();
+        submitReference(planKey);
+      }
+    });
+
+    // Uppercase the reference as they type
+    $('refInput').addEventListener('input', function(){
+      this.value = this.value.toUpperCase();
+    });
+  });
+});
+
+})();
+</script>
+
+</body>
+</html>
