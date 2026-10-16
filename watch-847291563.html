@@ -116,6 +116,8 @@ h1,h2,h3{line-height:1.15;font-weight:900;letter-spacing:-.02em;color:#fff}
 .nav-btn svg{width:14px;height:14px;flex-shrink:0}
 .nav-btn.ghost{background:transparent;color:var(--text-2);border-color:var(--border-2)}
 .nav-btn.ghost:hover{color:#fff;border-color:var(--red);background:var(--red-soft)}
+.nav-btn.primary{background:var(--red);color:#fff;box-shadow:0 4px 14px rgba(229,9,20,.35)}
+.nav-btn.primary:hover{background:var(--red-hover);transform:translateY(-1px)}
 .nav-btn .avatar{
   width:22px;height:22px;border-radius:50%;
   background:linear-gradient(135deg,var(--red),#FF5566);
@@ -539,7 +541,11 @@ main{flex:1;padding:24px 0 60px}
         <i data-lucide="arrow-left"></i>
         <span class="lbl">All channels</span>
       </a>
-      <a href="account-527394816.html" class="nav-btn ghost" id="userChip" style="display:none;">
+      <a href="admin-618472935.html" class="nav-btn primary hidden" id="adminBtn" title="Admin dashboard">
+        <i data-lucide="shield-check"></i>
+        <span class="lbl">Admin</span>
+      </a>
+      <a href="profiles.html" class="nav-btn ghost" id="userChip" style="display:none;" title="Switch profile">
         <span class="avatar" id="userAvatar">?</span>
         <span class="lbl" id="userName">Account</span>
       </a>
@@ -675,9 +681,7 @@ main{flex:1;padding:24px 0 60px}
 (function(){
 'use strict';
 
-/* ═══════════════════════════════════════════════════════════════
-   FIREBASE CONFIG — starlane-stream
-   ═══════════════════════════════════════════════════════════════ */
+// Firebase configuration
 var firebaseConfig = {
   apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
   authDomain: "starlane-stream.firebaseapp.com",
@@ -686,6 +690,12 @@ var firebaseConfig = {
   messagingSenderId: "115625325145",
   appId: "1:115625325145:web:b14025df503bbe2b7d7748"
 };
+
+// Admin emails (must match Firestore rules)
+var ADMIN_EMAILS = [
+  'nylnathan340@gmail.com',
+  'customerservicesnovalink@gmail.com'
+];
 
 var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
 var db = null;
@@ -713,6 +723,22 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ re
 function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
 function getParam(n){ try { return new URLSearchParams(location.search).get(n); } catch(e){ return null; } }
 
+function isAdmin(user){
+  if (!user || !user.email) return false;
+  var e = String(user.email).toLowerCase().trim();
+  return ADMIN_EMAILS.some(function(a){ return a.toLowerCase() === e; });
+}
+
+function getActiveProfile(){
+  try {
+    var s = localStorage.getItem('starlane_active_profile');
+    if (!s) return null;
+    var p = JSON.parse(s);
+    if (p && p.id && p.name) return p;
+  } catch(e){}
+  return null;
+}
+
 function toast(msg, type, ms){
   type = type || 'info'; ms = ms || 3000;
   var t = $('toast');
@@ -739,13 +765,6 @@ function prettyDate(dateStr, timeStr){
     if (isNaN(d.getTime())) return dateStr;
     return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   } catch(e){ return dateStr; }
-}
-
-function isAdmin(email){
-  if (!email) return false;
-  var admins = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
-  var e = String(email).toLowerCase().trim();
-  return admins.some(function(a){ return a.toLowerCase() === e; });
 }
 
 function tierLabel(t){
@@ -801,14 +820,33 @@ function getDeviceId(){
 }
 
 function updateAuthChip(user){
+  var adminBtn = $('adminBtn');
+
   if (user){
     $('signinBtn').style.display = 'none';
     $('userChip').style.display = 'inline-flex';
-    $('userAvatar').textContent = initials(user.displayName || user.email);
-    $('userName').textContent = user.displayName || user.email.split('@')[0];
+
+    // Prefer active profile name
+    var active = getActiveProfile();
+    if (active && active.name){
+      $('userAvatar').textContent = initials(active.name);
+      $('userName').textContent = active.name;
+      if (active.color){
+        $('userAvatar').style.background = 'linear-gradient(135deg, ' + active.color + ', rgba(0,0,0,.35))';
+      }
+    } else {
+      $('userAvatar').textContent = initials(user.displayName || user.email);
+      $('userName').textContent = user.displayName || user.email.split('@')[0];
+    }
+
+    if (adminBtn){
+      if (isAdmin(user)) adminBtn.classList.remove('hidden');
+      else adminBtn.classList.add('hidden');
+    }
   } else {
     $('signinBtn').style.display = 'inline-flex';
     $('userChip').style.display = 'none';
+    if (adminBtn) adminBtn.classList.add('hidden');
   }
   refreshIcons();
 }
@@ -1047,7 +1085,9 @@ function checkDeviceLimitThenPlay(){
           userAgent: navigator.userAgent,
           lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
           startedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          streamId: streamId
+          streamId: streamId,
+          profileId: (getActiveProfile() || {}).id || null,
+          profileName: (getActiveProfile() || {}).name || null
         })
           .then(function(){
             playStream();
@@ -1131,10 +1171,20 @@ function playStream(){
   hideCurtain();
   showCurtain('Loading stream…', 'Connecting to source.');
 
-  if (currentUser && currentUser.email){
+  // Watermark — prefer profile name, fall back to email
+  if (currentUser){
     var wm = $('watermark');
-    wm.textContent = currentUser.email;
-    wm.style.display = 'block';
+    var active = getActiveProfile();
+    var wmText = '';
+    if (active && active.name && currentUser.email){
+      wmText = active.name + ' · ' + currentUser.email;
+    } else if (currentUser.email){
+      wmText = currentUser.email;
+    }
+    if (wmText){
+      wm.textContent = wmText;
+      wm.style.display = 'block';
+    }
   }
 
   var url = streamData.streamUrl || streamData.hlsUrl || '';
@@ -1365,292 +1415,4 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 </body>
-</html>��══════════════════════════════════════════════════════════════ */
-function startHeartbeat(){
-  stopHeartbeat();
-  heartbeatTimer = setInterval(function(){
-    if (!currentUser || !deviceId) return;
-    db.collection('sessions').doc(currentUser.uid).collection('devices').doc(deviceId)
-      .update({ lastSeen: firebase.firestore.FieldValue.serverTimestamp() })
-      .catch(function(){});
-  }, 30000); // every 30 seconds
-}
-function stopHeartbeat(){
-  if (heartbeatTimer){
-    clearInterval(heartbeatTimer);
-    heartbeatTimer = null;
-  }
-}
-
-function endDeviceSession(){
-  if (!currentUser || !deviceId) return;
-  // Fire and forget
-  db.collection('sessions').doc(currentUser.uid).collection('devices').doc(deviceId)
-    .delete()
-    .catch(function(){});
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   PLAY
-   ═══════════════════════════════════════════════════════════════ */
-function playStream(){
-  hidePaywall();
-  hideCurtain();
-  showCurtain('Loading stream…', 'Connecting to source.');
-
-  // Watermark
-  if (currentUser && currentUser.email){
-    var wm = $('watermark');
-    wm.textContent = currentUser.email;
-    wm.style.display = 'block';
-  }
-
-  // Source URL
-  var url = streamData.streamUrl || streamData.hlsUrl || '';
-  if (!url){
-    showError('No source configured', 'This stream has no playback URL.');
-    return;
-  }
-
-  var platform = streamData.streamPlatform || detectPlatform(url);
-
-  if (platform === 'youtube'){
-    playYouTube(url);
-  } else if (platform === 'hls' || platform === 'native-hls' || url.indexOf('.m3u8') !== -1){
-    playHLS(url);
-  } else if (platform === 'video' || /\.(mp4|webm|mov)(\?|#|$)/i.test(url)){
-    playVideoFile(url);
-  } else {
-    playIframe(url);
-  }
-
-  // Hide curtain after a delay
-  setTimeout(hideCurtain, 2500);
-}
-
-function playYouTube(url){
-  var vid = extractYouTubeId(url);
-  if (!vid){
-    showError('Invalid YouTube URL', 'Could not extract video ID.');
-    return;
-  }
-
-  var host = $('playerHost');
-  host.innerHTML = '<div id="ytPlayer"></div>';
-
-  if (window.YT && window.YT.Player){
-    createYT(vid);
-  } else {
-    window.onYouTubeIframeAPIReady = function(){ createYT(vid); };
-  }
-}
-
-function createYT(vid){
-  currentPlayer = new YT.Player('ytPlayer', {
-    videoId: vid,
-    playerVars: {
-      autoplay: 1,
-      mute: 1,
-      rel: 0,
-      playsinline: 1,
-      modestbranding: 1,
-      controls: 1,
-      origin: window.location.origin
-    },
-    events: {
-      onReady: function(e){
-        try { e.target.playVideo(); } catch(err){}
-        hideCurtain();
-      },
-      onError: function(e){
-        console.error('[yt]', e);
-        toast('YouTube playback error', 'error', 4000);
-      }
-    }
-  });
-}
-
-function playHLS(url){
-  var host = $('playerHost');
-  host.innerHTML = '<video id="hlsVideo" controls autoplay muted playsinline style="width:100%;height:100%;position:absolute;inset:0;background:#000;object-fit:contain;"></video>';
-
-  var video = document.getElementById('hlsVideo');
-
-  if (window.Hls && Hls.isSupported()){
-    var hls = new Hls({ liveDurationInfinity: true });
-    hls.loadSource(url);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, function(){
-      video.play().catch(function(){});
-      hideCurtain();
-    });
-    hls.on(Hls.Events.ERROR, function(event, data){
-      if (data && data.fatal){
-        console.error('[hls]', data);
-        toast('Stream playback error', 'error', 4000);
-      }
-    });
-    currentPlayer = hls;
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')){
-    video.src = url;
-    video.addEventListener('loadedmetadata', function(){
-      video.play().catch(function(){});
-      hideCurtain();
-    });
-  } else {
-    showError('HLS not supported', 'Your browser cannot play HLS streams.');
-  }
-}
-
-function playVideoFile(url){
-  var host = $('playerHost');
-  host.innerHTML = '<video id="fileVideo" controls autoplay muted playsinline style="width:100%;height:100%;position:absolute;inset:0;background:#000;object-fit:contain;"></video>';
-
-  var video = document.getElementById('fileVideo');
-  video.src = url;
-  video.addEventListener('loadedmetadata', function(){
-    video.play().catch(function(){});
-    hideCurtain();
-  });
-  video.addEventListener('error', function(){
-    showError('Video failed to load', 'The video source returned an error.');
-  });
-}
-
-function playIframe(url){
-  var host = $('playerHost');
-  host.innerHTML = '';
-
-  var iframe = document.createElement('iframe');
-  iframe.src = url;
-  iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture; encrypted-media');
-  iframe.setAttribute('allowfullscreen', '');
-  iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
-  iframe.style.cssText = 'width:100%;height:100%;position:absolute;inset:0;border:0;background:#000;';
-  host.appendChild(iframe);
-
-  setTimeout(hideCurtain, 2000);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   RENDER STREAM INFO
-   ═══════════════════════════════════════════════════════════════ */
-function renderStreamInfo(){
-  var title = streamData.streamTitle || streamData.eventName || 'Untitled Stream';
-  var desc = streamData.eventDescription || streamData.streamDescription || '';
-  var dateStr = prettyDate(streamData.startDate, streamData.startTime);
-  var channelName = channelData ? (channelData.name || 'Channel') : (streamData.channelName || 'Channel');
-
-  $('streamTitle').textContent = title;
-  document.title = title + ' · Starlane Stream';
-
-  // Crumb text
-  if (channelData && channelData.id){
-    $('crumb').href = 'channel.html?id=' + encodeURIComponent(channelData.id);
-    $('crumbText').textContent = 'Back to ' + channelName;
-  }
-
-  // Meta
-  var now = Date.now();
-  var startMs = streamData.startDate ? new Date(streamData.startDate + 'T' + (streamData.startTime || '00:00') + ':00').getTime() : 0;
-  var durMin = parseInt(streamData.durationMinutes, 10) || 90;
-  var endMs = startMs + durMin * 60000;
-  var isLive = startMs && now >= startMs && now <= endMs;
-
-  if (isLive){
-    $('metaLive').style.display = 'inline-flex';
-  }
-  if (dateStr){
-    $('metaDate').style.display = 'inline-flex';
-    $('metaDateText').textContent = dateStr;
-  }
-  if (channelName){
-    $('metaChannel').style.display = 'inline-flex';
-    $('metaChannelText').textContent = channelName;
-  }
-
-  // Tier badge
-  var requiredTiers = streamData.accessTiers || ['free'];
-  var tierText = 'Free to watch';
-  if (requiredTiers.indexOf('free') === -1 && requiredTiers.length > 0){
-    var minTier = requiredTiers[0];
-    requiredTiers.forEach(function(t){
-      if (TIER_ORDER.indexOf(t) < TIER_ORDER.indexOf(minTier)) minTier = t;
-    });
-    tierText = PLANS[minTier] ? PLANS[minTier].name + ' or higher' : 'Premium';
-  }
-  $('metaTier').style.display = 'inline-flex';
-  $('metaTierText').textContent = tierText;
-
-  if (desc){
-    $('streamDesc').style.display = 'block';
-    $('streamDesc').textContent = desc;
-  }
-
-  $('loadingState').classList.add('hidden');
-  $('errorState').classList.add('hidden');
-  $('contentState').classList.remove('hidden');
-  refreshIcons();
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   ERROR
-   ═══════════════════════════════════════════════════════════════ */
-function showError(title, msg){
-  $('loadingState').classList.add('hidden');
-  $('contentState').classList.add('hidden');
-  $('errorState').classList.remove('hidden');
-  if (title) $('errorTitle').textContent = title;
-  if (msg) $('errorMsg').textContent = msg;
-  refreshIcons();
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   BOOT
-   ═══════════════════════════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', function(){
-  var yearEl = $('year');
-  if (yearEl) yearEl.textContent = new Date().getFullYear();
-  refreshIcons();
-
-  deviceId = getDeviceId();
-
-  if (!firebaseReady || !auth){
-    showError('Firebase not configured', 'Add your Starlane Firebase config to load streams.');
-    return;
-  }
-
-  auth.onAuthStateChanged(function(user){
-    currentUser = user;
-    updateAuthChip(user);
-    // Load the stream once we know auth state
-    if (!streamData){
-      loadStream();
-    }
-  });
-
-  // End session on unload
-  window.addEventListener('beforeunload', function(){
-    stopHeartbeat();
-    endDeviceSession();
-  });
-
-  // Also end session if user navigates away within SPA
-  document.addEventListener('visibilitychange', function(){
-    if (document.hidden){
-      // Tab hidden — don't end session yet
-    } else {
-      // Tab visible — check auth is still valid
-      if (!currentUser && streamData){
-        // Signed out elsewhere — reload
-        location.reload();
-      }
-    }
-  });
-});
-
-})();
-</script>
-
-</body>
-</html>
+  </html>
