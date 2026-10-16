@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#050508" />
+<meta name="description" content="Starlane Stream plans — Free, Starter R90, Standard R180, Premium R300, Elite R490. Choose the plan that fits how you watch." />
+<title>Plans & Pricing — Starlane Stream</title>
+
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<style>
+:root{
+  --red:#E50914;--red-hover:#FF3B4E;--red-dark:#B20710;
+  --red-glow:rgba(229,9,20,.45);
+  --red-soft:rgba(229,9,20,.12);
+  --red-border:rgba(229,9,20,.25);
+
+  --bg:#050508;--bg-2:#0A0A0F;
+  --surface:rgba(20,20,28,.75);
+  --surface-2:rgba(30,30,40,.6);
+  --border:rgba(255,255,255,.08);
+  --border-2:rgba(255,255,255,.14);
+
+  --text:#FFFFFF;
+  --text-2:rgba(255,255,255,.75);
+  --text-3:rgba(255,255,255,.5);
+  --text-muted:rgba(255,255,255,.35);
+
+  --green:#10B981;
+  --yellow:#F59E0B;
+
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:22px;--r-full:999px;
+  --ease:cubic-bezier(.25,.8,.25,1);
+  --ease-out:cubic-bezier(.22,.9,.3,1);
+  --container:1240px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  font-family:var(--font);font-size:14px;line-height:1.55;
+  color:var(--text);background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;flex-direction:column;
+  overflow-x:hidden;
+}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
+::selection{background:var(--red);color:#fff}
+.hidden{display:none!important}
+
+.container{max-width:var(--container);margin:0 auto;padding:0 24px;width:100%}
+@media (max-width:560px){.container{padding:0 16px}}
+
+/* Starfield */
+.starfield{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(229,9,20,.06) 0%, transparent 55%),
+    linear-gradient(180deg, #050508 0%, #0A0A14 100%);
+}
+.starfield::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.7), transparent 100%),
+    radial-gradient(1px 1px at 87% 32%, rgba(255,255,255,.5), transparent 100%),
+    radial-gradient(1.5px 1.5px at 34% 78%, rgba(255,255,255,.6), transparent 100%),
+    radial-gradient(1px 1px at 67% 12%, rgba(255,255,255,.4), transparent 100%),
+    radial-gradient(1.5px 1.5px at 92% 82%, rgba(255,255,255,.65), transparent 100%),
+    radial-gradient(1px 1px at 8% 62%, rgba(255,255,255,.5), transparent 100%);
+  animation:twinkle 8s ease-in-out infinite;
+}
+@keyframes twinkle{
+  0%,100%{opacity:.85}
+  50%{opacity:.4}
+}
+
+/* Nav */
+.nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(5,5,8,.85);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:var(--container);margin:0 auto;
+  padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+}
+.nav-brand{display:inline-flex;align-items:center;gap:11px;flex-shrink:0}
+.nav-brand svg{width:28px;height:34px;display:block}
+.nav-brand b{font-weight:900;font-size:17px;letter-spacing:-.01em;color:#fff}
+.nav-brand b span{color:var(--red)}
+.nav-actions{display:flex;gap:10px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+@media (max-width:560px){
+  .nav-inner{padding:12px 16px;gap:10px}
+  .nav-brand b{font-size:15px}
+  .nav-brand svg{width:24px;height:30px}
+}
+
+.nav-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 16px;border-radius:var(--r-full);
+  font-size:13px;font-weight:800;
+  transition:all .2s var(--ease);
+  white-space:nowrap;text-decoration:none;
+  font-family:inherit;cursor:pointer;
+  border:1px solid transparent;line-height:1;
+}
+.nav-btn svg{width:15px;height:15px;flex-shrink:0}
+.nav-btn.ghost{background:transparent;color:var(--text-2);border-color:var(--border-2)}
+.nav-btn.ghost:hover{color:#fff;border-color:var(--red);background:var(--red-soft)}
+.nav-btn.primary{background:var(--red);color:#fff;box-shadow:0 4px 14px rgba(229,9,20,.35)}
+.nav-btn.primary:hover{background:var(--red-hover);transform:translateY(-1px);box-shadow:0 8px 22px rgba(229,9,20,.5)}
+@media (max-width:480px){
+  .nav-btn .lbl{display:none}
+  .nav-btn{padding:9px 12px}
+}
+
+/* Page header */
+.page-head{
+  padding:64px 0 40px;
+  text-align:center;
+}
+@media (max-width:640px){.page-head{padding:40px 0 24px}}
+
+.page-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 16px;
+  background:rgba(229,9,20,.1);
+  border:1px solid var(--red-border);
+  border-radius:var(--r-full);
+  font-size:11.5px;font-weight:900;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--red);
+  margin-bottom:22px;
+}
+.page-badge svg{width:13px;height:13px}
+
+.page-head h1{
+  font-size:clamp(2rem,5vw,3.4rem);
+  margin-bottom:16px;
+  letter-spacing:-.035em;
+}
+.page-head h1 .accent{
+  background:linear-gradient(135deg, var(--red) 0%, #FF5566 50%, var(--red) 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 24px rgba(229,9,20,.4));
+}
+.page-head p{
+  font-size:16px;
+  color:var(--text-2);
+  max-width:620px;
+  margin:0 auto 28px;
+  line-height:1.6;
+  font-weight:500;
+}
+
+/* Billing toggle */
+.billing-toggle{
+  display:inline-flex;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);
+  border-radius:var(--r-full);
+  padding:4px;
+  gap:2px;
+  margin-bottom:40px;
+}
+.billing-toggle button{
+  padding:9px 20px;
+  border-radius:var(--r-full);
+  font-size:13px;font-weight:800;
+  color:var(--text-3);
+  transition:all .2s var(--ease);
+  font-family:inherit;
+}
+.billing-toggle button.active{
+  background:var(--red);color:#fff;
+  box-shadow:0 4px 14px rgba(229,9,20,.35);
+}
+.billing-toggle button:hover:not(.active){color:#fff}
+.billing-toggle .save-badge{
+  margin-left:6px;
+  padding:2px 7px;
+  background:rgba(16,185,129,.2);
+  border:1px solid rgba(16,185,129,.4);
+  color:var(--green);
+  border-radius:var(--r-full);
+  font-size:10px;font-weight:900;
+  letter-spacing:.04em;
+}
+
+/* Plans grid */
+.plans-grid{
+  display:grid;
+  grid-template-columns:repeat(5, 1fr);
+  gap:16px;
+  padding-bottom:80px;
+  align-items:stretch;
+}
+@media (max-width:1200px){.plans-grid{grid-template-columns:repeat(3, 1fr)}}
+@media (max-width:800px){.plans-grid{grid-template-columns:repeat(2, 1fr)}}
+@media (max-width:520px){.plans-grid{grid-template-columns:1fr;gap:14px}}
+
+/* Plan card */
+.plan{
+  background:var(--surface);
+  border:1.5px solid var(--border);
+  border-radius:var(--r-xl);
+  padding:26px 22px;
+  display:flex;flex-direction:column;
+  transition:all .3s var(--ease);
+  position:relative;
+  overflow:hidden;
+}
+.plan::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg, transparent, var(--red), transparent);
+  opacity:0;transition:opacity .3s;
+}
+.plan:hover{
+  border-color:var(--red-border);
+  transform:translateY(-4px);
+  box-shadow:0 24px 48px rgba(0,0,0,.4);
+}
+.plan:hover::before{opacity:1}
+
+.plan.featured{
+  border-color:var(--red);
+  background:linear-gradient(180deg, rgba(229,9,20,.08), var(--surface) 40%);
+  box-shadow:0 0 0 1px var(--red), 0 20px 50px rgba(229,9,20,.2);
+}
+.plan.featured::before{opacity:1}
+
+.plan.featured-badge{
+  position:absolute;top:0;right:20px;
+  background:var(--red);color:#fff;
+  font-size:9.5px;font-weight:900;
+  letter-spacing:.12em;text-transform:uppercase;
+  padding:5px 10px;
+  border-radius:0 0 8px 8px;
+  box-shadow:0 4px 12px rgba(229,9,20,.5);
+}
+
+.plan-name{
+  font-size:12px;font-weight:900;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text-3);
+  margin-bottom:10px;
+}
+.plan.featured .plan-name{color:var(--red)}
+
+.plan-price{
+  display:flex;align-items:baseline;gap:5px;
+  margin-bottom:6px;
+}
+.plan-price .currency{
+  font-size:20px;font-weight:800;
+  color:var(--text-2);
+}
+.plan-price .amount{
+  font-size:2.6rem;font-weight:900;
+  letter-spacing:-.04em;
+  line-height:1;
+  color:#fff;
+  font-family:var(--font);
+}
+.plan-price .period{
+  font-size:13px;font-weight:700;
+  color:var(--text-3);
+  margin-left:2px;
+}
+
+.plan-billing-note{
+  font-size:11.5px;font-weight:700;
+  color:var(--text-muted);
+  margin-bottom:22px;
+  min-height:16px;
+}
+.plan-billing-note.savings{
+  color:var(--green);
+}
+
+.plan-divider{
+  height:1px;
+  background:var(--border);
+  margin-bottom:20px;
+}
+
+.plan-features{
+  list-style:none;
+  display:flex;flex-direction:column;gap:12px;
+  margin-bottom:26px;
+  flex:1;
+}
+
+.plan-features li{
+  display:flex;gap:10px;
+  align-items:flex-start;
+  font-size:13.5px;
+  line-height:1.5;
+  color:var(--text-2);
+  font-weight:500;
+}
+.plan-features li svg{
+  width:16px;height:16px;
+  flex-shrink:0;
+  margin-top:2px;
+  color:var(--green);
+}
+.plan-features li.no{
+  color:var(--text-muted);
+}
+.plan-features li.no svg{
+  color:var(--text-muted);
+}
+.plan-features li strong{
+  color:#fff;
+  font-weight:800;
+}
+
+.plan-cta{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:13px 20px;
+  border-radius:var(--r-md);
+  font-size:14px;font-weight:900;
+  transition:all .22s var(--ease);
+  text-decoration:none;
+  border:1px solid transparent;
+  font-family:inherit;cursor:pointer;
+  width:100%;
+  line-height:1;min-height:48px;
+}
+.plan-cta svg{width:15px;height:15px}
+.plan-cta.primary{
+  background:linear-gradient(135deg,var(--red),#FF2A3D);
+  color:#fff;
+  box-shadow:0 8px 22px rgba(229,9,20,.4);
+}
+.plan-cta.primary:hover{
+  transform:translateY(-2px);
+  box-shadow:0 14px 32px rgba(229,9,20,.55);
+}
+.plan-cta.ghost{
+  background:rgba(255,255,255,.05);
+  color:#fff;
+  border-color:var(--border-2);
+}
+.plan-cta.ghost:hover{
+  background:rgba(255,255,255,.1);
+  border-color:rgba(255,255,255,.28);
+  transform:translateY(-1px);
+}
+
+/* Comparison table */
+.compare-section{
+  padding-bottom:80px;
+}
+@media (max-width:640px){.compare-section{padding-bottom:48px}}
+
+.compare-head{
+  text-align:center;
+  margin-bottom:40px;
+}
+.compare-head h2{
+  font-size:clamp(1.6rem,3.5vw,2.2rem);
+  margin-bottom:12px;
+  letter-spacing:-.03em;
+}
+.compare-head p{
+  color:var(--text-2);
+  font-size:15px;
+  max-width:520px;
+  margin:0 auto;
+  line-height:1.6;
+}
+
+.compare-table-wrap{
+  overflow-x:auto;
+  border-radius:var(--r-lg);
+  border:1px solid var(--border);
+  background:var(--surface);
+  -webkit-overflow-scrolling:touch;
+}
+.compare-table-wrap::-webkit-scrollbar{height:8px}
+.compare-table-wrap::-webkit-scrollbar-thumb{background:var(--red);border-radius:4px}
+.compare-table-wrap::-webkit-scrollbar-track{background:transparent}
+
+.compare-table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:720px;
+}
+.compare-table th,
+.compare-table td{
+  padding:16px 18px;
+  text-align:left;
+  font-size:13.5px;
+  border-bottom:1px solid var(--border);
+}
+.compare-table th{
+  background:rgba(255,255,255,.02);
+  font-size:11px;font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  color:var(--text-3);
+  white-space:nowrap;
+}
+.compare-table th.featured-col{
+  color:var(--red);
+  background:rgba(229,9,20,.06);
+}
+.compare-table td{
+  color:var(--text-2);
+  font-weight:500;
+}
+.compare-table tr:last-child td,
+.compare-table tr:last-child th{border-bottom:none}
+.compare-table tr:hover td{
+  background:rgba(255,255,255,.015);
+}
+.compare-table td.featured-col{
+  background:rgba(229,9,20,.04);
+}
+.compare-table .feature-name{
+  color:#fff;
+  font-weight:800;
+}
+.compare-table svg{
+  width:16px;height:16px;
+}
+.compare-table .check{color:var(--green)}
+.compare-table .cross{color:var(--text-muted)}
+.compare-table .val{
+  font-family:var(--mono);
+  font-size:13px;
+  font-weight:800;
+  color:#fff;
+}
+
+/* FAQ */
+.faq-section{
+  padding-bottom:80px;
+}
+.faq-head{
+  text-align:center;
+  margin-bottom:40px;
+}
+.faq-head h2{
+  font-size:clamp(1.6rem,3.5vw,2.2rem);
+  margin-bottom:12px;
+  letter-spacing:-.03em;
+}
+.faq-head p{
+  color:var(--text-2);
+  font-size:15px;
+  max-width:520px;
+  margin:0 auto;
+}
+
+.faq-list{
+  max-width:760px;
+  margin:0 auto;
+  display:flex;flex-direction:column;gap:12px;
+}
+.faq-item{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  overflow:hidden;
+  transition:all .22s var(--ease);
+}
+.faq-item:hover{border-color:var(--red-border)}
+.faq-item summary{
+  padding:18px 22px;
+  cursor:pointer;
+  list-style:none;
+  display:flex;justify-content:space-between;align-items:center;gap:14px;
+  font-size:14.5px;font-weight:800;
+  color:#fff;
+  transition:color .2s;
+}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary:hover{color:var(--red)}
+.faq-item summary .chev{
+  width:18px;height:18px;
+  flex-shrink:0;
+  color:var(--text-3);
+  transition:transform .3s var(--ease),color .2s;
+}
+.faq-item[open] summary .chev{
+  transform:rotate(180deg);
+  color:var(--red);
+}
+.faq-item .faq-body{
+  padding:0 22px 20px;
+  font-size:13.5px;
+  color:var(--text-2);
+  line-height:1.7;
+}
+.faq-item .faq-body p + p{margin-top:10px}
+
+/* CTA bottom */
+.bottom-cta{
+  padding:80px 0 100px;
+  text-align:center;
+}
+@media (max-width:640px){.bottom-cta{padding:56px 0 64px}}
+
+.bottom-cta h2{
+  font-size:clamp(1.6rem,3.5vw,2.4rem);
+  margin-bottom:14px;
+  letter-spacing:-.03em;
+}
+.bottom-cta p{
+  color:var(--text-2);
+  font-size:15px;
+  max-width:520px;
+  margin:0 auto 28px;
+}
+.bottom-cta .btns{
+  display:inline-flex;gap:12px;flex-wrap:wrap;justify-content:center;
+}
+.bottom-cta .cta-btn{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:15px 28px;
+  border-radius:var(--r-full);
+  font-size:15px;font-weight:900;
+  transition:all .25s var(--ease);
+  text-decoration:none;
+  border:1px solid transparent;
+  min-height:52px;
+}
+.bottom-cta .cta-btn svg{width:17px;height:17px}
+.bottom-cta .cta-btn.primary{
+  background:linear-gradient(135deg,var(--red),#FF2A3D);
+  color:#fff;
+  box-shadow:0 12px 32px rgba(229,9,20,.45);
+}
+.bottom-cta .cta-btn.primary:hover{
+  transform:translateY(-2px);
+  box-shadow:0 18px 44px rgba(229,9,20,.6);
+}
+.bottom-cta .cta-btn.ghost{
+  background:rgba(255,255,255,.04);
+  color:#fff;
+  border-color:rgba(255,255,255,.14);
+}
+.bottom-cta .cta-btn.ghost:hover{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.28);
+}
+
+/* Footer */
+.footer{
+  background:#020204;
+  border-top:1px solid var(--border);
+  padding:56px 0 28px;
+}
+@media (max-width:640px){.footer{padding:40px 0 24px}}
+
+.footer-grid{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:40px;
+  margin-bottom:48px;
+}
+@media (max-width:800px){.footer-grid{grid-template-columns:1fr 1fr;gap:32px}}
+@media (max-width:480px){.footer-grid{grid-template-columns:1fr;gap:28px}}
+
+.footer-brand{
+  display:inline-flex;align-items:center;gap:11px;
+  margin-bottom:14px;
+}
+.footer-brand svg{width:26px;height:32px}
+.footer-brand b{font-weight:900;font-size:16px;color:#fff;letter-spacing:-.01em}
+.footer-brand b span{color:var(--red)}
+.footer-tagline{font-size:13px;color:var(--text-3);line-height:1.7;max-width:320px;font-weight:500}
+.footer-col h4{
+  font-size:11px;font-weight:900;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-muted);
+  margin-bottom:16px;
+}
+.footer-col a{
+  display:block;color:var(--text-2);
+  font-size:13.5px;font-weight:500;
+  padding:5px 0;
+  transition:color .2s;
+}
+.footer-col a:hover{color:var(--red)}
+
+.footer-bottom{
+  padding-top:28px;
+  border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;
+  align-items:center;flex-wrap:wrap;gap:14px;
+  font-size:12.5px;color:var(--text-muted);
+}
+
+/* Toast */
+#toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(140%);
+  background:#fff;color:#050508;
+  font-size:13.5px;font-weight:800;
+  padding:13px 22px;border-radius:var(--r-full);
+  box-shadow:0 20px 48px rgba(0,0,0,.6);
+  transition:transform .4s var(--ease-out);
+  z-index:200;max-width:90vw;text-align:center;
+  display:flex;align-items:center;gap:10px;
+  pointer-events:none;
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast svg{width:16px;height:16px;flex-shrink:0}
+#toast.success{background:#10B981;color:#fff}
+#toast.error{background:var(--red);color:#fff}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    transition-duration:.01ms!important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="starfield" aria-hidden="true"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     NAV
+     ═══════════════════════════════════════════════════════════════ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand" aria-label="Starlane Stream home">
+      <svg viewBox="0 0 60 74" aria-hidden="true">
+        <defs>
+          <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#E50914"/>
+            <stop offset="100%" stop-color="#FF5566"/>
+          </linearGradient>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <path d="M10 60 Q 22 32 44 20" stroke="url(#starGrad)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+        <path d="M16 62 Q 26 40 46 26" stroke="url(#starGrad)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+        <circle cx="46" cy="18" r="5" fill="#fff" filter="url(#glow)"/>
+        <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
+      </svg>
+      <b>STAR<span>LANE</span></b>
+    </a>
+    <div class="nav-actions">
+      <a href="auth.html" class="nav-btn ghost">
+        <i data-lucide="log-in"></i>
+        <span class="lbl">Sign in</span>
+      </a>
+      <a href="auth.html?tab=signup" class="nav-btn primary">
+        <i data-lucide="sparkles"></i>
+        <span class="lbl">Start free</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE HEAD
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="page-head">
+  <div class="container">
+    <span class="page-badge">
+      <i data-lucide="tag"></i>
+      Plans & pricing
+    </span>
+    <h1>
+      Pick your <span class="accent">orbit.</span>
+    </h1>
+    <p>
+      Start free. Upgrade for 4K, no ads, and more devices.
+      Cancel anytime — no contracts, no hidden fees.
+    </p>
+
+    <div class="billing-toggle" id="billingToggle">
+      <button type="button" class="active" data-cycle="monthly">Monthly</button>
+      <button type="button" data-cycle="yearly">
+        Yearly
+        <span class="save-badge">Save 17%</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PLANS GRID
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="container">
+  <div class="plans-grid">
+
+    <!-- FREE -->
+    <div class="plan">
+      <div class="plan-name">Free</div>
+      <div class="plan-price">
+        <span class="currency">R</span>
+        <span class="amount" data-monthly="0" data-yearly="0">0</span>
+        <span class="period">/month</span>
+      </div>
+      <div class="plan-billing-note">Ad-supported · forever free</div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li><i data-lucide="check"></i> <span>Ad-supported streaming</span></li>
+        <li><i data-lucide="check"></i> <span>480p SD quality</span></li>
+        <li><i data-lucide="check"></i> <span><strong>1 device</strong> at a time</span></li>
+        <li><i data-lucide="check"></i> <span>Access to free channels</span></li>
+        <li class="no"><i data-lucide="x"></i> <span>No HD or 4K</span></li>
+        <li class="no"><i data-lucide="x"></i> <span>No offline downloads</span></li>
+      </ul>
+      <a href="auth.html?tab=signup&plan=free" class="plan-cta ghost">
+        Start free
+        <i data-lucide="arrow-right"></i>
+      </a>
+    </div>
+
+    <!-- STARTER -->
+    <div class="plan">
+      <div class="plan-name">Starter</div>
+      <div class="plan-price">
+        <span class="currency">R</span>
+        <span class="amount" data-monthly="90" data-yearly="75">90</span>
+        <span class="period">/month</span>
+      </div>
+      <div class="plan-billing-note" data-monthly="Billed monthly" data-yearly="R900 billed yearly">Billed monthly</div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li><i data-lucide="check"></i> <span><strong>No ads</strong></span></li>
+        <li><i data-lucide="check"></i> <span>720p HD quality</span></li>
+        <li><i data-lucide="check"></i> <span><strong>1 device</strong> at a time</span></li>
+        <li><i data-lucide="check"></i> <span>Access to Starter+ channels</span></li>
+        <li class="no"><i data-lucide="x"></i> <span>No 1080p or 4K</span></li>
+        <li class="no"><i data-lucide="x"></i> <span>No offline downloads</span></li>
+      </ul>
+      <a href="auth.html?tab=signup&plan=starter" class="plan-cta ghost">
+        Choose Starter
+        <i data-lucide="arrow-right"></i>
+      </a>
+    </div>
+
+    <!-- STANDARD (featured) -->
+    <div class="plan featured">
+      <span class="featured-badge">Most popular</span>
+      <div class="plan-name">Standard</div>
+      <div class="plan-price">
+        <span class="currency">R</span>
+        <span class="amount" data-monthly="180" data-yearly="150">180</span>
+        <span class="period">/month</span>
+      </div>
+      <div class="plan-billing-note" data-monthly="Billed monthly" data-yearly="R1,800 billed yearly">Billed monthly</div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li><i data-lucide="check"></i> <span><strong>No ads</strong></span></li>
+        <li><i data-lucide="check"></i> <span>1080p Full HD quality</span></li>
+        <li><i data-lucide="check"></i> <span><strong>2 devices</strong> at a time</span></li>
+        <li><i data-lucide="check"></i> <span>Access to all Standard+ channels</span></li>
+        <li><i data-lucide="check"></i> <span>30-day replays</span></li>
+        <li class="no"><i data-lucide="x"></i> <span>No 4K</span></li>
+      </ul>
+      <a href="auth.html?tab=signup&plan=standard" class="plan-cta primary">
+        Choose Standard
+        <i data-lucide="arrow-right"></i>
+      </a>
+    </div>
+
+    <!-- PREMIUM -->
+    <div class="plan">
+      <div class="plan-name">Premium</div>
+      <div class="plan-price">
+        <span class="currency">R</span>
+        <span class="amount" data-monthly="300" data-yearly="250">300</span>
+        <span class="period">/month</span>
+      </div>
+      <div class="plan-billing-note" data-monthly="Billed monthly" data-yearly="R3,000 billed yearly">Billed monthly</div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li><i data-lucide="check"></i> <span><strong>No ads</strong></span></li>
+        <li><i data-lucide="check"></i> <span><strong>4K Ultra HD</strong></span></li>
+        <li><i data-lucide="check"></i> <span><strong>3 devices</strong> at a time</span></li>
+        <li><i data-lucide="check"></i> <span>All Premium+ channels</span></li>
+        <li><i data-lucide="check"></i> <span>90-day replays</span></li>
+        <li><i data-lucide="check"></i> <span>Offline downloads</span></li>
+      </ul>
+      <a href="auth.html?tab=signup&plan=premium" class="plan-cta ghost">
+        Choose Premium
+        <i data-lucide="arrow-right"></i>
+      </a>
+    </div>
+
+    <!-- ELITE -->
+    <div class="plan">
+      <div class="plan-name">Elite</div>
+      <div class="plan-price">
+        <span class="currency">R</span>
+        <span class="amount" data-monthly="490" data-yearly="410">490</span>
+        <span class="period">/month</span>
+      </div>
+      <div class="plan-billing-note" data-monthly="Billed monthly" data-yearly="R4,900 billed yearly">Billed monthly</div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li><i data-lucide="check"></i> <span>Everything in Premium</span></li>
+        <li><i data-lucide="check"></i> <span><strong>4 devices</strong> at a time</span></li>
+        <li><i data-lucide="check"></i> <span><strong>Family profiles</strong> (up to 4)</span></li>
+        <li><i data-lucide="check"></i> <span>Exclusive content & premieres</span></li>
+        <li><i data-lucide="check"></i> <span>180-day replays</span></li>
+        <li><i data-lucide="check"></i> <span>Priority support</span></li>
+      </ul>
+      <a href="auth.html?tab=signup&plan=elite" class="plan-cta ghost">
+        Choose Elite
+        <i data-lucide="arrow-right"></i>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     COMPARISON TABLE
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="container compare-section">
+  <div class="compare-head">
+    <h2>Compare every detail.</h2>
+    <p>Everything included in each plan, side by side. No surprises.</p>
+  </div>
+
+  <div class="compare-table-wrap">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Free</th>
+          <th>Starter</th>
+          <th class="featured-col">Standard</th>
+          <th>Premium</th>
+          <th>Elite</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="feature-name">Price (monthly)</td>
+          <td class="val">R0</td>
+          <td class="val">R90</td>
+          <td class="val featured-col">R180</td>
+          <td class="val">R300</td>
+          <td class="val">R490</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Ads</td>
+          <td><svg class="check" data-lucide="check"></svg> Yes</td>
+          <td><svg class="cross" data-lucide="x"></svg> No</td>
+          <td class="featured-col"><svg class="cross" data-lucide="x"></svg> No</td>
+          <td><svg class="cross" data-lucide="x"></svg> No</td>
+          <td><svg class="cross" data-lucide="x"></svg> No</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Video quality</td>
+          <td>480p SD</td>
+          <td>720p HD</td>
+          <td class="featured-col">1080p FHD</td>
+          <td>4K UHD</td>
+          <td>4K UHD</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Devices at once</td>
+          <td class="val">1</td>
+          <td class="val">1</td>
+          <td class="val featured-col">2</td>
+          <td class="val">3</td>
+          <td class="val">4</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Family profiles</td>
+          <td><svg class="cross" data-lucide="x"></svg></td>
+          <td><svg class="cross" data-lucide="x"></svg></td>
+          <td class="featured-col"><svg class="cross" data-lucide="x"></svg></td>
+          <td><svg class="cross" data-lucide="x"></svg></td>
+          <td><svg class="check" data-lucide="check"></svg> Up to 4</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Replays</td>
+          <td>7 days</td>
+          <td>7 days</td>
+          <td class="featured-col">30 days</td>
+          <td>90 days</td>
+          <td>180 days</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Offline downloads</td>
+          <td><svg class="cross" data-lucide="x"></svg></td>
+          <td><svg class="cross" data-lucide="x"></svg></td>
+          <td class="featured-col"><svg class="cross" data-lucide="x"></svg></td>
+          <td><svg class="check" data-lucide="check"></svg></td>
+          <td><svg class="check" data-lucide="check"></svg></td>
+        </tr>
+        <tr>
+          <td class="feature-name">Exclusive content</td>
+          <td><svg class="cross" data-lucide="x"></svg></td>
+          <td><svg class="cross" data-lucide="x"></svg></td>
+          <td class="featured-col"><svg class="cross" data-lucide="x"></svg></td>
+          <td><svg class="cross" data-lucide="x"></svg></td>
+          <td><svg class="check" data-lucide="check"></svg></td>
+        </tr>
+        <tr>
+          <td class="feature-name">Support</td>
+          <td>Email</td>
+          <td>Email</td>
+          <td class="featured-col">Email</td>
+          <td>Priority</td>
+          <td>Priority + WhatsApp</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FAQ
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="container faq-section">
+  <div class="faq-head">
+    <h2>Questions?</h2>
+    <p>The answers to what people ask us most.</p>
+  </div>
+
+  <div class="faq-list">
+
+    <details class="faq-item">
+      <summary>
+        How do I pay?
+        <i data-lucide="chevron-down" class="chev"></i>
+      </summary>
+      <div class="faq-body">
+        <p>We use <strong>Yoco</strong> for all payments. You'll get a secure payment link when you sign up. Card, Google Pay, and Instant EFT all work.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>
+        Can I cancel anytime?
+        <i data-lucide="chevron-down" class="chev"></i>
+      </summary>
+      <div class="faq-body">
+        <p>Yes. There are no contracts and no cancellation fees. You can cancel from your account page any time — you'll keep access until the end of your billing period.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>
+        What happens when I upgrade?
+        <i data-lucide="chevron-down" class="chev"></i>
+      </summary>
+      <div class="faq-body">
+        <p>Your new plan starts immediately. We prorate the difference. You won't pay twice for the same days.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>
+        Can I share my account?
+        <i data-lucide="chevron-down" class="chev"></i>
+      </summary>
+      <div class="faq-body">
+        <p>Your plan includes a fixed number of <strong>simultaneous devices</strong>. Standard lets 2 people watch at once, Premium 3, Elite 4. You can use the same account on as many devices as you want — only the number of devices <em>watching at the same time</em> is limited.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>
+        What devices are supported?
+        <i data-lucide="chevron-down" class="chev"></i>
+      </summary>
+      <div class="faq-body">
+        <p>Any modern phone, tablet, laptop, or desktop browser. Just sign in and start watching.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>
+        Is there a free trial?
+        <i data-lucide="chevron-down" class="chev"></i>
+      </summary>
+      <div class="faq-body">
+        <p>The Free plan is our trial. Watch with ads, get a feel for the platform, then upgrade whenever you're ready — no credit card needed to start.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>
+        What if I'm not happy?
+        <i data-lucide="chevron-down" class="chev"></i>
+      </summary>
+      <div class="faq-body">
+        <p>If something's broken and we can't fix it, we'll refund you within 7 days. Contact <a href="mailto:support@starlanestream.com" style="color:var(--red);font-weight:800;">support@starlanestream.com</a>.</p>
+      </div>
+    </details>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     BOTTOM CTA
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="bottom-cta">
+  <div class="container">
+    <h2>Ready to watch the stars?</h2>
+    <p>Start free in 30 seconds. No card required.</p>
+    <div class="btns">
+      <a href="auth.html?tab=signup" class="cta-btn primary">
+        <i data-lucide="play"></i>
+        Start free
+      </a>
+      <a href="streams.html" class="cta-btn ghost">
+        <i data-lucide="grid-3x3"></i>
+        Browse channels
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <svg viewBox="0 0 60 74" aria-hidden="true">
+            <defs>
+              <linearGradient id="starGradFooter" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#E50914"/>
+                <stop offset="100%" stop-color="#FF5566"/>
+              </linearGradient>
+            </defs>
+            <path d="M10 60 Q 22 32 44 20" stroke="url(#starGradFooter)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+            <path d="M16 62 Q 26 40 46 26" stroke="url(#starGradFooter)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+            <circle cx="46" cy="18" r="5" fill="#fff"/>
+            <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
+          </svg>
+          <b>STAR<span>LANE</span></b>
+        </div>
+        <p class="footer-tagline">
+          Live TV, movies, and sports — streaming without limits.
+          Built for South Africa, made for the world.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="streams.html">All channels</a>
+        <a href="plans.html">Plans & pricing</a>
+        <a href="auth.html?tab=signup">Start free</a>
+      </div>
+      <div class="footer-col">
+        <h4>Account</h4>
+        <a href="auth.html">Sign in</a>
+        <a href="account-527394816.html">My account</a>
+        <a href="plans.html">Upgrade plan</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="legal.html#terms">Terms</a>
+        <a href="legal.html#privacy">Privacy</a>
+        <a href="legal.html#popia">POPIA</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> Starlane Stream. All rights reserved.</span>
+      <span>Made in Johannesburg, South Africa.</span>
+    </div>
+  </div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+function $(id){ return document.getElementById(id); }
+function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
+
+document.addEventListener('DOMContentLoaded', function(){
+  var yearEl = $('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+  refreshIcons();
+
+  // Billing toggle
+  var toggle = $('billingToggle');
+  if (toggle){
+    toggle.querySelectorAll('button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var cycle = btn.dataset.cycle;
+
+        // Toggle active state
+        toggle.querySelectorAll('button').forEach(function(b){
+          b.classList.toggle('active', b === btn);
+        });
+
+        // Update amounts
+        document.querySelectorAll('.plan .amount').forEach(function(el){
+          var val = el.dataset[cycle];
+          if (val !== undefined) el.textContent = val;
+        });
+
+        // Update billing notes
+        document.querySelectorAll('.plan-billing-note[data-monthly]').forEach(function(el){
+          var note = el.dataset[cycle];
+          if (note !== undefined) el.textContent = note;
+        });
+
+        // Update savings label colors
+        document.querySelectorAll('.plan-billing-note').forEach(function(el){
+          el.classList.toggle('savings', cycle === 'yearly' && el.textContent.indexOf('billed') !== -1);
+        });
+
+        refreshIcons();
+      });
+    });
+  }
+});
+
+})();
+</script>
+
+</body>
+</html>
