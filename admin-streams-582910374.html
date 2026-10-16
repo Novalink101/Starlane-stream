@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#050508" />
 <meta name="robots" content="noindex, nofollow, noarchive" />
 <meta name="referrer" content="no-referrer" />
-<title>Streams · Starlane Admin</title>
+<title>Content Studio · Starlane Admin</title>
 
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -63,6 +63,7 @@ h1,h2,h3{line-height:1.15;font-weight:900;letter-spacing:-.02em;color:#fff}
 .container{max-width:var(--container);margin:0 auto;padding:0 24px;width:100%}
 @media (max-width:560px){.container{padding:0 16px}}
 
+/* Starfield */
 .starfield{
   position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
@@ -74,11 +75,13 @@ h1,h2,h3{line-height:1.15;font-weight:900;letter-spacing:-.02em;color:#fff}
   background-image:
     radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.5), transparent 100%),
     radial-gradient(1px 1px at 87% 32%, rgba(255,255,255,.35), transparent 100%),
-    radial-gradient(1.5px 1.5px at 34% 78%, rgba(255,255,255,.4), transparent 100%);
+    radial-gradient(1.5px 1.5px at 34% 78%, rgba(255,255,255,.4), transparent 100%),
+    radial-gradient(1px 1px at 67% 12%, rgba(255,255,255,.3), transparent 100%);
   animation:twinkle 8s ease-in-out infinite;
 }
 @keyframes twinkle{0%,100%{opacity:.85}50%{opacity:.4}}
 
+/* ── NAV ── */
 .nav{
   position:sticky;top:0;z-index:50;
   background:rgba(5,5,8,.9);
@@ -113,7 +116,6 @@ h1,h2,h3{line-height:1.15;font-weight:900;letter-spacing:-.02em;color:#fff}
   .nav-brand svg{width:24px;height:30px}
   .admin-tag{display:none}
 }
-
 .nav-btn{
   display:inline-flex;align-items:center;gap:7px;
   padding:9px 14px;border-radius:var(--r-full);
@@ -126,11 +128,14 @@ h1,h2,h3{line-height:1.15;font-weight:900;letter-spacing:-.02em;color:#fff}
 .nav-btn svg{width:14px;height:14px;flex-shrink:0}
 .nav-btn.ghost{background:transparent;color:var(--text-2);border-color:var(--border-2)}
 .nav-btn.ghost:hover{color:#fff;border-color:var(--red);background:var(--red-soft)}
+.nav-btn.primary{background:var(--red);color:#fff;box-shadow:0 4px 14px rgba(229,9,20,.35)}
+.nav-btn.primary:hover{background:var(--red-hover);transform:translateY(-1px)}
 @media (max-width:640px){
   .nav-btn .lbl{display:none}
   .nav-btn{padding:9px 11px}
 }
 
+/* ── MAIN ── */
 main{flex:1;padding:24px 0 80px}
 @media (max-width:640px){main{padding:16px 0 56px}}
 
@@ -147,9 +152,10 @@ main{flex:1;padding:24px 0 80px}
   max-width:680px;
 }
 
+/* ── SPLIT LAYOUT ── */
 .split{
   display:grid;
-  grid-template-columns:minmax(0, 1fr) 480px;
+  grid-template-columns:minmax(0, 1fr) 520px;
   gap:24px;
   align-items:start;
 }
@@ -163,9 +169,21 @@ main{flex:1;padding:24px 0 80px}
   display:flex;
   flex-direction:column;
   gap:16px;
+  max-height:calc(100vh - 100px);
+  overflow-y:auto;
+  padding-right:4px;
+  scrollbar-width:thin;
 }
-@media (max-width:1024px){.col-right{position:static}}
+.col-right::-webkit-scrollbar{width:6px}
+.col-right::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.1);
+  border-radius:3px;
+}
+@media (max-width:1024px){
+  .col-right{position:static;max-height:none;overflow:visible;padding-right:0}
+}
 
+/* ── CARD ── */
 .card{
   background:var(--surface);
   border:1px solid var(--border);
@@ -207,6 +225,219 @@ main{flex:1;padding:24px 0 80px}
   letter-spacing:0;
 }
 
+/* ── TABS (type filter) ── */
+.tabs{
+  display:flex;
+  gap:4px;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:4px;
+  margin-bottom:18px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:1;
+  min-width:90px;
+  padding:9px 14px;
+  border-radius:var(--r-sm);
+  font-size:12.5px;font-weight:800;
+  color:var(--text-3);
+  transition:all .2s var(--ease);
+  font-family:inherit;
+  cursor:pointer;
+  white-space:nowrap;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+.tab svg{width:14px;height:14px}
+.tab.active{
+  background:var(--red);
+  color:#fff;
+  box-shadow:0 4px 12px rgba(229,9,20,.35);
+}
+.tab:hover:not(.active){color:#fff}
+.tab .badge{
+  font-size:10px;
+  padding:1px 7px;
+  border-radius:var(--r-full);
+  background:rgba(255,255,255,.15);
+  font-family:var(--mono);
+  font-weight:900;
+}
+.tab.active .badge{background:rgba(0,0,0,.25)}
+
+/* ── TOOLBAR (search) ── */
+.toolbar{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:12px;
+  margin-bottom:18px;
+  backdrop-filter:blur(12px);
+}
+.search-box{position:relative;width:100%}
+.search-box svg{
+  position:absolute;
+  left:14px;top:50%;
+  transform:translateY(-50%);
+  width:15px;height:15px;
+  color:var(--text-3);
+  pointer-events:none;
+}
+.search-box input{
+  width:100%;
+  padding:10px 14px 10px 40px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border-2);
+  border-radius:var(--r-md);
+  font-size:13.5px;
+  color:#fff;
+  transition:all .2s var(--ease);
+  font-family:inherit;
+}
+.search-box input::placeholder{color:var(--text-muted)}
+.search-box input:focus{
+  outline:none;
+  border-color:var(--red);
+  background:rgba(255,255,255,.06);
+  box-shadow:0 0 0 3px rgba(229,9,20,.15);
+}
+
+/* ── CONTENT LIST ── */
+.content-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.content-item{
+  display:flex;
+  gap:14px;
+  align-items:center;
+  padding:14px 16px;
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  transition:all .2s var(--ease);
+}
+.content-item:hover{
+  border-color:var(--red-border);
+  background:rgba(229,9,20,.04);
+}
+@media (max-width:640px){.content-item{flex-wrap:wrap}}
+
+.content-thumb{
+  width:80px;
+  aspect-ratio:16/9;
+  border-radius:var(--r-sm);
+  background:linear-gradient(135deg, #0A0A14, #1A0A14);
+  border:1px solid var(--border);
+  flex-shrink:0;
+  background-size:cover;
+  background-position:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-muted);
+}
+.content-thumb svg{width:24px;height:24px;opacity:.4}
+
+.content-info{flex:1;min-width:0}
+.content-title{
+  font-size:14.5px;
+  font-weight:800;
+  color:#fff;
+  margin-bottom:4px;
+  letter-spacing:-.01em;
+  word-break:break-word;
+}
+.content-meta{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  font-size:11.5px;
+  color:var(--text-3);
+  font-weight:600;
+  align-items:center;
+}
+.content-meta .badge{
+  padding:3px 8px;
+  border-radius:var(--r-full);
+  font-size:9.5px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.content-meta .badge.live{
+  background:rgba(16,185,129,.2);
+  color:var(--green);
+  border:1px solid rgba(16,185,129,.4);
+}
+.content-meta .badge.movie{
+  background:rgba(139,92,246,.15);
+  color:var(--purple);
+  border:1px solid rgba(139,92,246,.35);
+}
+.content-meta .badge.show{
+  background:rgba(229,9,20,.15);
+  color:var(--red);
+  border:1px solid var(--red-border);
+}
+.content-meta .badge.highlight{
+  background:rgba(245,158,11,.15);
+  color:var(--yellow);
+  border:1px solid rgba(245,158,11,.35);
+}
+.content-meta .badge.upcoming{
+  background:rgba(245,158,11,.15);
+  color:var(--yellow);
+  border:1px solid rgba(245,158,11,.35);
+}
+.content-meta .badge.ended{
+  background:rgba(107,119,135,.2);
+  color:var(--text-3);
+  border:1px solid rgba(107,119,135,.3);
+}
+
+.content-actions{
+  display:flex;
+  gap:6px;
+  flex-shrink:0;
+}
+@media (max-width:640px){
+  .content-actions{width:100%;justify-content:flex-end}
+}
+
+/* ── EMPTY ── */
+.empty-block{
+  text-align:center;
+  padding:48px 24px;
+}
+.empty-block svg{
+  width:44px;height:44px;
+  margin:0 auto 14px;
+  color:var(--text-muted);
+  opacity:.5;
+}
+.empty-block h3{
+  font-size:15px;
+  font-weight:900;
+  color:#fff;
+  margin-bottom:6px;
+}
+.empty-block p{
+  font-size:13px;
+  color:var(--text-3);
+  line-height:1.6;
+  max-width:320px;
+  margin:0 auto;
+}
+
+/* ── FORM ── */
 .form-group{margin-bottom:16px}
 .form-group label{
   display:block;
@@ -218,6 +449,14 @@ main{flex:1;padding:24px 0 80px}
   margin-bottom:8px;
 }
 .form-group label .req{color:var(--red)}
+.form-group label .optional{
+  font-weight:500;
+  text-transform:none;
+  letter-spacing:0;
+  color:var(--text-muted);
+  font-size:10.5px;
+  font-style:italic;
+}
 .form-group input,
 .form-group select,
 .form-group textarea{
@@ -243,7 +482,7 @@ main{flex:1;padding:24px 0 80px}
 }
 .form-group textarea{
   resize:vertical;
-  min-height:70px;
+  min-height:80px;
   line-height:1.55;
 }
 .form-group select{
@@ -256,12 +495,27 @@ main{flex:1;padding:24px 0 80px}
   background-size:12px;
   cursor:pointer;
 }
+.form-group .hint{
+  font-size:11.5px;
+  color:var(--text-muted);
+  margin-top:6px;
+  line-height:1.5;
+  font-style:italic;
+}
+
 .form-row{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:12px;
 }
-@media (max-width:520px){.form-row{grid-template-columns:1fr}}
+.form-row-3{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:10px;
+}
+@media (max-width:520px){
+  .form-row,.form-row-3{grid-template-columns:1fr}
+}
 
 .form-divider{
   margin:20px 0 16px;
@@ -278,83 +532,178 @@ main{flex:1;padding:24px 0 80px}
 }
 .form-divider svg{width:13px;height:13px}
 
-.hint{
-  font-size:11.5px;
-  color:var(--text-muted);
-  margin-top:6px;
-  line-height:1.5;
-  font-style:italic;
-}
-
-.tier-picker{
+/* ── TYPE PICKER (Live / Movie / Show) ── */
+.type-picker{
   display:grid;
-  grid-template-columns:repeat(2, 1fr);
-  gap:8px;
-}
-@media (max-width:480px){.tier-picker{grid-template-columns:1fr}}
-
-.tier-opt{
-  display:flex;
-  align-items:center;
+  grid-template-columns:repeat(3, 1fr);
   gap:10px;
-  padding:11px 14px;
-  border:1.5px solid var(--border);
-  background:rgba(255,255,255,.02);
+  margin-bottom:20px;
+}
+@media (max-width:480px){.type-picker{grid-template-columns:1fr}}
+.type-opt{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  padding:16px 12px;
+  background:rgba(255,255,255,.03);
+  border:2px solid var(--border);
   border-radius:var(--r-md);
   cursor:pointer;
   transition:all .2s var(--ease);
+  text-align:center;
   font-family:inherit;
-  text-align:left;
-  font-size:13px;
   color:var(--text-2);
-  font-weight:700;
+  font-weight:800;
 }
-.tier-opt:hover{
+.type-opt:hover{
   border-color:var(--red-border);
   background:rgba(229,9,20,.04);
   color:#fff;
 }
-.tier-opt.active{
+.type-opt.active{
   border-color:var(--red);
-  background:var(--red-soft);
+  background:linear-gradient(135deg, var(--red-soft), rgba(20,20,28,.75));
   color:#fff;
   box-shadow:0 0 0 3px rgba(229,9,20,.15);
 }
-.tier-opt.inherit{
-  grid-column:1/-1;
-  background:rgba(139,92,246,.06);
-  border-color:rgba(139,92,246,.3);
-}
-.tier-opt.inherit:hover{
-  border-color:var(--purple);
-  background:rgba(139,92,246,.1);
-}
-.tier-opt.inherit.active{
-  border-color:var(--purple);
-  background:rgba(139,92,246,.15);
-  box-shadow:0 0 0 3px rgba(139,92,246,.15);
-}
-.tier-opt .dot{
-  width:14px;height:14px;
-  border-radius:50%;
-  border:2px solid var(--border-2);
-  flex-shrink:0;
+.type-opt .type-icon{
+  width:40px;height:40px;
+  border-radius:12px;
+  background:rgba(229,9,20,.1);
+  border:1px solid var(--red-border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--red);
   transition:all .2s var(--ease);
 }
-.tier-opt.active .dot{
-  border-color:var(--red);
+.type-opt.active .type-icon{
   background:var(--red);
-  box-shadow:inset 0 0 0 2px var(--bg);
+  color:#fff;
+  border-color:var(--red);
 }
-.tier-opt.inherit.active .dot{
-  border-color:var(--purple);
-  background:var(--purple);
+.type-opt .type-icon svg{width:20px;height:20px}
+.type-opt .type-label{font-size:13.5px;letter-spacing:-.005em;}
+.type-opt .type-sub{
+  font-size:10.5px;
+  color:var(--text-muted);
+  font-weight:500;
+  line-height:1.35;
+  letter-spacing:0;
 }
-.tier-opt .tier-name{
-  flex:1;
-  min-width:0;
+.type-opt.active .type-sub{color:var(--text-3)}
+
+/* ── POSTER UPLOAD ── */
+.poster-preview{
+  aspect-ratio:16/9;
+  border-radius:var(--r-md);
+  border:1.5px dashed var(--border-2);
+  background:rgba(255,255,255,.02);
+  overflow:hidden;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:all .2s var(--ease);
+  margin-bottom:10px;
+}
+.poster-preview:hover{
+  border-color:var(--red);
+  background:rgba(229,9,20,.04);
+}
+.poster-preview.has-image{
+  border-style:solid;
+  border-color:var(--border);
+  background:#000;
+}
+.poster-preview img{
+  width:100%;height:100%;
+  object-fit:cover;
+  display:block;
+  pointer-events:none;
+}
+.poster-preview .placeholder{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  color:var(--text-muted);
+  text-align:center;
+  padding:14px;
+  pointer-events:none;
+}
+.poster-preview .placeholder svg{
+  width:28px;height:28px;
+  opacity:.5;
+}
+.poster-preview .placeholder .main{
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.poster-preview .placeholder .sub{
+  font-size:11px;
+  color:var(--text-muted);
+  font-weight:500;
+  line-height:1.4;
+  margin-top:2px;
 }
 
+/* ── BANNER UPLOAD ── */
+.banner-preview{
+  aspect-ratio:21/9;
+  border-radius:var(--r-md);
+  border:1.5px dashed var(--border-2);
+  background:rgba(255,255,255,.02);
+  overflow:hidden;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:all .2s var(--ease);
+  margin-bottom:10px;
+}
+.banner-preview:hover{
+  border-color:var(--red);
+  background:rgba(229,9,20,.04);
+}
+.banner-preview.has-image{
+  border-style:solid;
+  border-color:var(--border);
+  background:#000;
+}
+.banner-preview img{
+  width:100%;height:100%;
+  object-fit:cover;
+  display:block;
+  pointer-events:none;
+}
+.banner-preview .placeholder{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  color:var(--text-muted);
+  text-align:center;
+  padding:14px;
+  pointer-events:none;
+}
+.banner-preview .placeholder svg{
+  width:26px;height:26px;
+  opacity:.5;
+}
+.banner-preview .placeholder .main{
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+/* ── BUTTONS ── */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
   padding:11px 18px;
@@ -399,134 +748,408 @@ main{flex:1;padding:24px 0 80px}
 }
 .btn.sm{padding:8px 12px;font-size:12px;min-height:36px}
 .btn.block{width:100%}
+.btn-lg{
+  padding:14px 24px;
+  font-size:14px;
+  min-height:50px;
+}
 
-.st-list{
+/* ── CHIPS (small buttons for image actions) ── */
+.chip-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:7px 12px;
+  border-radius:var(--r-sm);
+  font-size:11px;font-weight:800;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);
+  color:var(--text-3);
+  transition:all .2s var(--ease);
+  font-family:inherit;
+  cursor:pointer;
+}
+.chip-btn:hover:not(:disabled){
+  border-color:var(--red);
+  color:#fff;
+  background:var(--red-soft);
+}
+.chip-btn:disabled{opacity:.5;cursor:not-allowed}
+.chip-btn.primary{
+  background:var(--red);
+  color:#fff;
+  border-color:var(--red);
+}
+.chip-btn.primary:hover:not(:disabled){
+  background:var(--red-hover);
+}
+.chip-btn svg{width:12px;height:12px}
+
+.chip-row{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:8px;
+}
+
+/* ── ACCESS TIER PICKER ── */
+.tier-picker{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:8px;
+}
+@media (max-width:480px){.tier-picker{grid-template-columns:1fr}}
+
+.tier-opt{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:11px 14px;
+  border:1.5px solid var(--border);
+  background:rgba(255,255,255,.02);
+  border-radius:var(--r-md);
+  cursor:pointer;
+  transition:all .2s var(--ease);
+  font-family:inherit;
+  text-align:left;
+  font-size:13px;
+  color:var(--text-2);
+  font-weight:700;
+}
+.tier-opt:hover{
+  border-color:var(--red-border);
+  background:rgba(229,9,20,.04);
+  color:#fff;
+}
+.tier-opt.active{
+  border-color:var(--red);
+  background:var(--red-soft);
+  color:#fff;
+  box-shadow:0 0 0 3px rgba(229,9,20,.15);
+}
+.tier-opt .dot{
+  width:14px;height:14px;
+  border-radius:50%;
+  border:2px solid var(--border-2);
+  flex-shrink:0;
+  transition:all .2s var(--ease);
+}
+.tier-opt.active .dot{
+  border-color:var(--red);
+  background:var(--red);
+  box-shadow:inset 0 0 0 2px var(--bg);
+}
+
+/* ── TOGGLE ── */
+.toggle-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 14px;
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  margin-bottom:10px;
+}
+.toggle-row .tl{
+  font-size:12.5px;
+  font-weight:800;
+  color:#fff;
+  flex:1;
+  min-width:0;
+}
+.toggle-row .tl small{
+  display:block;
+  font-size:10.5px;
+  font-weight:500;
+  color:var(--text-muted);
+  margin-top:2px;
+  line-height:1.4;
+}
+.toggle{
+  position:relative;
+  display:inline-block;
+  width:46px;
+  height:26px;
+  flex-shrink:0;
+}
+.toggle input{
+  opacity:0;
+  width:0;
+  height:0;
+  position:absolute;
+}
+.toggle .slider{
+  position:absolute;
+  cursor:pointer;
+  inset:0;
+  background:#2a2a35;
+  transition:.25s;
+  border-radius:34px;
+}
+.toggle .slider:before{
+  content:"";
+  position:absolute;
+  height:20px;
+  width:20px;
+  left:3px;
+  top:3px;
+  background:#fff;
+  transition:.25s;
+  border-radius:50%;
+  box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+.toggle input:checked + .slider{background:var(--red)}
+.toggle input:checked + .slider:before{transform:translateX(20px)}
+
+/* ── AD GAPS EDITOR ── */
+.gaps-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:10px;
+  min-height:36px;
+}
+.gap-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 8px 6px 12px;
+  background:var(--red-soft);
+  border:1px solid var(--red-border);
+  border-radius:var(--r-full);
+  font-size:12px;
+  font-weight:800;
+  color:#fff;
+}
+.gap-chip .gap-num{
+  font-family:var(--mono);
+  color:var(--red);
+  font-weight:900;
+}
+.gap-chip .gap-x{
+  width:18px;height:18px;
+  border-radius:50%;
+  background:rgba(0,0,0,.3);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  border:none;
+  color:#fff;
+  font-family:inherit;
+  transition:all .15s;
+}
+.gap-chip .gap-x:hover{background:var(--red);}
+.gap-chip .gap-x svg{width:11px;height:11px}
+.gap-add{
+  display:flex;
+  gap:8px;
+}
+.gap-add input{
+  flex:1;
+  padding:10px 14px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border-2);
+  border-radius:var(--r-md);
+  font-size:13.5px;
+  color:#fff;
+  font-family:var(--mono);
+}
+.gap-add input:focus{
+  outline:none;
+  border-color:var(--red);
+  box-shadow:0 0 0 3px rgba(229,9,20,.15);
+}
+.gap-empty{
+  font-size:12px;
+  color:var(--text-muted);
+  font-style:italic;
+  padding:8px 0;
+}
+
+/* ── SEGMENTS EDITOR ── */
+.segment-card{
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:14px;
+  margin-bottom:10px;
+  position:relative;
+}
+.segment-card.s1{border-left:3px solid var(--red)}
+.segment-card.s2{border-left:3px solid var(--purple)}
+.segment-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+  flex-wrap:wrap;
+}
+.segment-title{
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--red);
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+}
+.segment-card.s2 .segment-title{color:var(--purple)}
+.segment-title svg{width:13px;height:13px}
+.segment-badge{
+  font-size:9.5px;
+  font-weight:900;
+  padding:3px 8px;
+  border-radius:var(--r-full);
+  background:rgba(255,255,255,.05);
+  color:var(--text-3);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.segment-remove{
+  padding:5px 10px;
+  border-radius:var(--r-sm);
+  font-size:11px;
+  font-weight:800;
+  background:rgba(239,68,68,.1);
+  border:1px solid rgba(239,68,68,.3);
+  color:var(--danger);
+  cursor:pointer;
+  font-family:inherit;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+.segment-remove:hover{background:var(--danger);color:#fff}
+.segment-remove svg{width:12px;height:12px}
+
+/* ── EPISODES ── */
+.episode-list{
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:8px;
+  margin-bottom:10px;
 }
-.st-item{
+.episode-row{
   display:flex;
-  gap:14px;
   align-items:center;
-  padding:14px 16px;
+  gap:12px;
+  padding:12px 14px;
   background:rgba(255,255,255,.02);
   border:1px solid var(--border);
   border-radius:var(--r-md);
   transition:all .2s var(--ease);
 }
-.st-item:hover{
+.episode-row:hover{
   border-color:var(--red-border);
-  background:rgba(229,9,20,.04);
+  background:rgba(229,9,20,.03);
 }
-@media (max-width:560px){.st-item{flex-wrap:wrap}}
-
-.st-thumb{
-  width:80px;
-  aspect-ratio:16/9;
-  border-radius:var(--r-sm);
-  background:linear-gradient(135deg, #0A0A14, #1A0A14);
-  border:1px solid var(--border);
-  flex-shrink:0;
-  background-size:cover;
-  background-position:center;
+.episode-num{
+  width:34px;height:34px;
+  border-radius:10px;
+  background:rgba(229,9,20,.1);
+  border:1px solid var(--red-border);
+  color:var(--red);
   display:flex;
   align-items:center;
   justify-content:center;
-  color:var(--text-muted);
+  font-family:var(--mono);
+  font-size:11px;
+  font-weight:900;
+  flex-shrink:0;
 }
-.st-thumb svg{width:24px;height:24px;opacity:.5}
-
-.st-info{flex:1;min-width:0}
-.st-title{
-  font-size:14.5px;
+.episode-info{flex:1;min-width:0}
+.episode-title{
+  font-size:13.5px;
   font-weight:800;
   color:#fff;
-  margin-bottom:4px;
-  letter-spacing:-.01em;
+  margin-bottom:3px;
   word-break:break-word;
 }
-.st-meta{
+.episode-meta{
+  font-size:11px;
+  color:var(--text-3);
+  font-weight:600;
+  font-family:var(--mono);
+}
+.episode-actions{
+  display:flex;
+  gap:4px;
+  flex-shrink:0;
+}
+
+/* ── MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.75);
+  backdrop-filter:blur(8px);
+  display:none;
+  align-items:flex-start;
+  justify-content:center;
+  z-index:300;
+  padding:24px 20px;
+  overflow-y:auto;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  max-width:560px;
+  width:100%;
+  padding:28px 24px;
+  position:relative;
+  margin:auto;
+  box-shadow:0 32px 80px rgba(0,0,0,.6);
+  backdrop-filter:blur(20px);
+}
+.modal::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg, transparent, var(--red), transparent);
+}
+.modal-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  margin-bottom:20px;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--border);
+}
+.modal-head h3{
+  font-size:17px;
+  font-weight:900;
+  color:#fff;
+  letter-spacing:-.01em;
+}
+.modal-close{
+  width:32px;height:32px;
+  border-radius:50%;
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--border);
+  color:var(--text-3);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:all .2s;
+  flex-shrink:0;
+}
+.modal-close:hover{background:var(--red-soft);color:var(--red);border-color:var(--red-border);}
+.modal-close svg{width:15px;height:15px}
+.modal-actions{
   display:flex;
   gap:10px;
   flex-wrap:wrap;
-  font-size:11.5px;
-  color:var(--text-3);
-  font-weight:600;
-  align-items:center;
+  margin-top:20px;
 }
-.st-meta .badge{
-  padding:3px 8px;
-  border-radius:var(--r-full);
-  font-size:9.5px;
-  font-weight:900;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-}
-.st-meta .badge.live{
-  background:rgba(16,185,129,.2);
-  color:var(--green);
-  border:1px solid rgba(16,185,129,.4);
-}
-.st-meta .badge.upcoming{
-  background:rgba(245,158,11,.2);
-  color:var(--yellow);
-  border:1px solid rgba(245,158,11,.4);
-}
-.st-meta .badge.ended{
-  background:rgba(107,119,135,.2);
-  color:var(--text-3);
-  border:1px solid rgba(107,119,135,.3);
-}
-.st-meta .badge.free{
-  background:rgba(16,185,129,.15);
-  color:var(--green);
-  border:1px solid rgba(16,185,129,.35);
-}
-.st-meta .badge.paid{
-  background:rgba(229,9,20,.15);
-  color:var(--red);
-  border:1px solid var(--red-border);
-}
-.st-meta .badge.inherit{
-  background:rgba(139,92,246,.15);
-  color:var(--purple);
-  border:1px solid rgba(139,92,246,.35);
-}
+.modal-actions .btn{flex:1}
 
-.st-actions{
-  display:flex;
-  gap:6px;
-  flex-shrink:0;
-}
-@media (max-width:560px){
-  .st-actions{width:100%;justify-content:flex-end}
-}
-
-.empty-block{
-  text-align:center;
-  padding:48px 24px;
-}
-.empty-block svg{
-  width:44px;height:44px;
-  margin:0 auto 14px;
-  color:var(--text-muted);
-  opacity:.5;
-}
-.empty-block h3{
-  font-size:15px;
-  font-weight:900;
-  color:#fff;
-  margin-bottom:6px;
-}
-.empty-block p{
-  font-size:13px;
-  color:var(--text-3);
-  line-height:1.6;
-  max-width:320px;
-  margin:0 auto;
-}
-
+/* ── ACCESS SCREEN ── */
 .access-screen{
   max-width:520px;
   margin:80px auto;
@@ -559,8 +1182,9 @@ main{flex:1;padding:24px 0 80px}
   margin-bottom:22px;
 }
 
+/* ── SPINNER ── */
 .spinner{
-  width:16px;height:16px;
+  width:15px;height:15px;
   border:2px solid rgba(255,255,255,.3);
   border-top-color:#fff;
   border-radius:50%;
@@ -569,80 +1193,11 @@ main{flex:1;padding:24px 0 80px}
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.toolbar{
-  display:flex;
-  gap:10px;
-  margin-bottom:16px;
-  flex-wrap:wrap;
-}
-.toolbar input{
-  flex:1;
-  min-width:180px;
-  padding:10px 14px;
-  background:rgba(255,255,255,.04);
-  border:1px solid var(--border-2);
-  border-radius:var(--r-md);
-  font-size:13.5px;
-  color:#fff;
-  font-family:inherit;
-}
-.toolbar input:focus{
-  outline:none;
-  border-color:var(--red);
-  background:rgba(255,255,255,.06);
-  box-shadow:0 0 0 3px rgba(229,9,20,.15);
-}
-.toolbar select{
-  padding:10px 32px 10px 14px;
-  background:rgba(255,255,255,.04);
-  border:1px solid var(--border-2);
-  border-radius:var(--r-md);
-  font-size:13px;
-  color:#fff;
-  font-family:inherit;
-  appearance:none;
-  -webkit-appearance:none;
-  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7787' stroke-width='3'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;
-  background-position:right 12px center;
-  background-size:11px;
-  cursor:pointer;
-  min-width:140px;
-}
-.toolbar select:focus{
-  outline:none;
-  border-color:var(--red);
-  box-shadow:0 0 0 3px rgba(229,9,20,.15);
-}
-
-.platform-hint{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:4px 10px;
-  border-radius:var(--r-full);
-  font-size:10.5px;
-  font-weight:900;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  margin-top:6px;
-}
-.platform-hint.detected{
-  background:rgba(16,185,129,.15);
-  color:var(--green);
-  border:1px solid rgba(16,185,129,.35);
-}
-.platform-hint.unknown{
-  background:rgba(245,158,11,.15);
-  color:var(--yellow);
-  border:1px solid rgba(245,158,11,.35);
-}
-.platform-hint svg{width:11px;height:11px}
-
+/* ── FOOTER ── */
 .footer{
   background:#020204;
   border-top:1px solid var(--border);
-  padding:28px 0 22px;
+  padding:32px 0 24px;
   margin-top:auto;
 }
 .footer-inner{
@@ -652,6 +1207,7 @@ main{flex:1;padding:24px 0 80px}
   font-size:12.5px;color:var(--text-muted);
 }
 
+/* ── TOAST ── */
 #toast{
   position:fixed;bottom:28px;left:50%;
   transform:translateX(-50%) translateY(140%);
@@ -660,7 +1216,7 @@ main{flex:1;padding:24px 0 80px}
   padding:13px 22px;border-radius:var(--r-full);
   box-shadow:0 20px 48px rgba(0,0,0,.6);
   transition:transform .4s var(--ease-out);
-  z-index:200;max-width:90vw;text-align:center;
+  z-index:400;max-width:90vw;text-align:center;
   display:flex;align-items:center;gap:10px;
   pointer-events:none;
 }
@@ -668,15 +1224,25 @@ main{flex:1;padding:24px 0 80px}
 #toast svg{width:16px;height:16px;flex-shrink:0}
 #toast.success{background:var(--green);color:#fff}
 #toast.error{background:var(--danger);color:#fff}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    transition-duration:.01ms!important;
+  }
+}
 </style>
 </head>
 <body>
 
 <div class="starfield" aria-hidden="true"></div>
 
+<!-- ═══════════════════════════════════════════════════════════════
+     NAV
+     ═══════════════════════════════════════════════════════════════ -->
 <nav class="nav">
   <div class="nav-inner">
-    <a href="index.html" class="nav-brand">
+    <a href="index.html" class="nav-brand" aria-label="Starlane Stream home">
       <svg viewBox="0 0 60 74" aria-hidden="true">
         <defs>
           <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
@@ -700,9 +1266,13 @@ main{flex:1;padding:24px 0 80px}
         <i data-lucide="layout-dashboard"></i>
         <span class="lbl">Dashboard</span>
       </a>
-      <a href="admin-channels-294817365.html" class="nav-btn ghost">
-        <i data-lucide="tv"></i>
-        <span class="lbl">Channels</span>
+      <a href="admin-ads-375926184.html" class="nav-btn ghost">
+        <i data-lucide="megaphone"></i>
+        <span class="lbl">Ads</span>
+      </a>
+      <a href="admin-partners-918264573.html" class="nav-btn ghost">
+        <i data-lucide="link"></i>
+        <span class="lbl">Sources</span>
       </a>
       <a href="streams.html" class="nav-btn ghost">
         <i data-lucide="external-link"></i>
@@ -712,14 +1282,19 @@ main{flex:1;padding:24px 0 80px}
   </div>
 </nav>
 
+<!-- ═══════════════════════════════════════════════════════════════
+     MAIN
+     ═══════════════════════════════════════════════════════════════ -->
 <main>
   <div class="container">
 
+    <!-- Loading -->
     <div id="loadingState" style="text-align:center;padding:80px 0;">
       <div class="spinner" style="width:36px;height:36px;border-width:3px;margin:0 auto 16px;"></div>
-      <p style="color:var(--text-3);font-size:14px;">Loading streams…</p>
+      <p style="color:var(--text-3);font-size:14px;">Loading content studio…</p>
     </div>
 
+    <!-- Access denied -->
     <div id="accessDenied" class="access-screen hidden">
       <div class="ico"><i data-lucide="shield-x"></i></div>
       <h2>Admin access only</h2>
@@ -730,60 +1305,88 @@ main{flex:1;padding:24px 0 80px}
       </a>
     </div>
 
+    <!-- Sign in required -->
     <div id="signinRequired" class="access-screen hidden">
       <div class="ico" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);color:var(--yellow);">
         <i data-lucide="lock"></i>
       </div>
       <h2>Sign in required</h2>
-      <p>Sign in with your admin account to manage streams.</p>
+      <p>Sign in with your admin account to manage content.</p>
       <a href="auth.html?redirect=/admin-streams-582910374.html" class="btn primary">
         <i data-lucide="log-in"></i>
         Sign in
       </a>
     </div>
 
+    <!-- Content -->
     <div id="contentState" class="hidden">
 
       <div class="page-head">
-        <h1>Streams</h1>
-        <p>Create streams and assign them to channels. Override the channel's access tier per stream if needed.</p>
+        <h1>Content Studio</h1>
+        <p>Create and manage every piece of content on Starlane Stream — live streams, movies, and shows with full episodes and seasons.</p>
       </div>
 
       <div class="split">
 
+        <!-- ── LEFT: Content list ── -->
         <div class="col-left">
           <div class="card">
             <div class="card-head">
               <h2 class="card-title">
                 <i data-lucide="list"></i>
-                All streams
-                <span class="count" id="stCount">0</span>
+                All content
+                <span class="count" id="contentCount">0</span>
               </h2>
             </div>
 
-            <div class="toolbar">
-              <input type="text" id="searchInput" placeholder="Search streams…" />
-              <select id="channelFilter">
-                <option value="">All channels</option>
-              </select>
+            <div class="tabs">
+              <button type="button" class="tab active" data-filter="all">
+                <i data-lucide="layers" style="width:14px;height:14px;"></i>
+                All
+                <span class="badge" id="cntAll">0</span>
+              </button>
+              <button type="button" class="tab" data-filter="live">
+                <i data-lucide="radio" style="width:14px;height:14px;"></i>
+                Live
+                <span class="badge" id="cntLive">0</span>
+              </button>
+              <button type="button" class="tab" data-filter="movie">
+                <i data-lucide="film" style="width:14px;height:14px;"></i>
+                Movies
+                <span class="badge" id="cntMovies">0</span>
+              </button>
+              <button type="button" class="tab" data-filter="show">
+                <i data-lucide="layers" style="width:14px;height:14px;"></i>
+                Shows
+                <span class="badge" id="cntShows">0</span>
+              </button>
             </div>
 
-            <div class="st-list" id="stList">
-              <div class="empty-block">
-                <i data-lucide="video-off"></i>
-                <h3>No streams yet</h3>
-                <p>Create your first stream using the form on the right.</p>
+            <div class="toolbar">
+              <div class="search-box">
+                <i data-lucide="search"></i>
+                <input type="text" id="searchInput" placeholder="Search by title…" autocomplete="off" />
               </div>
             </div>
+
+            <div class="content-list" id="contentList">
+              <div class="empty-block">
+                <i data-lucide="inbox"></i>
+                <h3>No content yet</h3>
+                <p>Create your first live stream, movie, or show using the form on the right.</p>
+              </div>
+            </div>
+
           </div>
         </div>
 
+        <!-- ── RIGHT: Editor ── -->
         <div class="col-right">
           <div class="card" id="editorCard">
             <div class="card-head">
               <h2 class="card-title">
                 <i data-lucide="plus-circle"></i>
-                <span id="editorTitle">Create stream</span>
+                <span id="editorTitle">Create content</span>
               </h2>
               <button type="button" class="btn ghost sm hidden" id="cancelEditBtn">
                 <i data-lucide="x"></i>
@@ -791,103 +1394,303 @@ main{flex:1;padding:24px 0 80px}
               </button>
             </div>
 
+            <!-- Type picker -->
+            <div class="type-picker" id="typePicker">
+              <button type="button" class="type-opt active" data-type="live">
+                <div class="type-icon"><i data-lucide="radio"></i></div>
+                <div class="type-label">Live</div>
+                <div class="type-sub">Scheduled broadcast</div>
+              </button>
+              <button type="button" class="type-opt" data-type="movie">
+                <div class="type-icon"><i data-lucide="film"></i></div>
+                <div class="type-label">Movie</div>
+                <div class="type-sub">On-demand single</div>
+              </button>
+              <button type="button" class="type-opt" data-type="show">
+                <div class="type-icon"><i data-lucide="layers"></i></div>
+                <div class="type-label">Show</div>
+                <div class="type-sub">Series with episodes</div>
+              </button>
+            </div>
+
+            <!-- Poster -->
             <div class="form-group">
-              <label for="stChannel">Channel <span class="req">*</span></label>
-              <select id="stChannel">
-                <option value="">Choose channel…</option>
-              </select>
+              <label>Poster <span class="optional">(16:9)</span></label>
+              <div class="poster-preview" id="posterPreview" role="button" tabindex="0">
+                <div class="placeholder">
+                  <i data-lucide="image-plus"></i>
+                  <span class="main">Add poster</span>
+                  <span class="sub">Landscape · 16:9</span>
+                </div>
+              </div>
+              <input type="file" id="posterFile" accept="image/*" style="display:none" />
+              <div class="chip-row">
+                <button type="button" class="chip-btn primary" id="choosePosterBtn">
+                  <i data-lucide="upload"></i>
+                  Upload
+                </button>
+                <button type="button" class="chip-btn" id="clearPosterBtn" disabled>
+                  <i data-lucide="trash-2"></i>
+                  Remove
+                </button>
+              </div>
             </div>
 
+            <!-- Banner -->
             <div class="form-group">
-              <label for="stTitle">Stream title <span class="req">*</span></label>
-              <input type="text" id="stTitle" placeholder="e.g. Premier League Highlights" maxlength="120" />
+              <label>Banner <span class="optional">(21:9 · shows on detail page)</span></label>
+              <div class="banner-preview" id="bannerPreview" role="button" tabindex="0">
+                <div class="placeholder">
+                  <i data-lucide="image"></i>
+                  <span class="main">Add banner</span>
+                </div>
+              </div>
+              <input type="file" id="bannerFile" accept="image/*" style="display:none" />
+              <div class="chip-row">
+                <button type="button" class="chip-btn primary" id="chooseBannerBtn">
+                  <i data-lucide="upload"></i>
+                  Upload
+                </button>
+                <button type="button" class="chip-btn" id="clearBannerBtn" disabled>
+                  <i data-lucide="trash-2"></i>
+                  Remove
+                </button>
+              </div>
             </div>
 
+            <!-- Title -->
             <div class="form-group">
-              <label for="stUrl">Stream URL <span class="req">*</span></label>
-              <input type="url" id="stUrl" placeholder="https://… or .m3u8 or YouTube link" />
-              <div id="platformHint" class="platform-hint unknown hidden">
-                <i data-lucide="help-circle"></i>
-                <span id="platformHintText">Waiting for URL…</span>
+              <label for="titleInput">Title <span class="req">*</span></label>
+              <input type="text" id="titleInput" placeholder="e.g. Nova Sports Highlights" maxlength="120" autocomplete="off" />
+            </div>
+
+            <!-- Tagline -->
+            <div class="form-group">
+              <label for="taglineInput">Tagline <span class="optional">(optional)</span></label>
+              <input type="text" id="taglineInput" placeholder="Short tagline shown on cards" maxlength="120" autocomplete="off" />
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+              <label for="descInput">Description <span class="optional">(optional)</span></label>
+              <textarea id="descInput" placeholder="What viewers will see…" maxlength="2000"></textarea>
+              <div class="hint" style="display:flex;justify-content:space-between;font-style:normal;">
+                <span>Plain text only.</span>
+                <span id="descCounter" style="font-family:var(--mono);">0 / 2000</span>
               </div>
             </div>
 
-            <div class="form-row">
+            <!-- Genre + Year + Rating -->
+            <div class="form-row-3">
               <div class="form-group">
-                <label for="stDate">Start date <span class="req">*</span></label>
-                <input type="date" id="stDate" />
+                <label for="genreInput">Genre</label>
+                <select id="genreInput">
+                  <option value="">None</option>
+                  <option value="action">Action</option>
+                  <option value="adventure">Adventure</option>
+                  <option value="animation">Animation</option>
+                  <option value="comedy">Comedy</option>
+                  <option value="crime">Crime</option>
+                  <option value="documentary">Documentary</option>
+                  <option value="drama">Drama</option>
+                  <option value="family">Family</option>
+                  <option value="fantasy">Fantasy</option>
+                  <option value="horror">Horror</option>
+                  <option value="music">Music</option>
+                  <option value="mystery">Mystery</option>
+                  <option value="news">News</option>
+                  <option value="romance">Romance</option>
+                  <option value="sci-fi">Sci-Fi</option>
+                  <option value="sports">Sports</option>
+                  <option value="thriller">Thriller</option>
+                  <option value="war">War</option>
+                  <option value="western">Western</option>
+                </select>
               </div>
               <div class="form-group">
-                <label for="stTime">Start time <span class="req">*</span></label>
-                <input type="time" id="stTime" value="18:00" />
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="stDuration">Duration (mins)</label>
-                <input type="number" id="stDuration" min="1" max="1440" value="90" />
+                <label for="yearInput">Year</label>
+                <input type="number" id="yearInput" placeholder="2026" min="1900" max="2100" />
               </div>
               <div class="form-group">
-                <label for="stActive">Status</label>
-                <select id="stActive">
-                  <option value="true">Active</option>
-                  <option value="false">Hidden</option>
+                <label for="ratingInput">Rating</label>
+                <select id="ratingInput">
+                  <option value="">None</option>
+                  <option value="G">G</option>
+                  <option value="PG">PG</option>
+                  <option value="PG-13">PG-13</option>
+                  <option value="16">16</option>
+                  <option value="18">18</option>
+                  <option value="NR">NR</option>
                 </select>
               </div>
             </div>
 
+            <!-- ═══════════════════════════════════════════════════
+                 TYPE-SPECIFIC SECTIONS
+                 (populated by JS — parts 2 & 3)
+                 ═══════════════════════════════════════════════════ -->
+
+            <!-- LIVE section -->
+            <div id="liveSection">
+              <div class="form-divider">
+                <i data-lucide="radio"></i>
+                Live broadcast schedule
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="liveDate">Date <span class="req">*</span></label>
+                  <input type="date" id="liveDate" />
+                </div>
+                <div class="form-group">
+                  <label for="liveTime">Start time <span class="req">*</span></label>
+                  <input type="time" id="liveTime" value="18:00" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="liveDuration">Duration (minutes)</label>
+                <input type="number" id="liveDuration" min="1" max="1440" value="90" />
+              </div>
+
+              <div class="form-group">
+                <label>Stream segments</label>
+                <div id="segmentsContainer"></div>
+                <button type="button" class="btn ghost sm" id="addSegmentBtn" style="margin-top:8px;">
+                  <i data-lucide="plus"></i>
+                  Add a second URL
+                </button>
+                <p class="hint">Add up to 2 URLs. Ads fill any gap between them.</p>
+              </div>
+            </div>
+
+            <!-- MOVIE section -->
+            <div id="movieSection" class="hidden">
+              <div class="form-divider">
+                <i data-lucide="film"></i>
+                Movie details
+              </div>
+
+              <div class="form-group">
+                <label for="movieUrl">Stream URL <span class="req">*</span></label>
+                <input type="url" id="movieUrl" placeholder="https://… or .m3u8 or YouTube link" />
+                <p class="hint">Plays on demand. YouTube, HLS, MP4, or any embeddable URL.</p>
+              </div>
+
+              <div class="form-group">
+                <label for="movieDuration">Duration (minutes) <span class="req">*</span></label>
+                <input type="number" id="movieDuration" min="1" max="600" value="120" />
+              </div>
+            </div>
+
+            <!-- SHOW section -->
+            <div id="showSection" class="hidden">
+              <div class="form-divider">
+                <i data-lucide="layers"></i>
+                Series episodes
+              </div>
+
+              <div class="form-group">
+                <label>Episodes</label>
+                <div class="episode-list" id="episodeList">
+                  <div class="empty-block" style="padding:24px 16px;">
+                    <i data-lucide="video-off"></i>
+                    <h3 style="font-size:13px;">No episodes yet</h3>
+                    <p style="font-size:12px;">Add episodes to build your series.</p>
+                  </div>
+                </div>
+                <button type="button" class="btn ghost sm" id="addEpisodeBtn" style="margin-top:8px;">
+                  <i data-lucide="plus"></i>
+                  Add episode
+                </button>
+              </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════
+                 AD SETTINGS
+                 ═══════════════════════════════════════════════════ -->
             <div class="form-divider">
-              <i data-lucide="lock"></i>
-              Access control
+              <i data-lucide="megaphone"></i>
+              Ad breaks
             </div>
 
             <div class="form-group">
-              <label>Who can watch this stream?</label>
-              <div class="tier-picker" id="tierPicker">
-                <button type="button" class="tier-opt inherit active" data-tier="inherit">
-                  <span class="dot"></span>
-                  <span class="tier-name">Inherit from channel</span>
-                </button>
-                <button type="button" class="tier-opt" data-tier="free">
-                  <span class="dot"></span>
-                  <span class="tier-name">Free — everyone</span>
-                </button>
-                <button type="button" class="tier-opt" data-tier="starter">
-                  <span class="dot"></span>
-                  <span class="tier-name">Starter+</span>
-                </button>
-                <button type="button" class="tier-opt" data-tier="standard">
-                  <span class="dot"></span>
-                  <span class="tier-name">Standard+</span>
-                </button>
-                <button type="button" class="tier-opt" data-tier="premium">
-                  <span class="dot"></span>
-                  <span class="tier-name">Premium+</span>
-                </button>
-                <button type="button" class="tier-opt" data-tier="elite">
-                  <span class="dot"></span>
-                  <span class="tier-name">Elite only</span>
+              <label>Ad gaps <span class="optional">(minutes into playback)</span></label>
+              <div class="gaps-list" id="gapsList">
+                <div class="gap-empty">No ad gaps. Content plays uninterrupted.</div>
+              </div>
+              <div class="gap-add">
+                <input type="number" id="gapInput" placeholder="e.g. 20" min="1" max="600" />
+                <button type="button" class="btn primary sm" id="addGapBtn">
+                  <i data-lucide="plus"></i>
+                  Add
                 </button>
               </div>
-              <div class="hint">
-                "Inherit from channel" means this stream uses whatever access tier the channel is set to.
-              </div>
+              <p class="hint">At each gap, ads matching the timing are shown. If none fit, your channel theme fills the gap.</p>
             </div>
 
-            <div class="form-group">
-              <label for="stDesc">Description (optional)</label>
-              <textarea id="stDesc" placeholder="What viewers will see…" maxlength="500"></textarea>
+            <div class="toggle-row">
+              <span class="tl">
+                Pre-roll ad
+                <small>Ad before content starts</small>
+              </span>
+              <label class="toggle">
+                <input type="checkbox" id="prerollToggle" checked />
+                <span class="slider"></span>
+              </label>
             </div>
 
-            <button type="button" class="btn primary block" id="saveBtn">
+            <div class="toggle-row">
+              <span class="tl">
+                Post-roll ad
+                <small>Ad after content ends</small>
+              </span>
+              <label class="toggle">
+                <input type="checkbox" id="postrollToggle" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════
+                 VISIBILITY
+                 ═══════════════════════════════════════════════════ -->
+            <div class="form-divider">
+              <i data-lucide="eye"></i>
+              Visibility
+            </div>
+
+            <div class="toggle-row">
+              <span class="tl">
+                Featured on homepage
+                <small>Show in "Trending" or hero section</small>
+              </span>
+              <label class="toggle">
+                <input type="checkbox" id="featuredToggle" />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-row">
+              <span class="tl">
+                Active
+                <small>Visible to viewers on the public site</small>
+              </span>
+              <label class="toggle">
+                <input type="checkbox" id="activeToggle" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- ── Save ── -->
+            <button type="button" class="btn primary block btn-lg" id="saveBtn" style="margin-top:16px;">
               <i data-lucide="save"></i>
-              <span id="saveLabel">Create stream</span>
+              <span id="saveLabel">Create content</span>
             </button>
 
-            <div class="hint" style="text-align:center;margin-top:14px;">
+            <div class="hint" style="text-align:center;margin-top:12px;">
               <span id="editorHint">Ready to create</span>
             </div>
+
           </div>
         </div>
 
@@ -897,6 +1700,64 @@ main{flex:1;padding:24px 0 80px}
   </div>
 </main>
 
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL — Episode editor
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="episodeModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="episodeModalTitle">Add episode</h3>
+      <button type="button" class="modal-close" id="episodeModalClose">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="epSeason">Season #</label>
+        <input type="number" id="epSeason" value="1" min="1" max="99" />
+      </div>
+      <div class="form-group">
+        <label for="epNumber">Episode #</label>
+        <input type="number" id="epNumber" value="1" min="1" max="999" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="epTitle">Title <span class="req">*</span></label>
+      <input type="text" id="epTitle" placeholder="e.g. Pilot" maxlength="120" />
+    </div>
+
+    <div class="form-group">
+      <label for="epUrl">Stream URL <span class="req">*</span></label>
+      <input type="url" id="epUrl" placeholder="https://… or .m3u8 or YouTube link" />
+    </div>
+
+    <div class="form-group">
+      <label for="epDuration">Duration (minutes) <span class="req">*</span></label>
+      <input type="number" id="epDuration" value="45" min="1" max="600" />
+    </div>
+
+    <div class="form-group">
+      <label for="epDescription">Description <span class="optional">(optional)</span></label>
+      <textarea id="epDescription" placeholder="What happens in this episode…" maxlength="500" style="min-height:60px;"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn ghost" id="episodeModalCancel">
+        Cancel
+      </button>
+      <button type="button" class="btn primary" id="episodeModalSave">
+        <i data-lucide="check"></i>
+        <span id="episodeModalSaveLabel">Add episode</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════════════════════════ -->
 <footer class="footer">
   <div class="footer-inner">
     <span>© <span id="year"></span> Starlane Stream Admin. All rights reserved.</span>
@@ -905,12 +1766,25 @@ main{flex:1;padding:24px 0 80px}
 
 <div id="toast"></div>
 
-<script>
+<!--
+  ═══════════════════════════════════════════════════════════════
+  STOP HERE
+  ═══════════════════════════════════════════════════════════════
+  Part 1 (this message) is DONE — HTML + CSS.
+
+  Reply "next" for Part 2 (JavaScript part 1 — Firebase config,
+  helpers, auth, type switching, image compression, segment editor
+  render, gap editor render, episode modal wiring).
+
+  Do NOT save the file yet — it has no <script> tag yet.
+  ═══════════════════════════════════════════════════════════════
+-->
+  <script>
 (function(){
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════════
-   FIREBASE CONFIG — starlane-stream
+   FIREBASE CONFIG
    ═══════════════════════════════════════════════════════════════ */
 var firebaseConfig = {
   apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
@@ -926,6 +1800,8 @@ var ADMIN_EMAILS = [
   'customerservicesnovalink@gmail.com'
 ];
 
+var STREAMS = "streams";
+
 var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
 var db = null;
 var auth = null;
@@ -937,25 +1813,27 @@ if (firebaseReady && !firebase.apps.length){
   auth = firebase.auth();
 }
 
-var allStreams = [];
-var allChannels = [];
-var editingId = null;
-var selectedTier = 'inherit';
-var unsubStreams = null;
-var unsubChannels = null;
-var searchQuery = '';
-var channelFilter = '';
-
+/* ═══════════════════════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════════════════════ */
 function $(id){ return document.getElementById(id); }
-function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
 function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
+function icon(n){ return '<i data-lucide="' + n + '"></i>'; }
 
 function toast(msg, type, ms){
   type = type || 'info'; ms = ms || 3000;
   var t = $('toast');
   var ic = type === 'error' ? 'alert-circle' : (type === 'success' ? 'check-circle' : 'info');
   t.className = type;
-  t.innerHTML = '<i data-lucide="'+ic+'"></i><span>' + esc(msg) + '</span>';
+  t.innerHTML = icon(ic) + '<span>' + esc(msg) + '</span>';
   refreshIcons();
   requestAnimationFrame(function(){ t.classList.add('show'); });
   clearTimeout(toast._t);
@@ -968,215 +1846,779 @@ function isAdmin(user){
   return ADMIN_EMAILS.some(function(a){ return a.toLowerCase() === e; });
 }
 
-function prettyDate(dateStr, timeStr){
-  if (!dateStr) return 'Date TBA';
-  try {
-    var d = new Date(dateStr + 'T' + (timeStr || '00:00'));
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  } catch(e){ return dateStr; }
+function getParam(n){
+  try { return new URLSearchParams(location.search).get(n); }
+  catch(e){ return null; }
 }
 
-function today(){
+function getTodayLocal(){
   var d = new Date();
-  return d.toISOString().slice(0, 10);
+  var yyyy = d.getFullYear();
+  var mm = String(d.getMonth() + 1).padStart(2, '0');
+  var dd = String(d.getDate()).padStart(2, '0');
+  return yyyy + '-' + mm + '-' + dd;
 }
 
-function detectPlatform(url){
-  if (!url) return null;
-  var u = String(url).toLowerCase().trim();
-  if (u.indexOf('youtube.com') !== -1 || u.indexOf('youtu.be') !== -1) return 'youtube';
-  if (u.indexOf('twitch.tv') !== -1) return 'twitch';
-  if (u.indexOf('vimeo.com') !== -1) return 'vimeo';
-  if (u.indexOf('facebook.com') !== -1 || u.indexOf('fb.watch') !== -1) return 'facebook';
-  if (u.indexOf('kick.com') !== -1) return 'kick';
-  if (u.indexOf('.m3u8') !== -1) return 'hls';
-  if (u.indexOf('.mpd') !== -1) return 'dash';
-  if (/\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(u)) return 'video';
-  return 'custom';
+function formatBytes(n){
+  if (n < 1024) return n + ' B';
+  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+  return (n / (1024 * 1024)).toFixed(2) + ' MB';
 }
 
-function platformLabel(p){
-  return {
-    youtube: 'YouTube',
-    twitch: 'Twitch',
-    vimeo: 'Vimeo',
-    facebook: 'Facebook',
-    kick: 'Kick',
-    hls: 'HLS Stream (.m3u8)',
-    dash: 'DASH Stream (.mpd)',
-    video: 'Direct video file',
-    custom: 'Custom embed'
-  }[p] || 'Unknown';
+function bytesFromDataUrl(d){
+  if (!d || typeof d !== 'string') return 0;
+  var comma = d.indexOf(',');
+  if (comma < 0) return 0;
+  var b64 = d.slice(comma + 1);
+  var pad = 0;
+  if (b64.endsWith('==')) pad = 2;
+  else if (b64.endsWith('=')) pad = 1;
+  return Math.floor((b64.length * 3) / 4) - pad;
 }
 
-function platformFromStream(s){
-  if (s.streamPlatform) return s.streamPlatform;
-  return detectPlatform(s.streamUrl || s.hlsUrl || '');
-}
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════ */
+var allContent = [];
+var activeFilter = 'all';
+var searchQuery = '';
+var editingId = null;
+var currentType = 'live';
+var pendingPosterDataUrl = null;
+var pendingBannerDataUrl = null;
+var pendingPosterRemoved = false;
+var pendingBannerRemoved = false;
+var editingEpisodeIndex = null;
+var episodes = [];
+var liveSegments = [{ url: '', startTime: '18:00', endTime: '19:30' }];
+var adGaps = [];
+var unsubContent = null;
+var isSaving = false;
 
-function renderTierPicker(){
-  document.querySelectorAll('#tierPicker .tier-opt').forEach(function(btn){
-    btn.classList.toggle('active', btn.dataset.tier === selectedTier);
-  });
-}
+/* ═══════════════════════════════════════════════════════════════
+   POSTER / BANNER PREVIEW RENDERING
+   ═══════════════════════════════════════════════════════════════ */
+function renderPosterPreview(){
+  var wrap = $('posterPreview');
+  var clearBtn = $('clearPosterBtn');
 
-document.querySelectorAll('#tierPicker .tier-opt').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    selectedTier = btn.dataset.tier || 'inherit';
-    renderTierPicker();
-  });
-});
-
-function populateChannelDropdowns(){
-  var formSelect = $('stChannel');
-  var filterSelect = $('channelFilter');
-
-  var currentFormValue = formSelect.value;
-  formSelect.innerHTML = '<option value="">Choose channel…</option>';
-  allChannels.forEach(function(ch){
-    var opt = document.createElement('option');
-    opt.value = ch.id;
-    opt.textContent = ch.name || 'Untitled Channel';
-    formSelect.appendChild(opt);
-  });
-  if (currentFormValue && allChannels.some(function(c){ return c.id === currentFormValue; })){
-    formSelect.value = currentFormValue;
+  var current = pendingPosterDataUrl;
+  if (!current && editingId && !pendingPosterRemoved){
+    var item = allContent.find(function(c){ return c.id === editingId; });
+    current = item && item.posterUrl ? item.posterUrl : null;
   }
 
-  var currentFilterValue = filterSelect.value;
-  filterSelect.innerHTML = '<option value="">All channels</option>';
-  allChannels.forEach(function(ch){
-    var opt = document.createElement('option');
-    opt.value = ch.id;
-    opt.textContent = ch.name || 'Untitled Channel';
-    filterSelect.appendChild(opt);
+  if (!current){
+    wrap.classList.remove('has-image');
+    wrap.innerHTML =
+      '<div class="placeholder">' +
+        icon('image-plus') +
+        '<span class="main">Add poster</span>' +
+        '<span class="sub">Landscape · 16:9</span>' +
+      '</div>';
+    clearBtn.disabled = true;
+    refreshIcons();
+    return;
+  }
+
+  wrap.classList.add('has-image');
+  wrap.innerHTML = '<img alt="" src="' + esc(current) + '" />';
+  clearBtn.disabled = false;
+}
+
+function renderBannerPreview(){
+  var wrap = $('bannerPreview');
+  var clearBtn = $('clearBannerBtn');
+
+  var current = pendingBannerDataUrl;
+  if (!current && editingId && !pendingBannerRemoved){
+    var item = allContent.find(function(c){ return c.id === editingId; });
+    current = item && item.bannerUrl ? item.bannerUrl : null;
+  }
+
+  if (!current){
+    wrap.classList.remove('has-image');
+    wrap.innerHTML =
+      '<div class="placeholder">' +
+        icon('image') +
+        '<span class="main">Add banner</span>' +
+      '</div>';
+    clearBtn.disabled = true;
+    refreshIcons();
+    return;
+  }
+
+  wrap.classList.add('has-image');
+  wrap.innerHTML = '<img alt="" src="' + esc(current) + '" />';
+  clearBtn.disabled = false;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   IMAGE COMPRESSION
+   ═══════════════════════════════════════════════════════════════ */
+var MAX_SRC_BYTES = 15 * 1024 * 1024;
+
+function readImage(file){
+  return new Promise(function(resolve, reject){
+    var r = new FileReader();
+    r.onload = function(e){
+      var img = new Image();
+      img.onload = function(){ resolve(img); };
+      img.onerror = function(){ reject(new Error('Image decode failed.')); };
+      img.src = e.target.result;
+    };
+    r.onerror = function(){ reject(new Error('Could not read file.')); };
+    r.readAsDataURL(file);
   });
-  if (currentFilterValue && allChannels.some(function(c){ return c.id === currentFilterValue; })){
-    filterSelect.value = currentFilterValue;
-  }
 }
 
-function streamStatus(s){
-  if (!s.startDate) return 'upcoming';
-  var startMs = new Date(s.startDate + 'T' + (s.startTime || '00:00') + ':00').getTime();
-  var durMin = parseInt(s.durationMinutes, 10) || 90;
-  var endMs = startMs + durMin * 60000;
-  var now = Date.now();
-  if (now < startMs) return 'upcoming';
-  if (now <= endMs) return 'live';
-  return 'ended';
+function compressLandscape(img, maxW, quality){
+  var w = img.naturalWidth || img.width;
+  var h = img.naturalHeight || img.height;
+  if (w > maxW){
+    h = Math.round(h * (maxW / w));
+    w = maxW;
+  }
+  var canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#050508';
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(img, 0, 0, w, h);
+  return canvas.toDataURL('image/jpeg', quality);
 }
 
-function tierBadge(s){
-  var tiers = s.accessTiers;
-  if (!tiers || (tiers.length === 1 && tiers[0] === 'inherit')){
-    return { cls: 'inherit', label: 'Channel tier' };
-  }
-  if (tiers.indexOf('free') !== -1){
-    return { cls: 'free', label: 'Free' };
-  }
-  var minTier = tiers[0];
-  tiers.forEach(function(t){
-    var order = ['free', 'starter', 'standard', 'premium', 'elite'];
-    if (order.indexOf(t) < order.indexOf(minTier)) minTier = t;
+function fileToPosterDataUrl(file){
+  return new Promise(function(resolve, reject){
+    if (!/^image\//.test(file.type)){ reject(new Error('Use an image file.')); return; }
+    if (file.size > MAX_SRC_BYTES){ reject(new Error('Image too large. Max 15 MB.')); return; }
+    readImage(file).then(function(img){
+      var out = compressLandscape(img, 1280, 0.78);
+      if (bytesFromDataUrl(out) > 500 * 1024){
+        out = compressLandscape(img, 900, 0.7);
+      }
+      resolve(out);
+    }).catch(reject);
   });
-  return { cls: 'paid', label: minTier.charAt(0).toUpperCase() + minTier.slice(1) + '+' };
 }
 
-function renderStreams(){
-  var list = $('stList');
-  var q = searchQuery.toLowerCase();
+function fileToBannerDataUrl(file){
+  return new Promise(function(resolve, reject){
+    if (!/^image\//.test(file.type)){ reject(new Error('Use an image file.')); return; }
+    if (file.size > MAX_SRC_BYTES){ reject(new Error('Image too large. Max 15 MB.')); return; }
+    readImage(file).then(function(img){
+      var out = compressLandscape(img, 1920, 0.75);
+      if (bytesFromDataUrl(out) > 700 * 1024){
+        out = compressLandscape(img, 1400, 0.68);
+      }
+      resolve(out);
+    }).catch(reject);
+  });
+}
 
-  var filtered = allStreams.filter(function(s){
-    if (channelFilter && s.channelId !== channelFilter) return false;
-    if (q){
-      var title = String(s.streamTitle || s.eventName || '').toLowerCase();
-      if (title.indexOf(q) === -1) return false;
+/* ═══════════════════════════════════════════════════════════════
+   TYPE PICKER
+   ═══════════════════════════════════════════════════════════════ */
+function setType(type){
+  currentType = type;
+
+  document.querySelectorAll('#typePicker .type-opt').forEach(function(btn){
+    btn.classList.toggle('active', btn.dataset.type === type);
+  });
+
+  $('liveSection').classList.toggle('hidden', type !== 'live');
+  $('movieSection').classList.toggle('hidden', type !== 'movie');
+  $('showSection').classList.toggle('hidden', type !== 'show');
+
+  updateEditorHint();
+}
+
+function updateEditorHint(){
+  var hints = {
+    live: 'Scheduled broadcast — supports up to 2 URL segments',
+    movie: 'On-demand single video — plays anytime',
+    show: 'Series with episodes — grouped by season'
+  };
+  var el = $('editorHint');
+  if (el) el.textContent = hints[currentType] || 'Ready to create';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AD GAPS EDITOR
+   ═══════════════════════════════════════════════════════════════ */
+function renderGaps(){
+  var wrap = $('gapsList');
+  if (!wrap) return;
+
+  if (!adGaps.length){
+    wrap.innerHTML = '<div class="gap-empty">No ad gaps. Content plays uninterrupted.</div>';
+    return;
+  }
+
+  adGaps.sort(function(a, b){ return a - b; });
+
+  wrap.innerHTML = '';
+  adGaps.forEach(function(min){
+    var chip = document.createElement('div');
+    chip.className = 'gap-chip';
+    chip.innerHTML =
+      icon('clock') +
+      '<span class="gap-num">' + min + ' min</span>' +
+      '<button type="button" class="gap-x" data-min="' + min + '" title="Remove">' + icon('x') + '</button>';
+
+    chip.querySelector('.gap-x').addEventListener('click', function(){
+      adGaps = adGaps.filter(function(m){ return m !== min; });
+      renderGaps();
+    });
+
+    wrap.appendChild(chip);
+  });
+  refreshIcons();
+}
+
+function addGap(){
+  var input = $('gapInput');
+  var val = parseInt(input.value, 10);
+
+  if (isNaN(val) || val < 1 || val > 600){
+    toast('Enter a number between 1 and 600.', 'error');
+    input.focus();
+    return;
+  }
+  if (adGaps.indexOf(val) !== -1){
+    toast('That gap already exists.', 'error');
+    return;
+  }
+
+  adGaps.push(val);
+  input.value = '';
+  renderGaps();
+  input.focus();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LIVE SEGMENTS EDITOR
+   ═══════════════════════════════════════════════════════════════ */
+var MAX_SEGMENTS = 2;
+
+function renderSegments(){
+  var container = $('segmentsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  liveSegments.forEach(function(seg, idx){
+    var isSecond = idx === 1;
+    var card = document.createElement('div');
+    card.className = 'segment-card ' + (isSecond ? 's2' : 's1');
+
+    var removeHTML = isSecond
+      ? '<button type="button" class="segment-remove" data-remove="' + idx + '">' + icon('trash-2') + ' Remove</button>'
+      : '<span class="segment-badge">Required</span>';
+
+    card.innerHTML =
+      '<div class="segment-head">' +
+        '<span class="segment-title">' + icon('video') + ' Segment ' + (idx + 1) + (isSecond ? ' (optional)' : '') + '</span>' +
+        removeHTML +
+      '</div>' +
+      '<div class="form-group">' +
+        '<label>URL</label>' +
+        '<input type="url" class="seg-url" data-idx="' + idx + '" placeholder="YouTube, Twitch, .m3u8, MP4…" value="' + esc(seg.url || '') + '" />' +
+      '</div>' +
+      '<div class="form-row">' +
+        '<div class="form-group">' +
+          '<label>Start time</label>' +
+          '<input type="time" class="seg-start" data-idx="' + idx + '" value="' + esc(seg.startTime || '18:00') + '" />' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>End time</label>' +
+          '<input type="time" class="seg-end" data-idx="' + idx + '" value="' + esc(seg.endTime || '19:30') + '" />' +
+        '</div>' +
+      '</div>';
+
+    container.appendChild(card);
+  });
+
+  // Update Add button visibility
+  var addBtn = $('addSegmentBtn');
+  if (addBtn){
+    addBtn.style.display = liveSegments.length >= MAX_SEGMENTS ? 'none' : 'inline-flex';
+  }
+
+  refreshIcons();
+}
+
+function addSegment(){
+  if (liveSegments.length >= MAX_SEGMENTS) return;
+
+  var lastEnd = liveSegments[liveSegments.length - 1].endTime || '19:30';
+  // Start the new segment 10 minutes after the last one ends (rough default)
+  var startH = parseInt(lastEnd.split(':')[0], 10) || 19;
+  var startM = parseInt(lastEnd.split(':')[1], 10) || 30;
+  startM += 10;
+  if (startM >= 60){ startM -= 60; startH = (startH + 1) % 24; }
+  var newStart = String(startH).padStart(2, '0') + ':' + String(startM).padStart(2, '0');
+  var endH = (startH + 1) % 24;
+  var newEnd = String(endH).padStart(2, '0') + ':' + String(startM).padStart(2, '0');
+
+  liveSegments.push({ url: '', startTime: newStart, endTime: newEnd });
+  renderSegments();
+}
+
+function wireSegmentEvents(){
+  var container = $('segmentsContainer');
+  if (!container || container._wired) return;
+  container._wired = true;
+
+  container.addEventListener('input', function(e){
+    var t = e.target;
+    if (t.classList.contains('seg-url')){
+      var idx = parseInt(t.getAttribute('data-idx'), 10);
+      liveSegments[idx].url = t.value;
     }
-    return true;
+    if (t.classList.contains('seg-start')){
+      var idx2 = parseInt(t.getAttribute('data-idx'), 10);
+      liveSegments[idx2].startTime = t.value;
+    }
+    if (t.classList.contains('seg-end')){
+      var idx3 = parseInt(t.getAttribute('data-idx'), 10);
+      liveSegments[idx3].endTime = t.value;
+    }
   });
 
-  $('stCount').textContent = filtered.length + (filtered.length === 1 ? ' stream' : ' streams');
+  container.addEventListener('click', function(e){
+    var rm = e.target.closest ? e.target.closest('[data-remove]') : null;
+    if (!rm) return;
+    var idx = parseInt(rm.getAttribute('data-remove'), 10);
+    if (idx === 1){
+      liveSegments = liveSegments.slice(0, 1);
+      renderSegments();
+    }
+  });
 
-  if (!filtered.length){
+  var addBtn = $('addSegmentBtn');
+  if (addBtn && !addBtn._wired){
+    addBtn._wired = true;
+    addBtn.addEventListener('click', addSegment);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EPISODES
+   ═══════════════════════════════════════════════════════════════ */
+function renderEpisodes(){
+  var list = $('episodeList');
+  if (!list) return;
+
+  if (!episodes.length){
     list.innerHTML =
-      '<div class="empty-block">' +
-        '<i data-lucide="video-off"></i>' +
-        '<h3>No streams found</h3>' +
-        '<p>' + (searchQuery || channelFilter ? 'Try clearing filters.' : 'Create your first stream on the right.') + '</p>' +
+      '<div class="empty-block" style="padding:24px 16px;">' +
+        icon('video-off') +
+        '<h3 style="font-size:13px;">No episodes yet</h3>' +
+        '<p style="font-size:12px;">Add episodes to build your series.</p>' +
       '</div>';
     refreshIcons();
     return;
   }
 
-  var order = { live: 0, upcoming: 1, ended: 2 };
+  // Sort by season, then episode
+  episodes.sort(function(a, b){
+    var sa = parseInt(a.seasonNumber, 10) || 1;
+    var sb = parseInt(b.seasonNumber, 10) || 1;
+    if (sa !== sb) return sa - sb;
+    return (parseInt(a.episodeNumber, 10) || 1) - (parseInt(b.episodeNumber, 10) || 1);
+  });
+
+  list.innerHTML = '';
+  episodes.forEach(function(ep, idx){
+    var row = document.createElement('div');
+    row.className = 'episode-row';
+
+    var s = parseInt(ep.seasonNumber, 10) || 1;
+    var e = parseInt(ep.episodeNumber, 10) || (idx + 1);
+
+    row.innerHTML =
+      '<div class="episode-num">S' + s + 'E' + e + '</div>' +
+      '<div class="episode-info">' +
+        '<div class="episode-title">' + esc(ep.title || ('Episode ' + e)) + '</div>' +
+        '<div class="episode-meta">' + (parseInt(ep.durationMinutes, 10) || 45) + ' min</div>' +
+      '</div>' +
+      '<div class="episode-actions">' +
+        '<button type="button" class="chip-btn" data-action="edit" data-idx="' + idx + '">' + icon('pencil') + '</button>' +
+        '<button type="button" class="chip-btn" data-action="delete" data-idx="' + idx + '" style="color:var(--danger);border-color:rgba(239,68,68,.3);">' + icon('trash-2') + '</button>' +
+      '</div>';
+
+    list.appendChild(row);
+  });
+
+  list.querySelectorAll('[data-action]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var action = btn.dataset.action;
+      var idx = parseInt(btn.dataset.idx, 10);
+      if (action === 'edit') openEpisodeModal(idx);
+      if (action === 'delete') deleteEpisode(idx);
+    });
+  });
+  refreshIcons();
+}
+
+function openEpisodeModal(editIdx){
+  editingEpisodeIndex = (typeof editIdx === 'number') ? editIdx : null;
+
+  var ep = editingEpisodeIndex !== null ? episodes[editingEpisodeIndex] : null;
+
+  $('episodeModalTitle').textContent = ep ? 'Edit episode' : 'Add episode';
+  $('episodeModalSaveLabel').textContent = ep ? 'Save changes' : 'Add episode';
+
+  $('epSeason').value = ep ? (ep.seasonNumber || 1) : (episodes.length ? (episodes[episodes.length - 1].seasonNumber || 1) : 1);
+  $('epNumber').value = ep ? (ep.episodeNumber || 1) : (episodes.length ? ((parseInt(episodes[episodes.length - 1].episodeNumber, 10) || 0) + 1) : 1);
+  $('epTitle').value = ep ? (ep.title || '') : '';
+  $('epUrl').value = ep ? (ep.streamUrl || '') : '';
+  $('epDuration').value = ep ? (ep.durationMinutes || 45) : 45;
+  $('epDescription').value = ep ? (ep.description || '') : '';
+
+  $('episodeModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  refreshIcons();
+
+  setTimeout(function(){ $('epTitle').focus(); }, 200);
+}
+
+function closeEpisodeModal(){
+  $('episodeModal').classList.remove('open');
+  document.body.style.overflow = '';
+  editingEpisodeIndex = null;
+}
+
+function saveEpisode(){
+  var title = ($('epTitle').value || '').trim();
+  var url = ($('epUrl').value || '').trim();
+  var season = parseInt($('epSeason').value, 10) || 1;
+  var num = parseInt($('epNumber').value, 10) || 1;
+  var dur = parseInt($('epDuration').value, 10) || 45;
+  var desc = ($('epDescription').value || '').trim();
+
+  if (!title){
+    toast('Episode title is required.', 'error');
+    $('epTitle').focus();
+    return;
+  }
+  if (!url){
+    toast('Stream URL is required.', 'error');
+    $('epUrl').focus();
+    return;
+  }
+
+  var epData = {
+    title: title,
+    streamUrl: url,
+    seasonNumber: season,
+    episodeNumber: num,
+    durationMinutes: dur,
+    description: desc
+  };
+
+  if (editingEpisodeIndex !== null){
+    episodes[editingEpisodeIndex] = epData;
+    toast('Episode updated.', 'success');
+  } else {
+    episodes.push(epData);
+    toast('Episode added.', 'success');
+  }
+
+  renderEpisodes();
+  closeEpisodeModal();
+}
+
+function deleteEpisode(idx){
+  if (!confirm('Delete this episode?')) return;
+  episodes.splice(idx, 1);
+  renderEpisodes();
+  toast('Episode deleted.', 'success');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESET / CLEAR EDITOR
+   ═══════════════════════════════════════════════════════════════ */
+function resetEditor(){
+  editingId = null;
+  pendingPosterDataUrl = null;
+  pendingBannerDataUrl = null;
+  pendingPosterRemoved = false;
+  pendingBannerRemoved = false;
+
+  $('editorTitle').textContent = 'Create content';
+  $('saveLabel').textContent = 'Create content';
+  $('cancelEditBtn').classList.add('hidden');
+
+  // Basic fields
+  $('titleInput').value = '';
+  $('taglineInput').value = '';
+  $('descInput').value = '';
+  $('descCounter').textContent = '0 / 2000';
+  $('genreInput').value = '';
+  $('yearInput').value = '';
+  $('ratingInput').value = '';
+
+  // Live fields
+  $('liveDate').value = getTodayLocal();
+  $('liveTime').value = '18:00';
+  $('liveDuration').value = 90;
+  liveSegments = [{ url: '', startTime: '18:00', endTime: '19:30' }];
+  renderSegments();
+
+  // Movie fields
+  $('movieUrl').value = '';
+  $('movieDuration').value = 120;
+
+  // Show fields
+  episodes = [];
+  renderEpisodes();
+
+  // Ad gaps
+  adGaps = [];
+  renderGaps();
+
+  // Toggles
+  $('prerollToggle').checked = true;
+  $('postrollToggle').checked = true;
+  $('featuredToggle').checked = false;
+  $('activeToggle').checked = true;
+
+  // File inputs
+  $('posterFile').value = '';
+  $('bannerFile').value = '';
+
+  // Type
+  setType('live');
+
+  renderPosterPreview();
+  renderBannerPreview();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOAD EXISTING FOR EDIT
+   ═══════════════════════════════════════════════════════════════ */
+function loadForEdit(item){
+  editingId = item.id;
+  pendingPosterDataUrl = null;
+  pendingBannerDataUrl = null;
+  pendingPosterRemoved = false;
+  pendingBannerRemoved = false;
+
+  $('editorTitle').textContent = 'Edit "' + (item.title || 'content') + '"';
+  $('saveLabel').textContent = 'Save changes';
+  $('cancelEditBtn').classList.remove('hidden');
+
+  // Type
+  setType(item.type || 'live');
+
+  // Basic
+  $('titleInput').value = item.title || '';
+  $('taglineInput').value = item.tagline || '';
+  $('descInput').value = item.description || '';
+  $('descCounter').textContent = (item.description || '').length + ' / 2000';
+  $('genreInput').value = item.genre || '';
+  $('yearInput').value = item.year || '';
+  $('ratingInput').value = item.rating || '';
+
+  // Live
+  if (item.type === 'live' || !item.type){
+    $('liveDate').value = item.startDate || getTodayLocal();
+    $('liveTime').value = item.startTime || '18:00';
+    $('liveDuration').value = item.durationMinutes || 90;
+
+    if (Array.isArray(item.segments) && item.segments.length){
+      liveSegments = item.segments.map(function(s){
+        return {
+          url: s.url || '',
+          startTime: s.startTime || '18:00',
+          endTime: s.endTime || '19:30'
+        };
+      });
+    } else if (item.streamUrl){
+      liveSegments = [{
+        url: item.streamUrl,
+        startTime: item.startTime || '18:00',
+        endTime: '19:30'
+      }];
+    } else {
+      liveSegments = [{ url: '', startTime: '18:00', endTime: '19:30' }];
+    }
+    renderSegments();
+  }
+
+  // Movie
+  if (item.type === 'movie'){
+    $('movieUrl').value = item.streamUrl || '';
+    $('movieDuration').value = item.durationMinutes || 120;
+  }
+
+  // Show
+  if (item.type === 'show'){
+    episodes = Array.isArray(item.episodes) ? item.episodes.slice() : [];
+    renderEpisodes();
+  }
+
+  // Ad gaps
+  adGaps = Array.isArray(item.adGaps) ? item.adGaps.slice() : [];
+  renderGaps();
+
+  // Toggles
+  $('prerollToggle').checked = item.prerollEnabled !== false;
+  $('postrollToggle').checked = item.postrollEnabled !== false;
+  $('featuredToggle').checked = item.featured === true;
+  $('activeToggle').checked = item.active !== false;
+
+  renderPosterPreview();
+  renderBannerPreview();
+
+  // Scroll editor into view on mobile
+  $('editorCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  refreshIcons();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER CONTENT LIST
+   ═══════════════════════════════════════════════════════════════ */
+function computeStreamStatus(item){
+  if (item.type === 'movie' || item.type === 'show') return 'on-demand';
+  if (!item.startDate) return 'upcoming';
+
+  var startMs = new Date(item.startDate + 'T' + (item.startTime || '00:00') + ':00').getTime();
+  if (isNaN(startMs)) return 'upcoming';
+  var dur = (parseInt(item.durationMinutes, 10) || 90) * 60000;
+  var endMs = startMs + dur;
+  var now = Date.now();
+
+  if (now < startMs) return 'upcoming';
+  if (now <= endMs) return 'live';
+  return 'ended';
+}
+
+function renderContentList(){
+  var list = $('contentList');
+
+  // Update tab counts
+  var counts = { all: 0, live: 0, movie: 0, show: 0 };
+  allContent.forEach(function(item){
+    counts.all++;
+    var t = item.type || 'live';
+    if (counts[t] !== undefined) counts[t]++;
+  });
+  $('cntAll').textContent = counts.all;
+  $('cntLive').textContent = counts.live;
+  $('cntMovies').textContent = counts.movie;
+  $('cntShows').textContent = counts.show;
+  $('contentCount').textContent = counts.all + ' item' + (counts.all === 1 ? '' : 's');
+
+  // Filter
+  var filtered = allContent.slice();
+
+  if (activeFilter !== 'all'){
+    filtered = filtered.filter(function(item){
+      return (item.type || 'live') === activeFilter;
+    });
+  }
+
+  if (searchQuery){
+    var q = searchQuery.toLowerCase();
+    filtered = filtered.filter(function(item){
+      return String(item.title || '').toLowerCase().indexOf(q) !== -1;
+    });
+  }
+
+  if (!filtered.length){
+    list.innerHTML =
+      '<div class="empty-block">' +
+        icon('inbox') +
+        '<h3>No content found</h3>' +
+        '<p>' + (searchQuery ? 'Try a different search.' : 'Create your first item on the right.') + '</p>' +
+      '</div>';
+    refreshIcons();
+    return;
+  }
+
+  // Sort: live first, then upcoming, then movies/shows, then ended
+  var order = { live: 0, upcoming: 1, 'on-demand': 2, ended: 3 };
   filtered.sort(function(a, b){
-    var sa = streamStatus(a), sb = streamStatus(b);
+    var sa = computeStreamStatus(a);
+    var sb = computeStreamStatus(b);
     if (order[sa] !== order[sb]) return order[sa] - order[sb];
     return String(b.startDate || '').localeCompare(String(a.startDate || ''));
   });
 
   list.innerHTML = '';
-  filtered.forEach(function(s){
-    list.appendChild(buildStreamItem(s));
+  filtered.forEach(function(item){
+    list.appendChild(buildContentItem(item));
   });
   refreshIcons();
 }
 
-function buildStreamItem(s){
+function buildContentItem(item){
   var el = document.createElement('div');
-  el.className = 'st-item';
+  el.className = 'content-item';
 
-  var status = streamStatus(s);
-  var title = s.streamTitle || s.eventName || 'Untitled Stream';
-  var channel = allChannels.find(function(c){ return c.id === s.channelId; });
-  var channelName = channel ? (channel.name || 'Channel') : '—';
-  var tier = tierBadge(s);
-  var platform = platformFromStream(s);
+  var type = item.type || 'live';
+  var status = computeStreamStatus(item);
+  var title = item.title || item.streamTitle || 'Untitled';
+  var poster = item.posterUrl || item.heroImage || '';
 
-  var thumbStyle = s.heroImage
-    ? "background-image:url('" + esc(s.heroImage) + "');background-size:cover;background-position:center;"
-    : '';
+  var thumbHTML = poster
+    ? '<div class="content-thumb" style="background-image:url(\'' + esc(poster) + '\');"></div>'
+    : '<div class="content-thumb">' + icon('video') + '</div>';
 
-  var thumbHTML = s.heroImage
-    ? '<div class="st-thumb" style="' + thumbStyle + '"></div>'
-    : '<div class="st-thumb"><i data-lucide="video"></i></div>';
+  // Type badge
+  var typeBadges = {
+    live: '<span class="badge live">Live</span>',
+    movie: '<span class="badge movie">Movie</span>',
+    show: '<span class="badge show">Show</span>'
+  };
 
-  var statusLabel = { live: 'Live', upcoming: 'Upcoming', ended: 'Ended' }[status];
+  // Status badge
+  var statusBadges = {
+    live: '<span class="badge live">Live now</span>',
+    upcoming: '<span class="badge upcoming">Upcoming</span>',
+    ended: '<span class="badge ended">Ended</span>',
+    'on-demand': '<span class="badge movie">On demand</span>'
+  };
+
+  var metaParts = [];
+  metaParts.push(typeBadges[type] || '');
+  metaParts.push(statusBadges[status] || '');
+  if (item.genre) metaParts.push('<span>' + esc(item.genre) + '</span>');
+  if (item.year) metaParts.push('<span>' + esc(item.year) + '</span>');
+  if (type === 'show' && Array.isArray(item.episodes)){
+    metaParts.push('<span>' + item.episodes.length + ' episode' + (item.episodes.length === 1 ? '' : 's') + '</span>');
+  } else if (item.startDate){
+    metaParts.push('<span>' + esc(item.startDate) + '</span>');
+  }
 
   el.innerHTML =
     thumbHTML +
-    '<div class="st-info">' +
-      '<div class="st-title">' + esc(title) + '</div>' +
-      '<div class="st-meta">' +
-        '<span class="badge ' + status + '">' + statusLabel + '</span>' +
-        '<span class="badge ' + tier.cls + '">' + esc(tier.label) + '</span>' +
-        '<span>' + esc(channelName) + '</span>' +
-        '<span>' + esc(prettyDate(s.startDate, s.startTime)) + '</span>' +
-        '<span>' + esc(platformLabel(platform)) + '</span>' +
-      '</div>' +
+    '<div class="content-info">' +
+      '<div class="content-title">' + esc(title) + '</div>' +
+      '<div class="content-meta">' + metaParts.join('') + '</div>' +
     '</div>' +
-    '<div class="st-actions">' +
-      '<button type="button" class="btn ghost sm" data-action="edit" data-id="' + esc(s.id) + '" title="Edit">' +
-        '<i data-lucide="pencil"></i>' +
-      '</button>' +
-      '<button type="button" class="btn ghost sm" data-action="preview" data-id="' + esc(s.id) + '" title="Preview">' +
-        '<i data-lucide="external-link"></i>' +
-      '</button>' +
-      '<button type="button" class="btn danger sm" data-action="delete" data-id="' + esc(s.id) + '" title="Delete">' +
-        '<i data-lucide="trash-2"></i>' +
-      '</button>' +
+    '<div class="content-actions">' +
+      '<button type="button" class="chip-btn" data-action="view" data-id="' + esc(item.id) + '" title="Preview">' + icon('external-link') + '</button>' +
+      '<button type="button" class="chip-btn" data-action="edit" data-id="' + esc(item.id) + '" title="Edit">' + icon('pencil') + '</button>' +
+      '<button type="button" class="chip-btn" data-action="delete" data-id="' + esc(item.id) + '" style="color:var(--danger);border-color:rgba(239,68,68,.3);" title="Delete">' + icon('trash-2') + '</button>' +
     '</div>';
 
   el.querySelectorAll('[data-action]').forEach(function(btn){
     btn.addEventListener('click', function(){
-      var action = this.dataset.action;
-      var id = this.dataset.id;
-      if (action === 'edit') startEdit(id);
-      else if (action === 'delete') deleteStream(id);
-      else if (action === 'preview'){
+      var action = btn.dataset.action;
+      var id = btn.dataset.id;
+      var found = allContent.find(function(c){ return c.id === id; });
+      if (!found) return;
+
+      if (action === 'edit'){
+        loadForEdit(found);
+      } else if (action === 'view'){
         window.open('watch-847291563.html?id=' + encodeURIComponent(id), '_blank');
+      } else if (action === 'delete'){
+        deleteContent(found);
       }
     });
   });
@@ -1184,176 +2626,13 @@ function buildStreamItem(s){
   return el;
 }
 
-function startEdit(id){
-  var s = allStreams.find(function(x){ return x.id === id; });
-  if (!s) return;
+function deleteContent(item){
+  if (!confirm('Delete "' + (item.title || 'this content') + '"?\n\nThis cannot be undone.')) return;
 
-  editingId = id;
-
-  $('editorTitle').textContent = 'Edit stream';
-  $('saveLabel').textContent = 'Save changes';
-  $('editorHint').textContent = 'Editing ' + (s.streamTitle || 'stream');
-  $('cancelEditBtn').classList.remove('hidden');
-
-  $('stChannel').value = s.channelId || '';
-  $('stTitle').value = s.streamTitle || s.eventName || '';
-  $('stUrl').value = s.streamUrl || s.hlsUrl || '';
-  $('stDate').value = s.startDate || today();
-  $('stTime').value = s.startTime || '18:00';
-  $('stDuration').value = s.durationMinutes || 90;
-  $('stActive').value = String(s.active !== false);
-  $('stDesc').value = s.eventDescription || s.streamDescription || '';
-
-  var tiers = s.accessTiers;
-  if (!tiers || (tiers.length === 1 && tiers[0] === 'inherit')){
-    selectedTier = 'inherit';
-  } else if (tiers.length === 1){
-    selectedTier = tiers[0];
-  } else {
-    var order = ['free', 'starter', 'standard', 'premium', 'elite'];
-    var min = tiers[0];
-    tiers.forEach(function(t){
-      if (order.indexOf(t) < order.indexOf(min)) min = t;
-    });
-    selectedTier = min;
-  }
-
-  renderTierPicker();
-  updatePlatformHint();
-
-  $('editorCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function resetEditor(){
-  editingId = null;
-  selectedTier = 'inherit';
-
-  $('editorTitle').textContent = 'Create stream';
-  $('saveLabel').textContent = 'Create stream';
-  $('editorHint').textContent = 'Ready to create';
-  $('cancelEditBtn').classList.add('hidden');
-
-  $('stChannel').value = '';
-  $('stTitle').value = '';
-  $('stUrl').value = '';
-  $('stDate').value = today();
-  $('stTime').value = '18:00';
-  $('stDuration').value = 90;
-  $('stActive').value = 'true';
-  $('stDesc').value = '';
-
-  renderTierPicker();
-  updatePlatformHint();
-}
-
-function updatePlatformHint(){
-  var url = ($('stUrl').value || '').trim();
-  var hint = $('platformHint');
-  var text = $('platformHintText');
-
-  if (!url){
-    hint.classList.add('hidden');
-    return;
-  }
-
-  var p = detectPlatform(url);
-  hint.classList.remove('hidden');
-  hint.className = 'platform-hint detected';
-  text.textContent = 'Detected: ' + platformLabel(p);
-}
-
-function saveStream(){
-  var channelId = $('stChannel').value;
-  var title = ($('stTitle').value || '').trim();
-  var url = ($('stUrl').value || '').trim();
-  var date = $('stDate').value;
-  var time = $('stTime').value;
-  var duration = parseInt($('stDuration').value, 10) || 90;
-  var active = $('stActive').value === 'true';
-  var desc = ($('stDesc').value || '').trim();
-
-  if (!channelId){
-    toast('Please choose a channel.', 'error');
-    $('stChannel').focus();
-    return;
-  }
-  if (!title){
-    toast('Stream title is required.', 'error');
-    $('stTitle').focus();
-    return;
-  }
-  if (!url){
-    toast('Stream URL is required.', 'error');
-    $('stUrl').focus();
-    return;
-  }
-  if (!date){
-    toast('Start date is required.', 'error');
-    $('stDate').focus();
-    return;
-  }
-
-  var accessTiers;
-  if (selectedTier === 'inherit'){
-    accessTiers = ['inherit'];
-  } else {
-    accessTiers = [selectedTier];
-  }
-
-  var platform = detectPlatform(url);
-
-  var payload = {
-    channelId: channelId,
-    streamTitle: title,
-    eventName: title,
-    streamUrl: url,
-    streamPlatform: platform,
-    startDate: date,
-    startTime: time,
-    durationMinutes: duration,
-    eventDescription: desc,
-    accessTiers: accessTiers,
-    active: active,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-
-  var btn = $('saveBtn');
-  var orig = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Saving…';
-
-  var promise;
-  if (editingId){
-    promise = db.collection('streams').doc(editingId).update(payload);
-  } else {
-    payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-    payload.ownerUid = currentUser.uid;
-    payload.ownerEmail = currentUser.email || '';
-    promise = db.collection('streams').add(payload);
-  }
-
-  promise.then(function(){
-    toast(editingId ? 'Stream updated.' : 'Stream created.', 'success');
-    resetEditor();
-  }).catch(function(err){
-    console.error('[save stream]', err);
-    toast('Save failed: ' + (err.message || 'unknown'), 'error', 5000);
-    btn.disabled = false;
-    btn.innerHTML = orig;
-    refreshIcons();
-  });
-}
-
-function deleteStream(id){
-  var s = allStreams.find(function(x){ return x.id === id; });
-  if (!s) return;
-  var title = s.streamTitle || s.eventName || 'this stream';
-  if (!confirm('Delete "' + title + '"?\n\nThis cannot be undone.')) return;
-
-  db.collection('streams').doc(id).delete()
+  db.collection(STREAMS).doc(item.id).delete()
     .then(function(){
-      toast('Stream deleted.', 'success');
-      if (editingId === id) resetEditor();
+      toast('Content deleted.', 'success');
+      if (editingId === item.id) resetEditor();
     })
     .catch(function(err){
       console.error('[delete]', err);
@@ -1361,80 +2640,403 @@ function deleteStream(id){
     });
 }
 
-function attachStreamListener(){
-  if (unsubStreams) { try { unsubStreams(); } catch(e){} }
-  unsubStreams = db.collection('streams')
+/*
+  ═══════════════════════════════════════════════════════════════
+  STOP HERE
+  ═══════════════════════════════════════════════════════════════
+  Part 2 (this message) is DONE.
+
+  Reply "next" for Part 3 (JavaScript part 2 — save logic, form
+  validation, real-time listener, tab filtering, search, auth
+  gate, boot code).
+
+  Do NOT save yet — the <script> tag is still open.
+  ═══════════════════════════════════════════════════════════════
+*/
+ /* ═══════════════════════════════════════════════════════════════
+   SAVE CONTENT
+   ═══════════════════════════════════════════════════════════════ */
+function validateForm(){
+  var title = ($('titleInput').value || '').trim();
+  if (!title){
+    toast('Title is required.', 'error');
+    $('titleInput').focus();
+    return false;
+  }
+
+  if (currentType === 'live'){
+    var date = $('liveDate').value;
+    var time = $('liveTime').value;
+    if (!date){ toast('Date is required for live streams.', 'error'); $('liveDate').focus(); return false; }
+    if (!time){ toast('Start time is required.', 'error'); $('liveTime').focus(); return false; }
+
+    // Validate segments
+    var validSegs = liveSegments.filter(function(s){ return (s.url || '').trim() !== ''; });
+    if (!validSegs.length){
+      toast('At least one stream URL is required.', 'error');
+      return false;
+    }
+    for (var i = 0; i < validSegs.length; i++){
+      if (!validSegs[i].startTime || !validSegs[i].endTime){
+        toast('Segment ' + (i + 1) + ': start and end times are required.', 'error');
+        return false;
+      }
+    }
+  }
+
+  if (currentType === 'movie'){
+    var mUrl = ($('movieUrl').value || '').trim();
+    if (!mUrl){ toast('Stream URL is required.', 'error'); $('movieUrl').focus(); return false; }
+    var mDur = parseInt($('movieDuration').value, 10);
+    if (!mDur || mDur < 1){ toast('Duration is required.', 'error'); $('movieDuration').focus(); return false; }
+  }
+
+  if (currentType === 'show'){
+    if (!episodes.length){ toast('Add at least one episode.', 'error'); return false; }
+    for (var j = 0; j < episodes.length; j++){
+      if (!episodes[j].title || !episodes[j].streamUrl){
+        toast('Episode ' + (j + 1) + ': title and URL are required.', 'error');
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+function saveContent(){
+  if (isSaving) return;
+  if (!currentUser || !isAdmin(currentUser)){
+    toast('Admin only.', 'error');
+    return;
+  }
+  if (!validateForm()) return;
+
+  isSaving = true;
+
+  var btn = $('saveBtn');
+  var label = $('saveLabel');
+  var origLabel = label.textContent;
+  btn.disabled = true;
+  label.innerHTML = '<span class="spinner"></span> Saving…';
+
+  var title = ($('titleInput').value || '').trim();
+  var tagline = ($('taglineInput').value || '').trim();
+  var description = ($('descInput').value || '').trim();
+  var genre = $('genreInput').value;
+  var year = parseInt($('yearInput').value, 10) || null;
+  var rating = $('ratingInput').value;
+
+  var posterUrl = pendingPosterDataUrl;
+  if (!posterUrl && editingId && !pendingPosterRemoved){
+    var existing = allContent.find(function(c){ return c.id === editingId; });
+    posterUrl = existing ? (existing.posterUrl || '') : '';
+  }
+  if (pendingPosterRemoved) posterUrl = '';
+
+  var bannerUrl = pendingBannerDataUrl;
+  if (!bannerUrl && editingId && !pendingBannerRemoved){
+    var existing2 = allContent.find(function(c){ return c.id === editingId; });
+    bannerUrl = existing2 ? (existing2.bannerUrl || '') : '';
+  }
+  if (pendingBannerRemoved) bannerUrl = '';
+
+  var payload = {
+    type: currentType,
+    title: title,
+    streamTitle: title,
+    eventName: title,
+    tagline: tagline,
+    eventTagline: tagline,
+    description: description,
+    eventDescription: description,
+    genre: genre,
+    year: year,
+    rating: rating,
+    posterUrl: posterUrl,
+    heroImage: posterUrl,
+    bannerUrl: bannerUrl,
+    adGaps: adGaps.slice().sort(function(a, b){ return a - b; }),
+    prerollEnabled: $('prerollToggle').checked,
+    postrollEnabled: $('postrollToggle').checked,
+    featured: $('featuredToggle').checked,
+    active: $('activeToggle').checked,
+    ownerUid: currentUser.uid,
+    ownerEmail: currentUser.email || '',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  // Type-specific fields
+  if (currentType === 'live'){
+    payload.startDate = $('liveDate').value;
+    payload.startTime = $('liveTime').value;
+    payload.durationMinutes = parseInt($('liveDuration').value, 10) || 90;
+
+    // Segments
+    var validSegs = liveSegments.filter(function(s){ return (s.url || '').trim() !== ''; });
+    payload.segments = validSegs.map(function(s){
+      return { url: s.url.trim(), startTime: s.startTime, endTime: s.endTime };
+    });
+    // Legacy single-URL fields for backward compat
+    payload.streamUrl = validSegs[0] ? validSegs[0].url.trim() : '';
+    payload.streamPlatform = detectPlatformFromUrl(payload.streamUrl);
+  }
+
+  if (currentType === 'movie'){
+    payload.streamUrl = ($('movieUrl').value || '').trim();
+    payload.streamPlatform = detectPlatformFromUrl(payload.streamUrl);
+    payload.durationMinutes = parseInt($('movieDuration').value, 10) || 120;
+    payload.replayEnabled = false; // movies are on-demand
+  }
+
+  if (currentType === 'show'){
+    payload.episodes = episodes.map(function(ep){
+      return {
+        title: ep.title,
+        streamUrl: ep.streamUrl,
+        streamPlatform: detectPlatformFromUrl(ep.streamUrl),
+        seasonNumber: parseInt(ep.seasonNumber, 10) || 1,
+        episodeNumber: parseInt(ep.episodeNumber, 10) || 1,
+        durationMinutes: parseInt(ep.durationMinutes, 10) || 45,
+        description: ep.description || ''
+      };
+    });
+    payload.replayEnabled = false; // shows are on-demand
+  }
+
+  var ref;
+  var isNew = !editingId;
+  if (isNew){
+    ref = db.collection(STREAMS).doc();
+    payload.id = ref.id;
+    payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+  } else {
+    ref = db.collection(STREAMS).doc(editingId);
+  }
+
+  ref.set(payload, { merge: true })
+    .then(function(){
+      // CRITICAL: reset button state BEFORE resetEditor()
+      btn.disabled = false;
+      label.textContent = origLabel;
+      refreshIcons();
+
+      toast(isNew ? 'Content created.' : 'Content updated.', 'success');
+      resetEditor();
+      isSaving = false;
+    })
+    .catch(function(err){
+      console.error('[save]', err);
+      toast('Save failed: ' + (err.message || 'unknown'), 'error', 5000);
+      btn.disabled = false;
+      label.textContent = origLabel;
+      isSaving = false;
+      refreshIcons();
+    });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PLATFORM DETECTION (helper used in save)
+   ═══════════════════════════════════════════════════════════════ */
+function detectPlatformFromUrl(url){
+  if (!url) return 'custom';
+  var u = String(url).toLowerCase().trim();
+  if (u.indexOf('youtube.com') !== -1 || u.indexOf('youtu.be') !== -1) return 'youtube';
+  if (u.indexOf('twitch.tv') !== -1) return 'twitch';
+  if (u.indexOf('vimeo.com') !== -1) return 'vimeo';
+  if (u.indexOf('facebook.com') !== -1) return 'facebook';
+  if (u.indexOf('kick.com') !== -1) return 'kick';
+  if (u.indexOf('rumble.com') !== -1) return 'rumble';
+  if (u.indexOf('dailymotion.com') !== -1) return 'dailymotion';
+  if (/\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(u)) return 'video-file';
+  if (u.indexOf('.m3u8') !== -1) return 'native-hls';
+  if (u.indexOf('.mpd') !== -1) return 'native-dash';
+  if (u.indexOf('.ts') !== -1) return 'native-mpegts';
+  return 'custom';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REAL-TIME LISTENER
+   ═══════════════════════════════════════════════════════════════ */
+function attachListener(){
+  if (unsubContent){
+    try { unsubContent(); } catch(e){}
+  }
+  unsubContent = db.collection(STREAMS)
     .limit(500)
     .onSnapshot(function(snap){
-      allStreams = [];
+      allContent = [];
       snap.forEach(function(doc){
         var d = doc.data() || {};
         d.id = doc.id;
-        allStreams.push(d);
+        allContent.push(d);
       });
-      renderStreams();
+      renderContentList();
     }, function(err){
-      console.error('[streams]', err);
-      toast('Could not load streams.', 'error');
+      console.error('[content]', err);
+      toast('Could not load content: ' + (err.message || ''), 'error', 5000);
     });
 }
 
-function attachChannelListener(){
-  if (unsubChannels) { try { unsubChannels(); } catch(e){} }
-  unsubChannels = db.collection('channels')
-    .limit(200)
-    .onSnapshot(function(snap){
-      allChannels = [];
-      snap.forEach(function(doc){
-        var d = doc.data() || {};
-        d.id = doc.id;
-        allChannels.push(d);
+/* ═══════════════════════════════════════════════════════════════
+   TAB FILTERS
+   ═══════════════════════════════════════════════════════════════ */
+function wireTabs(){
+  document.querySelectorAll('.tabs .tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      activeFilter = tab.dataset.filter;
+      document.querySelectorAll('.tabs .tab').forEach(function(t){
+        t.classList.toggle('active', t === tab);
       });
-      allChannels.sort(function(a, b){
-        return String(a.name || '').localeCompare(String(b.name || ''));
-      });
-      populateChannelDropdowns();
-      renderStreams();
-    }, function(err){
-      console.error('[channels]', err);
+      renderContentList();
     });
+  });
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   SEARCH
+   ═══════════════════════════════════════════════════════════════ */
+function wireSearch(){
+  var input = $('searchInput');
+  var timer = null;
+  input.addEventListener('input', function(){
+    var v = this.value.trim();
+    clearTimeout(timer);
+    timer = setTimeout(function(){
+      searchQuery = v;
+      renderContentList();
+    }, 200);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   POSTER + BANNER UPLOAD WIRING
+   ═══════════════════════════════════════════════════════════════ */
+function wireImageUploads(){
+  // Poster
+  $('posterPreview').addEventListener('click', function(){ $('posterFile').click(); });
+  $('posterPreview').addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); $('posterFile').click(); }
+  });
+  $('choosePosterBtn').addEventListener('click', function(e){
+    e.stopPropagation();
+    $('posterFile').click();
+  });
+  $('clearPosterBtn').addEventListener('click', function(e){
+    e.stopPropagation();
+    pendingPosterDataUrl = null;
+    pendingPosterRemoved = true;
+    renderPosterPreview();
+  });
+  $('posterFile').addEventListener('change', function(e){
+    var f = e.target.files && e.target.files[0];
+    if (!f) return;
+    fileToPosterDataUrl(f).then(function(dataUrl){
+      pendingPosterDataUrl = dataUrl;
+      pendingPosterRemoved = false;
+      renderPosterPreview();
+      toast('Poster ready.', 'success', 1600);
+    }).catch(function(err){
+      toast(err.message, 'error', 4000);
+    });
+    e.target.value = '';
+  });
+
+  // Banner
+  $('bannerPreview').addEventListener('click', function(){ $('bannerFile').click(); });
+  $('bannerPreview').addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); $('bannerFile').click(); }
+  });
+  $('chooseBannerBtn').addEventListener('click', function(e){
+    e.stopPropagation();
+    $('bannerFile').click();
+  });
+  $('clearBannerBtn').addEventListener('click', function(e){
+    e.stopPropagation();
+    pendingBannerDataUrl = null;
+    pendingBannerRemoved = true;
+    renderBannerPreview();
+  });
+  $('bannerFile').addEventListener('change', function(e){
+    var f = e.target.files && e.target.files[0];
+    if (!f) return;
+    fileToBannerDataUrl(f).then(function(dataUrl){
+      pendingBannerDataUrl = dataUrl;
+      pendingBannerRemoved = false;
+      renderBannerPreview();
+      toast('Banner ready.', 'success', 1600);
+    }).catch(function(err){
+      toast(err.message, 'error', 4000);
+    });
+    e.target.value = '';
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EPISODE MODAL WIRING
+   ═══════════════════════════════════════════════════════════════ */
+function wireEpisodeModal(){
+  $('addEpisodeBtn').addEventListener('click', function(){ openEpisodeModal(null); });
+  $('episodeModalClose').addEventListener('click', closeEpisodeModal);
+  $('episodeModalCancel').addEventListener('click', closeEpisodeModal);
+  $('episodeModalSave').addEventListener('click', saveEpisode);
+  $('episodeModal').addEventListener('click', function(e){
+    if (e.target === $('episodeModal')) closeEpisodeModal();
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTH GATE
+   ═══════════════════════════════════════════════════════════════ */
+function showState(name){
+  $('loadingState').classList.toggle('hidden', name !== 'loading');
+  $('accessDenied').classList.toggle('hidden', name !== 'denied');
+  $('signinRequired').classList.toggle('hidden', name !== 'signin');
+  $('contentState').classList.toggle('hidden', name !== 'content');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function(){
   var yearEl = $('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
   refreshIcons();
 
-  $('stDate').value = today();
-
-  var urlInput = $('stUrl');
-  var urlTimer = null;
-  urlInput.addEventListener('input', function(){
-    clearTimeout(urlTimer);
-    urlTimer = setTimeout(updatePlatformHint, 300);
+  // Type picker
+  document.querySelectorAll('#typePicker .type-opt').forEach(function(btn){
+    btn.addEventListener('click', function(){ setType(btn.dataset.type); });
   });
 
-  var searchTimer = null;
-  $('searchInput').addEventListener('input', function(){
-    var v = this.value.trim();
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(function(){
-      searchQuery = v;
-      renderStreams();
-    }, 200);
+  // Wire everything
+  wireTabs();
+  wireSearch();
+  wireImageUploads();
+  wireSegmentEvents();
+  wireEpisodeModal();
+
+  // Gap add button
+  $('addGapBtn').addEventListener('click', addGap);
+  $('gapInput').addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); addGap(); }
   });
 
-  $('channelFilter').addEventListener('change', function(){
-    channelFilter = this.value;
-    renderStreams();
-  });
-
-  $('saveBtn').addEventListener('click', saveStream);
+  // Save button
+  $('saveBtn').addEventListener('click', saveContent);
   $('cancelEditBtn').addEventListener('click', resetEditor);
 
+  // Description counter
+  var desc = $('descInput');
+  desc.addEventListener('input', function(){
+    $('descCounter').textContent = desc.value.length + ' / 2000';
+  });
+
+  // Reset editor with defaults
+  resetEditor();
+
+  // Check auth
   if (!firebaseReady || !auth){
-    $('loadingState').classList.add('hidden');
-    $('accessDenied').classList.remove('hidden');
+    showState('denied');
     return;
   }
 
@@ -1442,30 +3044,22 @@ document.addEventListener('DOMContentLoaded', function(){
     currentUser = user;
 
     if (!user){
-      $('loadingState').classList.add('hidden');
-      $('signinRequired').classList.remove('hidden');
+      showState('signin');
       return;
     }
+
     if (!isAdmin(user)){
-      $('loadingState').classList.add('hidden');
-      $('accessDenied').classList.remove('hidden');
+      showState('denied');
       return;
     }
 
-    $('loadingState').classList.add('hidden');
-    $('signinRequired').classList.add('hidden');
-    $('accessDenied').classList.add('hidden');
-    $('contentState').classList.remove('hidden');
-
-    renderTierPicker();
-    updatePlatformHint();
-    attachChannelListener();
-    attachStreamListener();
+    showState('content');
+    attachListener();
+    resetEditor();
   });
 
   window.addEventListener('beforeunload', function(){
-    if (unsubStreams) { try { unsubStreams(); } catch(e){} }
-    if (unsubChannels) { try { unsubChannels(); } catch(e){} }
+    if (unsubContent){ try { unsubContent(); } catch(e){} }
   });
 });
 
