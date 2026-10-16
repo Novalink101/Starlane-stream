@@ -67,9 +67,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .container{max-width:var(--container);margin:0 auto;padding:0 24px;width:100%}
 @media (max-width:560px){.container{padding:0 16px}}
 
-/* ═══════════════════════════════════════════════════════════════
-   STARFIELD BACKGROUND
-   ═══════════════════════════════════════════════════════════════ */
 .starfield{
   position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
@@ -109,7 +106,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   50%{opacity:.4}
 }
 
-/* Comet */
 .comet{
   position:fixed;top:0;left:0;
   width:140px;height:2px;
@@ -135,9 +131,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   100%{top:110%;left:120%;opacity:0}
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   NAV
-   ═══════════════════════════════════════════════════════════════ */
 .nav{
   position:sticky;top:0;z-index:50;
   background:rgba(5,5,8,.85);
@@ -195,9 +188,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   .nav-btn{padding:9px 12px}
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   HERO
-   ═══════════════════════════════════════════════════════════════ */
 .hero{
   position:relative;
   padding:80px 0 96px;
@@ -333,9 +323,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .hero-prices a{color:var(--red);font-weight:900}
 .hero-prices a:hover{text-decoration:underline}
 
-/* ═══════════════════════════════════════════════════════════════
-   SECTIONS
-   ═══════════════════════════════════════════════════════════════ */
 .section{padding:56px 0}
 .section + .section{padding-top:0}
 @media (max-width:640px){.section{padding:40px 0}}
@@ -373,9 +360,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .section-link svg{width:14px;height:14px;transition:transform .2s}
 .section-link:hover svg{transform:translateX(2px)}
 
-/* ═══════════════════════════════════════════════════════════════
-   CARDS — CHANNELS
-   ═══════════════════════════════════════════════════════════════ */
 .row{
   display:flex;gap:16px;overflow-x:auto;
   padding:8px 4px 20px;margin:0 -4px;
@@ -462,9 +446,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .channel-tag.free{background:rgba(16,185,129,.18);color:#10B981;border:1px solid rgba(16,185,129,.4)}
 .channel-tag.paid{background:rgba(229,9,20,.15);color:var(--red);border:1px solid var(--red-border)}
 
-/* ═══════════════════════════════════════════════════════════════
-   STREAM CARDS
-   ═══════════════════════════════════════════════════════════════ */
 .stream-card{
   flex:0 0 300px;scroll-snap-align:start;
   background:var(--surface);
@@ -551,14 +532,10 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 }
 .stream-meta svg{width:13px;height:13px;flex-shrink:0;color:var(--red)}
 
-/* ═══════════════════════════════════════════════════════════════
-   LOCKED OVERLAY
-   ═══════════════════════════════════════════════════════════════ */
 .locked-thumb .stream-thumb::before{
-  content:'🔒';
+  content:'\1F512';
   position:absolute;z-index:2;
   font-size:32px;
-  filter:blur(0);
 }
 .locked-thumb .stream-thumb::after{
   background:rgba(5,5,8,.7);
@@ -572,9 +549,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 }
 .locked-thumb .play-ico svg{color:var(--red);fill:var(--red)}
 
-/* ═══════════════════════════════════════════════════════════════
-   FEATURES
-   ═══════════════════════════════════════════════════════════════ */
 .features{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -624,9 +598,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   line-height:1.6;font-weight:500;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   FOOTER
-   ═══════════════════════════════════════════════════════════════ */
 .footer{
   background:#020204;
   border-top:1px solid var(--border);
@@ -684,9 +655,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 .footer-bottom a{color:var(--text-3)}
 .footer-bottom a:hover{color:var(--red)}
 
-/* ═══════════════════════════════════════════════════════════════
-   LOADING
-   ═══════════════════════════════════════════════════════════════ */
 .skeleton-card{
   flex:0 0 220px;
   background:var(--surface);
@@ -729,9 +697,6 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
   line-height:1.6;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   TOAST
-   ═══════════════════════════════════════════════════════════════ */
 #toast{
   position:fixed;bottom:28px;left:50%;
   transform:translateX(-50%) translateY(140%);
@@ -773,17 +738,15 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
             <stop offset="0%" stop-color="#E50914"/>
             <stop offset="100%" stop-color="#FF5566"/>
           </linearGradient>
-        </defs>
-        <path d="M10 60 Q 22 32 44 20" stroke="url(#starGrad)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
-        <path d="M16 62 Q 26 40 46 26" stroke="url(#starGrad)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
-        <circle cx="46" cy="18" r="5" fill="#fff" filter="url(#glow)"/>
-        <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
-        <defs>
           <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="2" result="blur"/>
             <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
         </defs>
+        <path d="M10 60 Q 22 32 44 20" stroke="url(#starGrad)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+        <path d="M16 62 Q 26 40 46 26" stroke="url(#starGrad)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+        <circle cx="46" cy="18" r="5" fill="#fff" filter="url(#glow)"/>
+        <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
       </svg>
       <b>STAR<span>LANE</span></b>
     </a>
@@ -979,9 +942,7 @@ h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
 (function(){
 'use strict';
 
-/* ═══════════════════════════════════════════════════════════════
-   FIREBASE CONFIG — starlane-stream
-   ═══════════════════════════════════════════════════════════════ */
+// Firebase configuration
 var firebaseConfig = {
   apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
   authDomain: "starlane-stream.firebaseapp.com",
@@ -1197,7 +1158,6 @@ function loadHomepage(){
         streams.push(d);
       });
 
-      var now = Date.now();
       var live = streams.filter(function(s){ return streamStatus(s).status === 'live'; });
       var trending = streams.slice().sort(function(a, b){
         return (b.views || 0) - (a.views || 0);
@@ -1245,4 +1205,4 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 </body>
-</html>
+  </html>
