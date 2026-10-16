@@ -33,6 +33,7 @@
   --green:#10B981;
   --yellow:#F59E0B;
   --danger:#EF4444;
+  --purple:#8B5CF6;
 
   --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -114,6 +115,8 @@ h1,h2,h3{line-height:1.15;font-weight:900;letter-spacing:-.02em;color:#fff}
 .nav-btn svg{width:15px;height:15px;flex-shrink:0}
 .nav-btn.ghost{background:transparent;color:var(--text-2);border-color:var(--border-2)}
 .nav-btn.ghost:hover{color:#fff;border-color:var(--red);background:var(--red-soft)}
+.nav-btn.primary{background:var(--red);color:#fff;box-shadow:0 4px 14px rgba(229,9,20,.35)}
+.nav-btn.primary:hover{background:var(--red-hover);transform:translateY(-1px)}
 @media (max-width:480px){
   .nav-btn .lbl{display:none}
   .nav-btn{padding:9px 12px}
@@ -170,6 +173,41 @@ main{flex:1;padding:40px 0 80px}
   color:var(--text-3);
   font-weight:500;
   word-break:break-all;
+}
+.profile-active{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  background:rgba(229,9,20,.1);
+  border:1px solid var(--red-border);
+  border-radius:var(--r-full);
+  font-size:12px;
+  font-weight:800;
+  color:#fff;
+  margin-top:10px;
+  cursor:pointer;
+  transition:all .2s var(--ease);
+  text-decoration:none;
+}
+.profile-active:hover{
+  background:var(--red-soft);
+  border-color:var(--red);
+}
+.profile-active .dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  background:var(--red);
+  box-shadow:0 0 8px var(--red);
+}
+.profile-active svg{width:13px;height:13px}
+.profile-active .switch{
+  font-size:11px;
+  color:var(--red);
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  margin-left:4px;
 }
 
 .sub-card{
@@ -352,6 +390,18 @@ main{flex:1;padding:40px 0 80px}
   overflow:hidden;text-overflow:ellipsis;
   white-space:nowrap;
 }
+.device-profile{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;
+  background:rgba(229,9,20,.1);
+  border:1px solid var(--red-border);
+  border-radius:var(--r-full);
+  font-size:10.5px;
+  font-weight:900;
+  color:var(--red);
+  letter-spacing:.05em;
+  margin-left:6px;
+}
 .device-signout{
   padding:6px 12px;
   border-radius:var(--r-sm);
@@ -381,9 +431,7 @@ main{flex:1;padding:40px 0 80px}
   background:rgba(16,185,129,.08);
 }
 
-.billing-list{
-  display:flex;flex-direction:column;gap:8px;
-}
+.billing-list{display:flex;flex-direction:column;gap:8px;}
 .billing-item{
   display:flex;justify-content:space-between;
   align-items:center;gap:14px;
@@ -596,6 +644,14 @@ main{flex:1;padding:40px 0 80px}
         <i data-lucide="tv"></i>
         <span class="lbl">Channels</span>
       </a>
+      <a href="admin-618472935.html" class="nav-btn primary hidden" id="adminBtn" title="Admin dashboard">
+        <i data-lucide="shield-check"></i>
+        <span class="lbl">Admin</span>
+      </a>
+      <a href="profiles.html" class="nav-btn ghost" title="Switch profile">
+        <i data-lucide="users"></i>
+        <span class="lbl">Profiles</span>
+      </a>
       <button class="nav-btn ghost" id="signoutBtn" type="button">
         <i data-lucide="log-out"></i>
         <span class="lbl">Sign out</span>
@@ -640,6 +696,12 @@ main{flex:1;padding:40px 0 80px}
         <div class="profile-info">
           <div class="profile-name" id="profileName">—</div>
           <div class="profile-email" id="profileEmail">—</div>
+          <a href="profiles.html" class="profile-active" id="activeProfileChip" style="display:none;">
+            <span class="dot"></span>
+            <i data-lucide="user"></i>
+            <span id="activeProfileName">—</span>
+            <span class="switch">Switch</span>
+          </a>
         </div>
       </div>
 
@@ -758,9 +820,7 @@ main{flex:1;padding:40px 0 80px}
 (function(){
 'use strict';
 
-/* ═══════════════════════════════════════════════════════════════
-   FIREBASE CONFIG — starlane-stream
-   ═══════════════════════════════════════════════════════════════ */
+// Firebase configuration
 var firebaseConfig = {
   apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
   authDomain: "starlane-stream.firebaseapp.com",
@@ -769,6 +829,12 @@ var firebaseConfig = {
   messagingSenderId: "115625325145",
   appId: "1:115625325145:web:b14025df503bbe2b7d7748"
 };
+
+// Admin emails (must match Firestore rules)
+var ADMIN_EMAILS = [
+  'nylnathan340@gmail.com',
+  'customerservicesnovalink@gmail.com'
+];
 
 var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
 var db = null;
@@ -784,6 +850,22 @@ if (firebaseReady && !firebase.apps.length){
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
+
+function isAdmin(user){
+  if (!user || !user.email) return false;
+  var e = String(user.email).toLowerCase().trim();
+  return ADMIN_EMAILS.some(function(a){ return a.toLowerCase() === e; });
+}
+
+function getActiveProfile(){
+  try {
+    var s = localStorage.getItem('starlane_active_profile');
+    if (!s) return null;
+    var p = JSON.parse(s);
+    if (p && p.id && p.name) return p;
+  } catch(e){}
+  return null;
+}
 
 function toast(msg, type, ms){
   type = type || 'info'; ms = ms || 3000;
@@ -805,15 +887,6 @@ function initials(name, email){
   }
   if (email) return email.slice(0,2).toUpperCase();
   return '?';
-}
-
-function fmtDate(ts){
-  if (!ts) return '—';
-  try {
-    var d = ts.toDate ? ts.toDate() : new Date(ts);
-    if (isNaN(d.getTime())) return '—';
-    return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
-  } catch(e){ return '—'; }
 }
 
 function fmtDateShort(ts){
@@ -873,10 +946,21 @@ function planDevices(tier){
 }
 
 function renderAccount(user, profile, subscription, devices, billing){
+  // Account avatar (uses account initials — profile is separate)
   $('profileAvatar').textContent = initials(profile.displayName, user.email);
   $('profileName').textContent = profile.displayName || user.email.split('@')[0];
   $('profileEmail').textContent = user.email || '';
 
+  // Active profile chip
+  var active = getActiveProfile();
+  if (active && active.name){
+    $('activeProfileChip').style.display = 'inline-flex';
+    $('activeProfileName').textContent = active.name;
+  } else {
+    $('activeProfileChip').style.display = 'none';
+  }
+
+  // Plan
   var tier = subscription.tier || 'free';
   var isActive = subscription.active !== false && subscription.expiresAt && subscription.expiresAt.toDate && subscription.expiresAt.toDate() > new Date();
 
@@ -949,10 +1033,16 @@ function renderDevices(devices){
     var icon = iconForDevice(d.userAgent);
     var label = labelForDevice(d.userAgent);
 
+    // Show profile name if set
+    var profileTag = '';
+    if (d.profileName){
+      profileTag = '<span class="device-profile">' + esc(d.profileName) + '</span>';
+    }
+
     item.innerHTML =
       '<div class="device-icon"><i data-lucide="' + icon + '"></i></div>' +
       '<div class="device-info">' +
-        '<div class="device-name">' + esc(label) + (isThisDevice ? ' · this device' : '') + '</div>' +
+        '<div class="device-name">' + esc(label) + profileTag + (isThisDevice ? ' · this device' : '') + '</div>' +
         '<div class="device-meta">Last active ' + esc(timeAgo(d.lastSeen) || 'just now') + '</div>' +
       '</div>' +
       (isThisDevice
@@ -1102,6 +1192,7 @@ function deleteAccount(){
       return currentUser.delete();
     })
     .then(function(){
+      try { localStorage.removeItem('starlane_active_profile'); } catch(e){}
       toast('Account deleted. Goodbye!', 'success', 4000);
       setTimeout(function(){ window.location.href = 'index.html'; }, 1500);
     })
@@ -1117,6 +1208,12 @@ function deleteAccount(){
 
 function loadAccountData(){
   if (!currentUser){ showSignin(); return; }
+
+  // Show admin button if admin
+  if (isAdmin(currentUser)){
+    var adminBtn = $('adminBtn');
+    if (adminBtn) adminBtn.classList.remove('hidden');
+  }
 
   var uid = currentUser.uid;
 
@@ -1182,6 +1279,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
   $('signoutBtn').addEventListener('click', function(){
     if (!confirm('Sign out of Starlane Stream?')) return;
+    try { localStorage.removeItem('starlane_active_profile'); } catch(e){}
     if (auth){
       auth.signOut().then(function(){
         window.location.href = 'index.html';
@@ -1213,4 +1311,4 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 </body>
-</html>
+                                                                                </html>
