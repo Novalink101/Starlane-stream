@@ -8,6 +8,7 @@
 <title>Admin Command Center · Starlane Stream</title>
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
   :root { --red: #E50914; --bg: #ffffff; --surface: #f9fafb; --text: #111827; --text-muted: #6b7280; --border: #e5e7eb; }
@@ -30,7 +31,7 @@
 
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
   
-  .card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; transition: 0.3s; display: flex; flex-direction: column; gap: 16px; position: relative; overflow: hidden; }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; transition: 0.3s; display: flex; flex-direction: column; gap: 16px; position: relative; }
   .card:hover { border-color: var(--red); box-shadow: 0 10px 30px -10px rgba(229,9,20,0.15); transform: translateY(-4px); }
   
   .card-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -52,6 +53,11 @@
   .link-blue { color: #0284c7; }
   .link-purple { color: #9333ea; }
 
+  /* Event Selector Dropdown */
+  .event-selector { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .event-selector select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-size: 14px; font-family: inherit; cursor: pointer; }
+  .event-selector select:focus { outline: none; border-color: var(--red); }
+  
   .btn-action { width: 100%; padding: 12px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.2s; border: 1px solid; text-align: center; display: block; margin-top: 8px; }
   .btn-green { background: #f0fdf4; border-color: #16a34a; color: #16a34a; }
   .btn-green:hover { background: #16a34a; color: #fff; }
@@ -103,26 +109,38 @@
     <div class="card">
       <div class="card-icon icon-green"><i data-lucide="camera"></i></div>
       <h3>Go Live (Phone)</h3>
-      <p>Choose which camera to turn your phone into. This will generate a link to open on your phone.</p>
+      <p>Select an event below to generate your camera link.</p>
       
-      <button onclick="getBroadcastLink('cam1')" class="btn-action btn-green">📱 Open Camera 1</button>
-      <button onclick="getBroadcastLink('cam2')" class="btn-action btn-green">📱 Open Camera 2</button>
-      <button onclick="getBroadcastLink('cam3')" class="btn-action btn-green">📱 Open Camera 3</button>
+      <div class="event-selector">
+        <select id="broadcast-event-select">
+          <option value="">Loading events...</option>
+        </select>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+          <button onclick="generateLink('broadcast', 'cam1')" class="btn-action btn-green" style="margin-top:0;">Cam 1</button>
+          <button onclick="generateLink('broadcast', 'cam2')" class="btn-action btn-green" style="margin-top:0;">Cam 2</button>
+          <button onclick="generateLink('broadcast', 'cam3')" class="btn-action btn-green" style="margin-top:0;">Cam 3</button>
+        </div>
+      </div>
     </div>
 
     <!-- 4. Director (Multi-Cam Switcher) -->
     <div class="card">
       <div class="card-icon icon-purple"><i data-lucide="sliders"></i></div>
       <h3>Multi-Cam Director</h3>
-      <p>Switch between Camera 1, Camera 2, Camera 3, or Split Screen live.</p>
-      <button onclick="getDirectorLink()" class="btn-action btn-purple">Open Director</button>
+      <p>Select an event to open the switcher on your tablet.</p>
+      
+      <div class="event-selector">
+        <select id="director-event-select">
+          <option value="">Loading events...</option>
+        </select>
+        <button onclick="generateLink('director')" class="btn-action btn-purple">Open Director</button>
+      </div>
     </div>
 
   </div>
 </main>
 
 <script>
-  // Auth Guard
   var firebaseConfig = {
     apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
     authDomain: "starlane-stream.firebaseapp.com",
@@ -132,32 +150,70 @@
     appId: "1:115625325145:web:b14025df503bbe2b7d7748"
   };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var db = firebase.firestore();
   var auth = firebase.auth();
   var ADMIN_EMAILS = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
 
+  // Auth Guard
   auth.onAuthStateChanged(function(user) {
     if (!user || !ADMIN_EMAILS.includes(user.email.toLowerCase())) {
       window.location.href = 'index.html';
+    } else {
+      loadEventsDropdowns();
     }
   });
 
-  // Magic Link Generators
-  function getEventId() {
-    return prompt("Enter the Event ID you want to link to:");
+  // Load Events into both Dropdowns
+  function loadEventsDropdowns() {
+    db.collection('streams').orderBy('createdAt', 'desc').get().then(function(snap) {
+      var bSelect = document.getElementById('broadcast-event-select');
+      var dSelect = document.getElementById('director-event-select');
+      
+      bSelect.innerHTML = '';
+      dSelect.innerHTML = '';
+
+      if (snap.empty) {
+        bSelect.innerHTML = '<option value="">No events found</option>';
+        dSelect.innerHTML = '<option value="">No events found</option>';
+        return;
+      }
+
+      snap.forEach(function(doc) {
+        var data = doc.data();
+        var title = data.title || 'Untitled';
+        var date = data.startDate || 'No date';
+        
+        var optionHTML = `<option value="${doc.id}">${title} (${date})</option>`;
+        bSelect.insertAdjacentHTML('beforeend', optionHTML);
+        dSelect.insertAdjacentHTML('beforeend', optionHTML);
+      });
+      
+    }).catch(function(err) {
+      console.error(err);
+      alert("Error loading events: " + err.message);
+    });
   }
 
-  function getBroadcastLink(cam) {
-    var id = getEventId();
-    if (!id) return;
-    var url = window.location.origin + '/broadcast.html?event=' + id + '&cam=' + cam;
-    prompt("Copy this link and open it on your phone:\n\n", url);
-  }
+  // Generate the Magic Link based on selection
+  function generateLink(type, cam) {
+    var selectId = type === 'broadcast' ? 'broadcast-event-select' : 'director-event-select';
+    var eventId = document.getElementById(selectId).value;
+    
+    if (!eventId) return alert("Please select an event first.");
 
-  function getDirectorLink() {
-    var id = getEventId();
-    if (!id) return;
-    var url = window.location.origin + '/director.html?event=' + id;
-    prompt("Copy this link and open it on your tablet/laptop:\n\n", url);
+    var url = '';
+    if (type === 'broadcast') {
+      url = window.location.origin + '/broadcast.html?event=' + eventId + '&cam=' + cam;
+    } else {
+      url = window.location.origin + '/director.html?event=' + eventId;
+    }
+
+    // Try to copy to clipboard and show prompt
+    navigator.clipboard.writeText(url).then(function() {
+      prompt("Link copied to clipboard! Open this on your device:\n\n", url);
+    }).catch(function() {
+      prompt("Copy this link and open it on your device:\n\n", url);
+    });
   }
 
   if (window.lucide) lucide.createIcons();
