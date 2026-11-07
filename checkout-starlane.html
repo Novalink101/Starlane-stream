@@ -25,7 +25,6 @@
   .checkbox-group input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--red); cursor: pointer; }
   .checkbox-group a { color: var(--red); text-decoration: none; font-weight: 700; }
   .checkbox-group a:hover { text-decoration: underline; }
-
   .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
@@ -46,7 +45,6 @@
     <span>I agree to the <a href="legal.html#terms" target="_blank">Terms of Service</a>, <a href="legal.html#privacy" target="_blank">Privacy Policy</a>, and understand this is a non-refundable digital purchase.</span>
   </label>
 
-  <!-- The ONE and ONLY Button -->
   <button id="payBtn" class="btn" disabled>
     Pay R0 Now <i data-lucide="credit-card"></i>
   </button>
@@ -54,6 +52,12 @@
 
 <script>
 (function(){
+  // ═══════════════════════════════════════════════════════════════
+  // 🚨 YOUR YOCO PAYMENT LINK 🚨
+  // ═══════════════════════════════════════════════════════════════
+  var YOCO_PAYMENT_LINK = "https://pay.yoco.com/r/NLqJBY";
+  // ═══════════════════════════════════════════════════════════════
+
   var firebaseConfig = {
     apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
     authDomain: "starlane-stream.firebaseapp.com",
@@ -81,14 +85,9 @@
   payBtn.innerHTML = 'Pay R' + price + ' Now <i data-lucide="credit-card"></i>';
   if (window.lucide) lucide.createIcons();
 
-  // Enable/disable Pay button based on Terms checkbox
   var termsCheck = document.getElementById('termsCheck');
   termsCheck.addEventListener('change', function() {
     payBtn.disabled = !this.checked;
-    // Change color if unchecked and they try to click
-    if (this.checked) {
-      termsCheck.parentElement.style.color = 'rgba(255,255,255,0.7)';
-    }
   });
 
   auth.onAuthStateChanged(function(user) {
@@ -99,16 +98,15 @@
     currentUser = user;
   });
 
-  // The Pay Flow
   payBtn.addEventListener('click', async function() {
     if (!termsCheck.checked) return;
 
     var btn = this;
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Connecting to Yoco...';
+    btn.innerHTML = '<span class="spinner"></span> Redirecting to Yoco...';
 
     try {
-      // 1. Instantly save the pass to their user account (using their email/uid)
+      // 1. Save the pass to Firebase using their email/account
       await db.collection('users').doc(currentUser.uid).collection('passes').doc(streamId).set({
         streamId: streamId,
         email: currentUser.email,
@@ -117,29 +115,11 @@
         purchasedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      // 2. Generate the Yoco payment link via Novalink API
-      var res = await fetch('https://novalink-api-8vfg.onrender.com/api/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          eventId: streamId,
-          ticketId: currentUser.uid,
-          orderRef: 'SPPV-' + Date.now(),
-          amount: parseInt(price, 10) * 100,
-          collection: 'starlane_passes'
-        })
-      });
-
-      var data = await res.json();
-
-      if (data.redirectUrl) {
-        // 3. Send them to Yoco
-        window.location.href = data.redirectUrl;
-      } else {
-        throw new Error(data.error || 'Failed to generate payment link.');
-      }
+      // 2. Send them to your Yoco link
+      window.location.href = YOCO_PAYMENT_LINK;
+      
     } catch(e) {
-      alert(e.message || 'Error connecting to payment server.');
+      alert("Error saving pass: " + e.message);
       btn.disabled = false;
       btn.innerHTML = 'Pay R' + price + ' Now <i data-lucide="credit-card"></i>';
       lucide.createIcons();
