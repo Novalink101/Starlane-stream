@@ -1,7 +1,3 @@
-/* ═══════════════════════════════════════════════════════════════
-   Starlane Stream Backend API - Production Ready
-   ═══════════════════════════════════════════════════════════════ */
-
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -9,6 +5,7 @@ const axios = require('axios');
 const admin = require('firebase-admin');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
+const path = require('path');
 
 const app = express();
 
@@ -34,48 +31,46 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json({ limit: '50mb' })); // Increased limit for image uploads
+app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Serve static HTML files (Starlane website)
-const path = require('path');
+// Serve static HTML files
 app.use(express.static(path.join(__dirname, './')));
 
-// Setup Multer for handling video chunk uploads
+// Setup Multer
 const upload = multer({ storage: multer.memoryStorage() });
 
-
 /* ───────────────────────────────────────────────────────────
-   2. FIREBASE ADMIN INITIALIZATION
+   2. FIREBASE ADMIN INITIALIZATION (BULLETPROOF)
    ─────────────────────────────────────────────────────────── */
 let db; 
 
 try {
-    let credential;
-
-    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-        if (serviceAccount.private_key) {
-            serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-        }
-        credential = admin.credential.cert(serviceAccount);
-        console.log('✅ Using Firebase credentials from FIREBASE_SERVICE_ACCOUNT JSON.');
-    } else {
-        let privateKey = process.env.FIREBASE_PRIVATE_KEY || '';
-        if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
-            privateKey = privateKey.slice(1, -1);
-        }
-        privateKey = privateKey.replace(/\\n/g, '\n');
-
-        credential = admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: privateKey
-        });
-        console.log('✅ Using Firebase credentials from separate environment variables.');
+    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+        throw new Error("FIREBASE_SERVICE_ACCOUNT environment variable is missing.");
     }
 
-    admin.initializeApp({ credential: credential });
+    // Parse the JSON string
+    let serviceAccount;
+    try {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } catch (e) {
+        // If it fails to parse, it might be because Render formatted the quotes wrong. 
+        // We try a quick cleanup.
+        let cleaned = process.env.FIREBASE_SERVICE_ACCOUNT.trim();
+        serviceAccount = JSON.parse(cleaned);
+    }
+
+    if (!serviceAccount.project_id) {
+        throw new Error("The JSON is missing the 'project_id' field. Make sure you pasted the whole file.");
+    }
+
+    // Fix the private key newlines
+    if (serviceAccount.private_key) {
+        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+    }
+
+    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
     db = admin.firestore();
     console.log('🔥 Firebase Admin initialized successfully.');
     
@@ -115,7 +110,6 @@ app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
     }
 
     try {
-        // Upload the chunk to Cloudinary
         const uploadResult = await new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 { resource_type: 'video', folder: `live_streams/${eventId}/${camId}` },
@@ -127,7 +121,6 @@ app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
             uploadStream.end(req.file.buffer);
         });
 
-        // Save the URL to Firebase under the specific camera
         const updateData = {};
         updateData[`cams.${camId}`] = uploadResult.secure_url;
         
@@ -141,7 +134,7 @@ app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
 });
 
 /* ───────────────────────────────────────────────────────────
-   5. YOCO CHECKOUT (Starlane PPV)
+   5. YOCO CHECKOUT
    ─────────────────────────────────────────────────────────── */
 app.post('/api/create-yoco-checkout', async (req, res) => {
     try {
@@ -155,13 +148,10 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
             return res.status(500).json({ error: 'Yoco secret key is not configured.' });
         }
 
-        // This is where Yoco sends the user AFTER they pay
         const successUrl = `https://starlane-stream-api.onrender.com/watch.html?id=${streamId}&paid=true`;
 
-        console.log(`[Yoco] Creating checkout for Stream ${streamId} | Amount: R${price}`);
-
         const yocoResponse = await axios.post('https://payments.yoco.com/api/checkouts', {
-            amount: parseInt(price) * 100, // Yoco expects cents
+            amount: parseInt(price) * 100,
             currency: 'ZAR',
             successUrl: successUrl,
             cancelUrl: `https://starlane-stream-api.onrender.com/watch.html?id=${streamId}`,
@@ -186,15 +176,13 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
 });
 
 /* ───────────────────────────────────────────────────────────
-   6. NOVALINK STREAM VERIFICATION (Bridge for Novalink Tickets)
+   6. NOVALINK STREAM VERIFICATION
    ─────────────────────────────────────────────────────────── */
 app.post('/api/verify-stream', async (req, res) => {
     try {
         const { ticketRef } = req.body;
-        
         if (!ticketRef) return res.status(400).json({ valid: false, error: 'Missing ticketRef' });
 
-        // Find ticket across ALL events
         const ticketsSnapshot = await db.collectionGroup('tickets').where('paymentRef', '==', ticketRef).limit(1).get();
 
         if (ticketsSnapshot.empty) {
@@ -225,19 +213,17 @@ app.post('/api/verify-stream', async (req, res) => {
 });
 
 /* ───────────────────────────────────────────────────────────
-   7. HEALTH CHECK
+   7. HEALTH CHECK & FALLBACK
    ─────────────────────────────────────────────────────────── */
 app.get('/api/health', (req, res) => {
     res.send('Starlane API is running 🚀');
 });
 
-// Fallback: Serve index.html for any route not caught above
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Start Server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
     console.log(`🚀 Starlane server running on port ${PORT}`);
 });
