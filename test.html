@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Upload Test</title>
+  <style>
+    body { background: #111; color: #fff; font-family: sans-serif; padding: 40px; text-align: center; }
+    button { padding: 15px 30px; font-size: 16px; font-weight: bold; background: red; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    #result { margin-top: 20px; font-size: 18px; color: yellow; }
+  </style>
+</head>
+<body>
+  <h1>Cloudinary Upload Test</h1>
+  <p>Select a small video file from your laptop to test the backend.</p>
+  <br>
+  <input type="file" id="videoFile" accept="video/*" style="padding: 10px; background: #333; color: #fff; border: none; border-radius: 8px;" />
+  <br><br>
+  <button onclick="testUpload()">Upload to Cloudinary</button>
+  
+  <div id="result"></div>
+
+  <script>
+    async function testUpload() {
+      var file = document.getElementById('videoFile').files[0];
+      if (!file) return alert("Pick a video file first.");
+
+      document.getElementById('result').innerText = "Uploading... (This might take 10 seconds)";
+
+      var formData = new FormData();
+      formData.append('video', file);
+      formData.append('eventId', 'U6cYTcr4Jnk12dRLGLBO'); // Your event ID
+      formData.append('camId', 'cam1');
+
+      try {
+        var res = await fetch('https://starlane-stream-api.onrender.com/api/upload-chunk', {
+          method: 'POST',
+          body: formData
+        });
+        
+        var data = await res.json();
+        
+        if (res.ok) {
+          document.getElementById('result').innerText = "SUCCESS! Link saved to Firebase. URL: " + data.url;
+        } else {
+          document.getElementById('result').innerText = "FAILED: " + (data.error || "Unknown error");
+        }
+      } catch(e) {
+        document.getElementById('result').innerText = "Network Error: " + e.message;
+      }
+    }
+  </script>
+</body>
+</html>
