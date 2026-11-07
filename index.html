@@ -3,1314 +3,218 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#050508" />
-<meta name="description" content="Starlane Stream — live TV, movies, shows and more. Free to start. Upgrade for 4K, no ads, and more devices." />
-<title>Starlane Stream — Watch the stars.</title>
-
+<meta name="theme-color" content="#ffffff" />
+<title>Starlane Stream · Live Events</title>
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-
 <style>
-:root{
-  --red:#E50914;--red-hover:#FF3B4E;--red-dark:#B20710;
-  --red-soft:rgba(229,9,20,.12);
-  --red-border:rgba(229,9,20,.25);
-
-  --bg:#050508;--bg-2:#0A0A0F;
-  --surface:rgba(20,20,28,.75);
-  --border:rgba(255,255,255,.08);
-  --border-2:rgba(255,255,255,.14);
-
-  --text:#FFFFFF;
-  --text-2:rgba(255,255,255,.75);
-  --text-3:rgba(255,255,255,.5);
-  --text-muted:rgba(255,255,255,.35);
-
-  --green:#10B981;
-  --yellow:#F59E0B;
-
-  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
-  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-
-  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:22px;--r-full:999px;
-  --ease:cubic-bezier(.25,.8,.25,1);
-  --ease-out:cubic-bezier(.22,.9,.3,1);
-  --container:1480px;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
-body{
-  font-family:var(--font);
-  font-size:14px;line-height:1.55;
-  color:var(--text);background:var(--bg);
-  -webkit-font-smoothing:antialiased;
-  min-height:100vh;display:flex;flex-direction:column;
-  overflow-x:hidden;
-}
-img,svg{display:block;max-width:100%}
-button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer;background:none;border:none}
-a{color:inherit;text-decoration:none}
-h1,h2,h3{line-height:1.1;font-weight:900;letter-spacing:-.02em}
-::selection{background:var(--red);color:#fff}
-.hidden{display:none!important}
-
-.container{max-width:var(--container);margin:0 auto;padding:0 24px;width:100%}
-@media (max-width:560px){.container{padding:0 16px}}
-
-/* Starfield */
-.starfield{
-  position:fixed;inset:0;z-index:-1;pointer-events:none;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(229,9,20,.08) 0%, transparent 55%),
-    radial-gradient(ellipse at 100% 100%, rgba(229,9,20,.05) 0%, transparent 50%),
-    linear-gradient(180deg, #050508 0%, #0A0A14 100%);
-}
-.starfield::before{
-  content:'';position:absolute;inset:0;
-  background-image:
-    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.9), transparent 100%),
-    radial-gradient(1px 1px at 87% 32%, rgba(255,255,255,.7), transparent 100%),
-    radial-gradient(1.5px 1.5px at 34% 78%, rgba(255,255,255,.8), transparent 100%),
-    radial-gradient(1px 1px at 67% 12%, rgba(255,255,255,.6), transparent 100%),
-    radial-gradient(1px 1px at 45% 45%, rgba(255,255,255,.7), transparent 100%),
-    radial-gradient(1.5px 1.5px at 92% 82%, rgba(255,255,255,.85), transparent 100%),
-    radial-gradient(1px 1px at 8% 62%, rgba(255,255,255,.65), transparent 100%),
-    radial-gradient(1px 1px at 78% 55%, rgba(255,255,255,.55), transparent 100%),
-    radial-gradient(1.5px 1.5px at 22% 92%, rgba(229,9,20,.8), transparent 100%),
-    radial-gradient(1px 1px at 55% 68%, rgba(255,255,255,.5), transparent 100%);
-  background-size:100% 100%;
-  animation:twinkle 8s ease-in-out infinite;
-}
-.starfield::after{
-  content:'';position:absolute;inset:0;
-  background-image:
-    radial-gradient(1px 1px at 15% 40%, rgba(255,255,255,.4), transparent 100%),
-    radial-gradient(1px 1px at 73% 88%, rgba(255,255,255,.45), transparent 100%),
-    radial-gradient(1.5px 1.5px at 42% 22%, rgba(229,9,20,.6), transparent 100%),
-    radial-gradient(1px 1px at 88% 66%, rgba(255,255,255,.5), transparent 100%),
-    radial-gradient(1px 1px at 28% 55%, rgba(255,255,255,.35), transparent 100%);
-  background-size:100% 100%;
-  animation:twinkle 12s ease-in-out infinite reverse;
-}
-@keyframes twinkle{
-  0%,100%{opacity:.85}
-  50%{opacity:.4}
-}
-
-/* Comet */
-.comet{
-  position:fixed;top:0;left:0;
-  width:140px;height:2px;
-  background:linear-gradient(90deg, transparent 0%, rgba(229,9,20,.4) 30%, var(--red) 70%, #fff 100%);
-  border-radius:2px;
-  box-shadow:0 0 20px rgba(229,9,20,.8), 0 0 40px rgba(229,9,20,.4);
-  pointer-events:none;z-index:-1;
-  animation:cometFly 18s linear infinite;
-  opacity:0;
-  transform:rotate(-35deg);
-}
-.comet::after{
-  content:'';position:absolute;right:-4px;top:-3px;
-  width:8px;height:8px;border-radius:50%;
-  background:radial-gradient(circle, #fff 0%, var(--red) 60%, transparent 100%);
-  box-shadow:0 0 12px var(--red), 0 0 24px var(--red);
-}
-@keyframes cometFly{
-  0%{top:-5%;left:-20%;opacity:0}
-  5%{opacity:1}
-  45%{opacity:1}
-  50%{top:110%;left:120%;opacity:0}
-  100%{top:110%;left:120%;opacity:0}
-}
-
-/* Nav */
-.nav{
-  position:sticky;top:0;z-index:50;
-  background:rgba(5,5,8,.85);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--border);
-}
-.nav-inner{
-  max-width:var(--container);margin:0 auto;
-  padding:14px 24px;
-  display:flex;align-items:center;justify-content:space-between;gap:20px;
-}
-.nav-brand{display:inline-flex;align-items:center;gap:11px;flex-shrink:0}
-.nav-brand svg{width:28px;height:34px;display:block}
-.nav-brand b{
-  font-weight:900;font-size:17px;letter-spacing:-.01em;
-  color:#fff;
-}
-.nav-brand b span{color:var(--red)}
-.nav-actions{display:flex;gap:10px;align-items:center;flex-shrink:0;flex-wrap:wrap}
-@media (max-width:560px){
-  .nav-inner{padding:12px 16px;gap:10px}
-  .nav-brand b{font-size:15px}
-  .nav-brand svg{width:24px;height:30px}
-}
-
-.nav-btn{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:9px 16px;border-radius:var(--r-full);
-  font-size:13px;font-weight:800;
-  transition:all .2s var(--ease);
-  white-space:nowrap;text-decoration:none;
-  font-family:inherit;cursor:pointer;
-  border:1px solid transparent;line-height:1;
-}
-.nav-btn svg{width:15px;height:15px;flex-shrink:0}
-.nav-btn.ghost{
-  background:transparent;color:var(--text-2);
-  border-color:var(--border-2);
-}
-.nav-btn.ghost:hover{
-  color:#fff;border-color:var(--red);
-  background:var(--red-soft);
-}
-.nav-btn.primary{
-  background:var(--red);color:#fff;
-  box-shadow:0 4px 14px rgba(229,9,20,.35);
-}
-.nav-btn.primary:hover{
-  background:var(--red-hover);
-  transform:translateY(-1px);
-  box-shadow:0 8px 22px rgba(229,9,20,.5);
-}
-@media (max-width:480px){
-  .nav-btn .lbl{display:none}
-  .nav-btn{padding:9px 12px}
-}
-
-.user-chip{
-  display:inline-flex;align-items:center;gap:9px;
-  padding:6px 14px 6px 6px;
-  border-radius:var(--r-full);
-  background:rgba(255,255,255,.05);
-  border:1px solid var(--border-2);
-  transition:all .2s var(--ease);
-  text-decoration:none;
-  line-height:1;
-  max-width:220px;
-  overflow:hidden;
-}
-.user-chip:hover{
-  border-color:var(--red);
-  background:var(--red-soft);
-}
-.user-chip-avatar{
-  width:28px;height:28px;
-  border-radius:50%;
-  background:linear-gradient(135deg, var(--red), #FF5566);
-  color:#fff;
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:900;
-  font-family:var(--mono);
-  flex-shrink:0;
-  letter-spacing:.02em;
-}
-.user-chip-name{
-  font-size:13px;
-  font-weight:800;
-  color:#fff;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  max-width:140px;
-}
-@media (max-width:560px){
-  .user-chip{padding:5px;gap:0}
-  .user-chip-name{display:none}
-  .user-chip-avatar{width:30px;height:30px;font-size:12px}
-}
-
-/* Hero */
-.hero{
-  position:relative;
-  padding:80px 0 96px;
-  text-align:center;
-  overflow:hidden;
-}
-@media (max-width:640px){.hero{padding:56px 0 72px}}
-
-.hero-inner{
-  max-width:820px;margin:0 auto;
-  padding:0 24px;
-  position:relative;z-index:2;
-}
-@media (max-width:560px){.hero-inner{padding:0 16px}}
-
-.hero-badge{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:7px 16px 7px 12px;
-  background:rgba(229,9,20,.1);
-  border:1px solid var(--red-border);
-  border-radius:var(--r-full);
-  font-size:11.5px;font-weight:900;
-  letter-spacing:.12em;text-transform:uppercase;
-  color:var(--red);
-  margin-bottom:26px;
-  backdrop-filter:blur(8px);
-  animation:badgeIn .8s var(--ease-out) both;
-}
-.hero-badge .dot{
-  width:6px;height:6px;border-radius:50%;
-  background:var(--red);
-  box-shadow:0 0 10px var(--red);
-  animation:pulse 2s ease-in-out infinite;
-}
-@keyframes pulse{
-  0%,100%{opacity:1;transform:scale(1)}
-  50%{opacity:.5;transform:scale(.85)}
-}
-@keyframes badgeIn{
-  from{opacity:0;transform:translateY(12px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-.hero h1{
-  font-size:clamp(2.4rem,7vw,5rem);
-  font-weight:900;
-  line-height:1.02;
-  letter-spacing:-.045em;
-  margin-bottom:22px;
-  color:#fff;
-  text-shadow:0 4px 30px rgba(0,0,0,.5);
-  animation:heroIn 1s var(--ease-out) .1s both;
-}
-.hero h1 .accent{
-  background:linear-gradient(135deg, var(--red) 0%, #FF5566 50%, var(--red) 100%);
-  -webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;
-  position:relative;
-  display:inline-block;
-  filter:drop-shadow(0 0 24px rgba(229,9,20,.5));
-}
-@keyframes heroIn{
-  from{opacity:0;transform:translateY(20px) scale(.98)}
-  to{opacity:1;transform:translateY(0) scale(1)}
-}
-
-.hero p{
-  font-size:clamp(1rem,1.8vw,1.2rem);
-  color:var(--text-2);
-  max-width:640px;
-  margin:0 auto 40px;
-  line-height:1.6;
-  font-weight:500;
-  animation:heroIn 1s var(--ease-out) .2s both;
-}
-
-.hero-ctas{
-  display:flex;gap:14px;justify-content:center;flex-wrap:wrap;
-  margin-bottom:26px;
-  animation:heroIn 1s var(--ease-out) .3s both;
-}
-.cta-btn{
-  display:inline-flex;align-items:center;gap:9px;
-  padding:15px 28px;
-  border-radius:var(--r-full);
-  font-size:15px;font-weight:900;
-  letter-spacing:-.005em;
-  transition:all .25s var(--ease);
-  text-decoration:none;
-  border:1px solid transparent;
-  white-space:nowrap;
-  line-height:1;font-family:inherit;cursor:pointer;
-  min-height:52px;
-}
-.cta-btn svg{width:17px;height:17px;flex-shrink:0}
-.cta-btn.primary{
-  background:linear-gradient(135deg,var(--red),#FF2A3D);
-  color:#fff;
-  box-shadow:0 12px 32px rgba(229,9,20,.45);
-}
-.cta-btn.primary:hover{
-  transform:translateY(-2px);
-  box-shadow:0 18px 44px rgba(229,9,20,.6);
-}
-.cta-btn.ghost{
-  background:rgba(255,255,255,.04);
-  color:#fff;
-  border-color:rgba(255,255,255,.14);
-  backdrop-filter:blur(8px);
-}
-.cta-btn.ghost:hover{
-  background:rgba(255,255,255,.08);
-  border-color:rgba(255,255,255,.28);
-  transform:translateY(-2px);
-}
-@media (max-width:480px){
-  .cta-btn{padding:13px 22px;font-size:14px;min-height:48px}
-  .hero-ctas{gap:10px}
-  .hero-ctas .cta-btn{flex:1 1 100%;justify-content:center}
-}
-
-.hero-prices{
-  display:inline-flex;align-items:center;gap:8px;
-  font-size:13px;font-weight:700;
-  color:var(--text-3);
-  padding:8px 16px;
-  border-radius:var(--r-full);
-  background:rgba(255,255,255,.03);
-  border:1px solid var(--border);
-  animation:heroIn 1s var(--ease-out) .4s both;
-}
-.hero-prices svg{width:14px;height:14px;color:var(--red)}
-.hero-prices a{color:var(--red);font-weight:900}
-.hero-prices a:hover{text-decoration:underline}
-
-/* Sections */
-.section{padding:56px 0}
-.section + .section{padding-top:0}
-@media (max-width:640px){.section{padding:40px 0}}
-
-.section-head{
-  display:flex;justify-content:space-between;align-items:flex-end;
-  gap:14px;flex-wrap:wrap;margin-bottom:24px;padding:0 4px;
-}
-.section-title{
-  display:inline-flex;align-items:center;gap:11px;
-  font-size:clamp(1.2rem,2.2vw,1.6rem);
-  font-weight:900;color:#fff;
-  letter-spacing:-.02em;
-}
-.section-title svg{width:20px;height:20px;color:var(--red)}
-.section-title .live-dot{
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:11px;font-weight:900;
-  letter-spacing:.14em;text-transform:uppercase;
-  color:var(--red);
-}
-.section-title .live-dot::before{
-  content:'';width:8px;height:8px;border-radius:50%;
-  background:var(--red);
-  box-shadow:0 0 10px var(--red);
-  animation:pulse 1.4s ease-in-out infinite;
-}
-.section-link{
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:13px;font-weight:800;
-  color:var(--text-3);
-  transition:all .2s var(--ease);
-}
-.section-link:hover{color:var(--red);gap:9px}
-.section-link svg{width:14px;height:14px;transition:transform .2s}
-.section-link:hover svg{transform:translateX(2px)}
-
-.row{
-  display:flex;gap:16px;overflow-x:auto;
-  padding:8px 4px 20px;margin:0 -4px;
-  scroll-snap-type:x mandatory;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
-}
-.row::-webkit-scrollbar{display:none}
-
-/* Content card (universal for live/movie/show) */
-.content-card{
-  flex:0 0 260px;scroll-snap-align:start;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--r-lg);
-  overflow:hidden;
-  cursor:pointer;
-  transition:all .25s var(--ease);
-  display:flex;flex-direction:column;
-  text-decoration:none;
-  position:relative;
-}
-@media (max-width:640px){.content-card{flex:0 0 220px}}
-
-.content-card:hover{
-  transform:translateY(-4px);
-  border-color:var(--red-border);
-  box-shadow:0 20px 40px rgba(0,0,0,.45);
-}
-
-.content-thumb{
-  aspect-ratio:16/9;position:relative;overflow:hidden;
-  background:linear-gradient(135deg, #0A0A14, #1A0A14);
-  background-size:cover;background-position:center;
-  display:flex;align-items:center;justify-content:center;
-}
-.content-thumb::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(180deg, transparent 40%, rgba(5,5,8,.9) 100%);
-  pointer-events:none;
-}
-
-.content-badge{
-  position:absolute;top:10px;left:10px;z-index:3;
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:9.5px;font-weight:900;
-  letter-spacing:.12em;text-transform:uppercase;
-  padding:4px 10px;border-radius:var(--r-full);
-  backdrop-filter:blur(8px);
-}
-.content-badge.live{
-  background:var(--red);color:#fff;
-  box-shadow:0 0 16px rgba(229,9,20,.7);
-}
-.content-badge.live::before{
-  content:'';width:6px;height:6px;border-radius:50%;
-  background:#fff;animation:pulse 1.2s infinite;
-}
-.content-badge.upcoming{
-  background:rgba(0,0,0,.7);
-  border:1px solid rgba(255,255,255,.2);
-  color:#fff;
-}
-.content-badge.movie{
-  background:rgba(139,92,246,.9);
-  color:#fff;
-}
-.content-badge.show{
-  background:rgba(229,9,20,.9);
-  color:#fff;
-}
-.content-badge.replay{
-  background:rgba(124,58,237,.9);
-  color:#fff;
-}
-.content-badge.ended{
-  background:rgba(71,85,105,.9);
-  color:#fff;
-}
-
-.play-ico{
-  width:52px;height:52px;border-radius:50%;z-index:2;
-  background:rgba(229,9,20,.9);
-  border:2px solid rgba(255,255,255,.25);
-  display:flex;align-items:center;justify-content:center;
-  backdrop-filter:blur(8px);
-  box-shadow:0 0 30px rgba(229,9,20,.6);
-  transition:transform .3s var(--ease);
-}
-.content-card:hover .play-ico{transform:scale(1.15)}
-.play-ico svg{width:22px;height:22px;color:#fff;fill:#fff;margin-left:3px}
-
-.content-body{
-  padding:12px 14px 14px;
-  display:flex;flex-direction:column;gap:6px;flex:1;
-}
-.content-title{
-  font-size:14.5px;font-weight:800;line-height:1.28;
-  color:#fff;letter-spacing:-.01em;
-  overflow:hidden;text-overflow:ellipsis;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-  word-break:break-word;
-}
-.content-meta{
-  font-size:11.5px;color:var(--text-3);
-  font-weight:600;
-  display:flex;align-items:center;gap:6px;
-  margin-top:auto;padding-top:8px;
-  border-top:1px solid var(--border);
-}
-.content-meta svg{width:12px;height:12px;flex-shrink:0;color:var(--red)}
-
-/* Features */
-.features{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:20px;
-  padding:0 4px;
-}
-@media (max-width:900px){.features{grid-template-columns:repeat(2,1fr);gap:16px}}
-@media (max-width:480px){.features{grid-template-columns:1fr}}
-
-.feature{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--r-lg);
-  padding:24px 22px;
-  transition:all .25s var(--ease);
-  position:relative;overflow:hidden;
-}
-.feature::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg, transparent, var(--red), transparent);
-  opacity:0;transition:opacity .3s;
-}
-.feature:hover{
-  border-color:var(--red-border);
-  transform:translateY(-2px);
-  box-shadow:0 12px 28px rgba(0,0,0,.3);
-}
-.feature:hover::before{opacity:1}
-
-.feature-icon{
-  width:44px;height:44px;
-  border-radius:12px;
-  background:rgba(229,9,20,.1);
-  border:1px solid var(--red-border);
-  display:flex;align-items:center;justify-content:center;
-  color:var(--red);
-  margin-bottom:16px;
-}
-.feature-icon svg{width:20px;height:20px}
-.feature h3{
-  font-size:15px;font-weight:900;
-  color:#fff;margin-bottom:6px;
-  letter-spacing:-.01em;
-}
-.feature p{
-  font-size:13px;color:var(--text-3);
-  line-height:1.6;font-weight:500;
-}
-
-/* Footer */
-.footer{
-  background:#020204;
-  border-top:1px solid var(--border);
-  padding:56px 0 28px;
-  margin-top:80px;
-}
-@media (max-width:640px){.footer{padding:40px 0 24px;margin-top:56px}}
-
-.footer-grid{
-  display:grid;
-  grid-template-columns:2fr 1fr 1fr 1fr;
-  gap:40px;
-  margin-bottom:48px;
-}
-@media (max-width:800px){.footer-grid{grid-template-columns:1fr 1fr;gap:32px}}
-@media (max-width:480px){.footer-grid{grid-template-columns:1fr;gap:28px}}
-
-.footer-brand{
-  display:inline-flex;align-items:center;gap:11px;
-  margin-bottom:14px;
-}
-.footer-brand svg{width:26px;height:32px}
-.footer-brand b{
-  font-weight:900;font-size:16px;color:#fff;
-  letter-spacing:-.01em;
-}
-.footer-brand b span{color:var(--red)}
-.footer-tagline{
-  font-size:13px;color:var(--text-3);
-  line-height:1.7;max-width:320px;
-  font-weight:500;
-}
-.footer-col h4{
-  font-size:11px;font-weight:900;
-  letter-spacing:.14em;text-transform:uppercase;
-  color:var(--text-muted);
-  margin-bottom:16px;
-}
-.footer-col a{
-  display:block;
-  color:var(--text-2);
-  font-size:13.5px;font-weight:500;
-  padding:5px 0;
-  transition:color .2s;
-}
-.footer-col a:hover{color:var(--red)}
-
-.footer-bottom{
-  padding-top:28px;
-  border-top:1px solid var(--border);
-  display:flex;justify-content:space-between;
-  align-items:center;flex-wrap:wrap;gap:14px;
-  font-size:12.5px;color:var(--text-muted);
-}
-
-/* Skeleton */
-.skeleton-card{
-  flex:0 0 260px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--r-lg);
-  overflow:hidden;
-}
-.sk-thumb{
-  aspect-ratio:16/9;
-  background:linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.08), rgba(255,255,255,.04));
-  background-size:200% 100%;
-  animation:sk 1.6s ease-in-out infinite;
-}
-.sk-body{padding:14px;display:flex;flex-direction:column;gap:10px}
-.sk-line{
-  height:12px;border-radius:6px;width:80%;
-  background:linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.08), rgba(255,255,255,.04));
-  background-size:200% 100%;
-  animation:sk 1.6s ease-in-out infinite;
-}
-.sk-line.short{width:50%}
-@keyframes sk{
-  0%{background-position:200% 0}
-  100%{background-position:-200% 0}
-}
-
-.empty-state{
-  padding:60px 20px;text-align:center;
-  color:var(--text-3);
-  flex:1 1 100%;
-}
-.empty-state svg{
-  width:44px;height:44px;
-  margin:0 auto 14px;
-  color:var(--text-muted);
-  opacity:.4;
-}
-.empty-state p{
-  font-size:14px;font-weight:500;
-  max-width:340px;margin:0 auto;
-  line-height:1.6;
-}
-
-/* Toast */
-#toast{
-  position:fixed;bottom:28px;left:50%;
-  transform:translateX(-50%) translateY(140%);
-  background:#fff;color:#050508;
-  font-size:13.5px;font-weight:800;
-  padding:13px 22px;border-radius:var(--r-full);
-  box-shadow:0 20px 48px rgba(0,0,0,.6);
-  transition:transform .4s var(--ease-out);
-  z-index:200;max-width:90vw;text-align:center;
-  display:flex;align-items:center;gap:10px;
-  pointer-events:none;
-}
-#toast.show{transform:translateX(-50%) translateY(0)}
-#toast svg{width:16px;height:16px;flex-shrink:0}
-#toast.success{background:#10B981;color:#fff}
-#toast.error{background:var(--red);color:#fff}
-
-@media (prefers-reduced-motion: reduce){
-  *,*::before,*::after{
-    animation-duration:.01ms!important;
-    animation-iteration-count:1!important;
-    transition-duration:.01ms!important;
+  :root { 
+    --red: #E50914; 
+    --bg: #ffffff; 
+    --surface: #f9fafb; 
+    --text: #111827; 
+    --text-muted: #6b7280; 
+    --border: #e5e7eb;
   }
-  .comet{display:none}
-}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    background: var(--bg); 
+    color: var(--text); 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { text-decoration: none; color: inherit; }
+  
+  /* Navbar */
+  .nav { 
+    border-bottom: 1px solid var(--border); 
+    padding: 20px 0; 
+    position: sticky; top: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); z-index: 50;
+  }
+  .nav-inner { 
+    max-width: 1200px; margin: 0 auto; padding: 0 24px; 
+    display: flex; justify-content: space-between; align-items: center; 
+  }
+  .logo { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+  .logo-icon { color: var(--red); }
+  .nav-links { display: flex; gap: 24px; align-items: center; }
+  .nav-links a { font-weight: 600; font-size: 14px; color: var(--text-muted); transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+  .btn-nav { background: var(--text); color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: 600; transition: background 0.2s; }
+  .btn-nav:hover { background: #000; }
+
+  /* Hero */
+  .hero { max-width: 1200px; margin: 0 auto; padding: 80px 24px 60px; text-align: center; }
+  .hero h1 { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 900; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 20px; }
+  .hero p { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto; font-weight: 500; }
+
+  /* Event Grid */
+  .events-section { max-width: 1200px; margin: 0 auto; padding: 20px 24px 100px; }
+  .section-title { font-size: 24px; font-weight: 800; margin-bottom: 32px; display: flex; align-items: center; gap: 10px; }
+  
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 32px; }
+  
+  .card { 
+    background: var(--bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
+  
+  .card-img { width: 100%; aspect-ratio: 16/9; background: var(--surface); object-fit: cover; border-bottom: 1px solid var(--border); }
+  .card-content { padding: 24px; flex: 1; display: flex; flex-direction: column; }
+  
+  .badge { 
+    display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; 
+    background: #fee2e2; color: var(--red); margin-bottom: 16px; align-self: flex-start;
+  }
+  .badge.free { background: #dcfce7; color: #16a34a; }
+  
+  .card-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; line-height: 1.3; }
+  .card-date { font-size: 14px; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 6px; margin-bottom: 24px; }
+  
+  .card-footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; }
+  .price { font-size: 20px; font-weight: 900; }
+  .price span { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+  
+  .btn-watch { 
+    display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 10px; 
+    background: var(--surface); color: var(--text); font-weight: 700; font-size: 14px; border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .btn-watch:hover { background: var(--text); color: #fff; border-color: var(--text); }
+  .btn-buy { background: var(--red); color: #fff; border-color: var(--red); }
+  .btn-buy:hover { background: #cc0812; border-color: #cc0812; color: #fff; }
+
+  /* Spinner */
+  .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: spin .8s linear infinite; margin: 40px auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  
+  .empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+  .empty i { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; }
+
+  @media (max-width: 768px) {
+    .hero { padding: 60px 24px 40px; }
+    .nav-links { display: none; }
+  }
 </style>
 </head>
 <body>
 
-<div class="starfield" aria-hidden="true"></div>
-<div class="comet" aria-hidden="true"></div>
-
 <nav class="nav">
   <div class="nav-inner">
-    <a href="index.html" class="nav-brand" aria-label="Starlane Stream home">
-      <svg viewBox="0 0 60 74" aria-hidden="true">
-        <defs>
-          <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#E50914"/>
-            <stop offset="100%" stop-color="#FF5566"/>
-          </linearGradient>
-          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-        <path d="M10 60 Q 22 32 44 20" stroke="url(#starGrad)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
-        <path d="M16 62 Q 26 40 46 26" stroke="url(#starGrad)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
-        <circle cx="46" cy="18" r="5" fill="#fff" filter="url(#glow)"/>
-        <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
-      </svg>
-      <b>STAR<span>LANE</span></b>
+    <a href="index.html" class="logo">
+      <i data-lucide="star" class="logo-icon" fill="currentColor"></i> Starlane
     </a>
-    <div class="nav-actions">
-      <a href="streams.html" class="nav-btn ghost">
-        <i data-lucide="grid-3x3"></i>
-        <span class="lbl">Browse</span>
-      </a>
-      <a href="plans.html" class="nav-btn ghost">
-        <i data-lucide="tag"></i>
-        <span class="lbl">Plans</span>
-      </a>
-      <a href="auth.html" class="nav-btn ghost" id="signinBtn">
-        <i data-lucide="log-in"></i>
-        <span class="lbl">Sign in</span>
-      </a>
-      <a href="auth.html?tab=signup" class="nav-btn primary" id="signupBtn">
-        <i data-lucide="sparkles"></i>
-        <span class="lbl">Start free</span>
-      </a>
-      <a href="admin-618472935.html" class="nav-btn primary hidden" id="adminBtn" title="Admin dashboard">
-        <i data-lucide="shield-check"></i>
-        <span class="lbl">Admin</span>
-      </a>
-      <a href="profiles.html" class="user-chip hidden" id="userChip" title="Switch profile">
-        <span class="user-chip-avatar" id="userAvatar">?</span>
-        <span class="user-chip-name" id="userName">Account</span>
-      </a>
-      <button type="button" class="nav-btn ghost hidden" id="signoutBtn" title="Sign out">
-        <i data-lucide="log-out"></i>
-        <span class="lbl">Sign out</span>
-      </button>
+    <div class="nav-links">
+      <a href="index.html">Events</a>
+      <a href="admin.html">Admin Login</a>
+      <a href="https://novalink-tickets.onrender.com" class="btn-nav">Buy Tickets</a>
     </div>
   </div>
 </nav>
 
-<section class="hero">
-  <div class="hero-inner">
-    <span class="hero-badge">
-      <span class="dot"></span>
-      Streaming without limits
-    </span>
-    <h1>
-      Watch the <span class="accent">stars.</span>
-    </h1>
-    <p>
-      Live TV, movies, shows, and sports — free to start.
-      Upgrade for 4K, no ads, and watch on more devices.
-    </p>
-    <div class="hero-ctas">
-      <a href="auth.html?tab=signup" class="cta-btn primary" id="heroCtaSignup">
-        <i data-lucide="play"></i>
-        Start free
-      </a>
-      <a href="streams.html" class="cta-btn ghost">
-        <i data-lucide="grid-3x3"></i>
-        Browse all
-      </a>
-    </div>
-    <div class="hero-prices">
-      <i data-lucide="tag"></i>
-      <span>5 plans from R90/month ·</span>
-      <a href="plans.html">See plans</a>
-    </div>
+<header class="hero">
+  <h1>Experience the event,<br>from anywhere.</h1>
+  <p>Watch live events in crystal clear HD. If you have a ticket, you're already in.</p>
+</header>
+
+<section class="events-section">
+  <h2 class="section-title"><i data-lucide="calendar"></i> Upcoming Streams</h2>
+  <div id="loading" class="spinner"></div>
+  <div id="event-grid" class="grid hidden"></div>
+  <div id="empty-state" class="empty hidden">
+    <i data-lucide="video-off"></i>
+    <h3>No events found</h3>
+    <p>Check back later for new live streams.</p>
   </div>
 </section>
-
-<!-- LIVE NOW -->
-<section class="section" id="liveSection">
-  <div class="container">
-    <div class="section-head">
-      <h2 class="section-title">
-        <span class="live-dot"></span>
-        Live now
-      </h2>
-      <a href="streams.html?filter=live" class="section-link">
-        See all <i data-lucide="arrow-right"></i>
-      </a>
-    </div>
-    <div class="row" id="liveRow">
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- MOVIES -->
-<section class="section" id="moviesSection">
-  <div class="container">
-    <div class="section-head">
-      <h2 class="section-title">
-        <i data-lucide="film"></i>
-        Movies
-      </h2>
-      <a href="streams.html?filter=movie" class="section-link">
-        See all <i data-lucide="arrow-right"></i>
-      </a>
-    </div>
-    <div class="row" id="moviesRow">
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- SHOWS -->
-<section class="section" id="showsSection">
-  <div class="container">
-    <div class="section-head">
-      <h2 class="section-title">
-        <i data-lucide="layers"></i>
-        Shows
-      </h2>
-      <a href="streams.html?filter=show" class="section-link">
-        See all <i data-lucide="arrow-right"></i>
-      </a>
-    </div>
-    <div class="row" id="showsRow">
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- TRENDING -->
-<section class="section" id="trendingSection">
-  <div class="container">
-    <div class="section-head">
-      <h2 class="section-title">
-        <i data-lucide="trending-up"></i>
-        Trending now
-      </h2>
-      <a href="streams.html" class="section-link">
-        See all <i data-lucide="arrow-right"></i>
-      </a>
-    </div>
-    <div class="row" id="trendingRow">
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-      <div class="skeleton-card"><div class="sk-thumb"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- FEATURES -->
-<section class="section">
-  <div class="container">
-    <div class="section-head">
-      <h2 class="section-title">
-        <i data-lucide="star"></i>
-        Why Starlane Stream
-      </h2>
-    </div>
-    <div class="features">
-      <div class="feature">
-        <div class="feature-icon"><i data-lucide="smartphone"></i></div>
-        <h3>Watch anywhere</h3>
-        <p>Phone, tablet, laptop, or TV. Sign in once, watch on up to 4 devices.</p>
-      </div>
-      <div class="feature">
-        <div class="feature-icon"><i data-lucide="badge-check"></i></div>
-        <h3>Free to start</h3>
-        <p>No credit card needed. Start watching free, upgrade anytime.</p>
-      </div>
-      <div class="feature">
-        <div class="feature-icon"><i data-lucide="film"></i></div>
-        <h3>4K Ultra HD</h3>
-        <p>Crystal clear picture on premium plans. Perfect for movies and sports.</p>
-      </div>
-      <div class="feature">
-        <div class="feature-icon"><i data-lucide="x-circle"></i></div>
-        <h3>No ads</h3>
-        <p>Upgrade to any paid plan and enjoy uninterrupted streaming.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<footer class="footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div>
-        <div class="footer-brand">
-          <svg viewBox="0 0 60 74" aria-hidden="true">
-            <defs>
-              <linearGradient id="starGradFooter" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#E50914"/>
-                <stop offset="100%" stop-color="#FF5566"/>
-              </linearGradient>
-            </defs>
-            <path d="M10 60 Q 22 32 44 20" stroke="url(#starGradFooter)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
-            <path d="M16 62 Q 26 40 46 26" stroke="url(#starGradFooter)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
-            <circle cx="46" cy="18" r="5" fill="#fff"/>
-            <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
-          </svg>
-          <b>STAR<span>LANE</span></b>
-        </div>
-        <p class="footer-tagline">
-          Live TV, movies, shows and sports — streaming without limits.
-          Built for South Africa, made for the world.
-        </p>
-      </div>
-      <div class="footer-col">
-        <h4>Product</h4>
-        <a href="streams.html">Browse all</a>
-        <a href="plans.html">Plans & pricing</a>
-        <a href="auth.html?tab=signup">Start free</a>
-      </div>
-      <div class="footer-col">
-        <h4>Account</h4>
-        <a href="auth.html">Sign in</a>
-        <a href="account-527394816.html">My account</a>
-        <a href="plans.html">Upgrade plan</a>
-      </div>
-      <div class="footer-col">
-        <h4>Legal</h4>
-        <a href="legal.html#terms">Terms</a>
-        <a href="legal.html#privacy">Privacy</a>
-        <a href="legal.html#popia">POPIA</a>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>© <span id="year"></span> Starlane Stream. All rights reserved.</span>
-      <span>Made in Johannesburg, South Africa.</span>
-    </div>
-  </div>
-</footer>
-
-<div id="toast"></div>
 
 <script>
 (function(){
-'use strict';
+  var firebaseConfig = {
+    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+    authDomain: "starlane-stream.firebaseapp.com",
+    projectId: "starlane-stream",
+    storageBucket: "starlane-stream.firebasestorage.app",
+    messagingSenderId: "115625325145",
+    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var db = firebase.firestore();
 
-/* ═══════════════════════════════════════════════════════════════
-   FIREBASE CONFIG
-   ═══════════════════════════════════════════════════════════════ */
-var firebaseConfig = {
-  apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
-  authDomain: "starlane-stream.firebaseapp.com",
-  projectId: "starlane-stream",
-  storageBucket: "starlane-stream.firebasestorage.app",
-  messagingSenderId: "115625325145",
-  appId: "1:115625325145:web:b14025df503bbe2b7d7748"
-};
-
-var ADMIN_EMAILS = [
-  'nylnathan340@gmail.com',
-  'customerservicesnovalink@gmail.com'
-];
-
-var STREAMS = "streams";
-var REPLAY_DAYS = 30;
-
-var firebaseReady = firebaseConfig.apiKey.indexOf('PASTE_') === -1;
-var db = null;
-var auth = null;
-var currentUser = null;
-
-if (firebaseReady && !firebase.apps.length){
-  firebase.initializeApp(firebaseConfig);
-  db = firebase.firestore();
-  auth = firebase.auth();
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   HELPERS
-   ═══════════════════════════════════════════════════════════════ */
-function $(id){ return document.getElementById(id); }
-function esc(s){
-  return String(s == null ? '' : s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
-function icon(n){ return '<i data-lucide="' + n + '"></i>'; }
-
-function toast(msg, type, ms){
-  type = type || 'info'; ms = ms || 3000;
-  var t = $('toast');
-  var ic = type === 'error' ? 'alert-circle' : (type === 'success' ? 'check-circle' : 'info');
-  t.className = type;
-  t.innerHTML = icon(ic) + '<span>' + esc(msg) + '</span>';
-  refreshIcons();
-  requestAnimationFrame(function(){ t.classList.add('show'); });
-  clearTimeout(toast._t);
-  toast._t = setTimeout(function(){ t.classList.remove('show'); }, ms);
-}
-
-function initials(name, email){
-  if (name && String(name).trim()){
-    var p = String(name).trim().split(/\s+/);
-    if (p.length >= 2) return (p[0][0]+p[1][0]).toUpperCase();
-    return p[0].slice(0,2).toUpperCase();
+  function formatDate(dateStr, timeStr) {
+    if (!dateStr) return 'Date TBA';
+    try {
+      var d = new Date(dateStr + 'T' + (timeStr || '00:00'));
+      return d.toLocaleDateString('en-ZA', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch(e) { return dateStr; }
   }
-  if (email) return String(email).slice(0,2).toUpperCase();
-  return '?';
-}
 
-function isAdmin(user){
-  if (!user || !user.email) return false;
-  var e = String(user.email).toLowerCase().trim();
-  return ADMIN_EMAILS.some(function(a){ return a.toLowerCase() === e; });
-}
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.lucide) lucide.createIcons();
 
-function getActiveProfile(){
-  try {
-    var s = localStorage.getItem('starlane_active_profile');
-    if (!s) return null;
-    var p = JSON.parse(s);
-    if (p && p.id && p.name) return p;
-  } catch(e){}
-  return null;
-}
-
-function formatDate(dateStr, timeStr){
-  if (!dateStr) return 'On demand';
-  try {
-    var d = new Date(dateStr + 'T' + (timeStr || '00:00'));
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
-  } catch(e){ return dateStr; }
-}
-
-function streamStatus(item){
-  var type = item.type || 'live';
-  if (type === 'movie' || type === 'show') return 'on-demand';
-  if (!item.startDate) return 'upcoming';
-  var startMs = new Date(item.startDate + 'T' + (item.startTime || '00:00') + ':00').getTime();
-  if (isNaN(startMs)) return 'upcoming';
-  var dur = (parseInt(item.durationMinutes, 10) || 90) * 60000;
-  var endMs = startMs + dur;
-  var replayMs = endMs + REPLAY_DAYS * 86400000;
-  var now = Date.now();
-  if (now < startMs) return 'upcoming';
-  if (now <= endMs) return 'live';
-  if (now <= replayMs && item.replayEnabled !== false) return 'replay';
-  return 'ended';
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   NAV AUTH
-   ═══════════════════════════════════════════════════════════════ */
-function updateNavAuth(user){
-  var signinBtn = $('signinBtn');
-  var signupBtn = $('signupBtn');
-  var userChip = $('userChip');
-  var signoutBtn = $('signoutBtn');
-  var adminBtn = $('adminBtn');
-  var heroCtaSignup = $('heroCtaSignup');
-
-  if (user){
-    if (signinBtn) signinBtn.classList.add('hidden');
-    if (signupBtn) signupBtn.classList.add('hidden');
-
-    if (userChip){
-      userChip.classList.remove('hidden');
-      var av = $('userAvatar');
-      var nm = $('userName');
-      var active = getActiveProfile();
-      if (active && active.name){
-        if (av) av.textContent = initials(active.name);
-        if (nm) nm.textContent = active.name;
-        if (active.color && av){
-          av.style.background = 'linear-gradient(135deg, ' + active.color + ', rgba(0,0,0,.35))';
+    db.collection('streams').where('active', '==', true).get()
+      .then(function(snap) {
+        document.getElementById('loading').classList.add('hidden');
+        
+        if (snap.empty) {
+          document.getElementById('empty-state').classList.remove('hidden');
+          if (window.lucide) lucide.createIcons();
+          return;
         }
-      } else {
-        var displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'Account');
-        if (av) av.textContent = initials(user.displayName, user.email);
-        if (nm) nm.textContent = displayName;
-      }
-    }
-    if (signoutBtn) signoutBtn.classList.remove('hidden');
 
-    if (adminBtn){
-      if (isAdmin(user)) adminBtn.classList.remove('hidden');
-      else adminBtn.classList.add('hidden');
-    }
+        var grid = document.getElementById('event-grid');
+        grid.classList.remove('hidden');
 
-    if (heroCtaSignup){
-      heroCtaSignup.innerHTML = '<i data-lucide="play"></i> Continue watching';
-      heroCtaSignup.href = 'streams.html';
-    }
-  } else {
-    if (signinBtn) signinBtn.classList.remove('hidden');
-    if (signupBtn) signupBtn.classList.remove('hidden');
-    if (userChip) userChip.classList.add('hidden');
-    if (signoutBtn) signoutBtn.classList.add('hidden');
-    if (adminBtn) adminBtn.classList.add('hidden');
-    if (heroCtaSignup){
-      heroCtaSignup.innerHTML = '<i data-lucide="play"></i> Start free';
-      heroCtaSignup.href = 'auth.html?tab=signup';
-    }
-  }
-  refreshIcons();
-}
+        snap.forEach(function(doc) {
+          var data = doc.data();
+          var id = doc.id;
+          
+          var title = data.title || 'Untitled Event';
+          var dateStr = formatDate(data.startDate, data.startTime);
+          var poster = data.posterUrl || 'https://images.unsplash.com/photo-1540039155732-684736882207?q=80&w=800&auto=format&fit=crop';
+          var isPPV = data.requiresTicket || data.ppvPrice;
+          
+          var priceHTML = '';
+          var actionBtn = '';
 
-function wireSignout(){
-  var btn = $('signoutBtn');
-  if (!btn) return;
-  btn.addEventListener('click', function(){
-    if (!confirm('Sign out of Starlane Stream?')) return;
-    try { localStorage.removeItem('starlane_active_profile'); } catch(e){}
-    if (auth){
-      auth.signOut().then(function(){
-        toast('Signed out.', 'success', 2000);
-      }).catch(function(err){
-        console.error('[signout]', err);
+          if (isPPV) {
+            priceHTML = '<div class="price">R' + (data.ppvPrice || 150) + '</div>';
+            actionBtn = '<a href="https://novalink-tickets.onrender.com" class="btn-watch btn-buy">Get Ticket <i data-lucide="ticket"></i></a>';
+          } else {
+            priceHTML = '<div class="price">Free <span>with ticket</span></div>';
+            actionBtn = '<a href="watch.html?id=' + id + '" class="btn-watch">Watch Now <i data-lucide="play"></i></a>';
+          }
+
+          var card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <img src="${poster}" alt="${title}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1540039155732-684736882207?q=80&w=800&auto=format&fit=crop'">
+            <div class="card-content">
+              <span class="badge ${isPPV ? '' : 'free'}">${isPPV ? 'Ticketed Event' : 'Live Stream'}</span>
+              <h3 class="card-title">${title}</h3>
+              <div class="card-date"><i data-lucide="clock" size="16"></i> ${dateStr}</div>
+              <div class="card-footer">
+                ${priceHTML}
+                ${actionBtn}
+              </div>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+        
+        if (window.lucide) lucide.createIcons();
+      })
+      .catch(function(err) {
+        console.error(err);
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('empty-state').classList.remove('hidden');
+        document.getElementById('empty-state').innerHTML = '<p>Error loading events: ' + err.message + '</p>';
       });
-    }
   });
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   CONTENT CARD BUILDER
-   ═══════════════════════════════════════════════════════════════ */
-function buildContentCard(item){
-  var card = document.createElement('a');
-  card.className = 'content-card';
-  card.href = 'watch-847291563.html?id=' + encodeURIComponent(item.id);
-
-  var type = item.type || 'live';
-  var status = streamStatus(item);
-  var title = item.title || item.streamTitle || item.eventName || 'Untitled';
-  var poster = item.posterUrl || item.heroImage || '';
-
-  var thumbStyle = poster
-    ? "background-image:url('" + esc(poster) + "');background-size:cover;background-position:center;"
-    : '';
-
-  // Badge
-  var badgeClass = 'upcoming';
-  var badgeLabel = 'Upcoming';
-  if (type === 'movie'){ badgeClass = 'movie'; badgeLabel = 'Movie'; }
-  else if (type === 'show'){ badgeClass = 'show'; badgeLabel = 'Show'; }
-  else {
-    if (status === 'live'){ badgeClass = 'live'; badgeLabel = 'Live'; }
-    else if (status === 'replay'){ badgeClass = 'replay'; badgeLabel = 'Replay'; }
-    else if (status === 'ended'){ badgeClass = 'ended'; badgeLabel = 'Ended'; }
-  }
-
-  // Meta
-  var metaText = '';
-  if (type === 'show' && Array.isArray(item.episodes)){
-    metaText = item.episodes.length + ' episode' + (item.episodes.length === 1 ? '' : 's');
-  } else if (type === 'movie'){
-    metaText = (parseInt(item.durationMinutes, 10) || 0) + ' min';
-  } else {
-    metaText = formatDate(item.startDate, item.startTime);
-  }
-
-  card.innerHTML =
-    '<div class="content-thumb" style="' + thumbStyle + '">' +
-      '<span class="content-badge ' + badgeClass + '">' + esc(badgeLabel) + '</span>' +
-      '<div class="play-ico">' + icon('play') + '</div>' +
-    '</div>' +
-    '<div class="content-body">' +
-      '<div class="content-title">' + esc(title) + '</div>' +
-      '<div class="content-meta">' + icon('calendar') + '<span>' + esc(metaText) + '</span></div>' +
-    '</div>';
-
-  return card;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   RENDER ROW
-   ═══════════════════════════════════════════════════════════════ */
-function renderRow(rowId, items, sectionId){
-  var row = $(rowId);
-  if (!row) return;
-
-  if (!items.length){
-    row.innerHTML =
-      '<div class="empty-state">' +
-        icon('video-off') +
-        '<p>Nothing here yet. Check back soon.</p>' +
-      '</div>';
-    // Hide the section entirely
-    var section = $(sectionId);
-    if (section) section.style.display = 'none';
-    refreshIcons();
-    return;
-  }
-
-  row.innerHTML = '';
-  items.forEach(function(item){
-    row.appendChild(buildContentCard(item));
-  });
-  refreshIcons();
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   LOAD HOMEPAGE
-   ═══════════════════════════════════════════════════════════════ */
-function loadHomepage(){
-  if (!firebaseReady || !db){
-    renderRow('liveRow', [], 'liveSection');
-    renderRow('moviesRow', [], 'moviesSection');
-    renderRow('showsRow', [], 'showsSection');
-    renderRow('trendingRow', [], 'trendingSection');
-    return;
-  }
-
-  db.collection(STREAMS)
-    .where('active', '!=', false)
-    .limit(200)
-    .get()
-    .then(function(snap){
-      var all = [];
-      snap.forEach(function(doc){
-        var d = doc.data() || {};
-        // Skip items explicitly marked inactive
-        if (d.active === false) return;
-        d.id = doc.id;
-        all.push(d);
-      });
-
-      // Split by type
-      var live = [];
-      var movies = [];
-      var shows = [];
-
-      all.forEach(function(item){
-        var t = item.type || 'live';
-        if (t === 'movie') movies.push(item);
-        else if (t === 'show') shows.push(item);
-        else live.push(item);
-      });
-
-      // Live now: only currently-live items
-      var liveNow = live.filter(function(s){ return streamStatus(s) === 'live'; });
-      // If nothing live right now, show upcoming ones instead
-      if (!liveNow.length){
-        liveNow = live.filter(function(s){
-          var st = streamStatus(s);
-          return st === 'upcoming' || st === 'live';
-        }).slice(0, 12);
-      }
-      liveNow = liveNow.slice(0, 12);
-
-      // Trending: highest views
-      var trending = all.slice().sort(function(a, b){
-        return (parseInt(b.views, 10) || 0) - (parseInt(a.views, 10) || 0);
-      }).slice(0, 12);
-
-      // Shuffle movies/shows a bit, take 12
-      movies = movies.slice(0, 12);
-      shows = shows.slice(0, 12);
-
-      renderRow('liveRow', liveNow, 'liveSection');
-      renderRow('moviesRow', movies, 'moviesSection');
-      renderRow('showsRow', shows, 'showsSection');
-      renderRow('trendingRow', trending, 'trendingSection');
-    })
-    .catch(function(err){
-      console.warn('[homepage load]', err);
-      renderRow('liveRow', [], 'liveSection');
-      renderRow('moviesRow', [], 'moviesSection');
-      renderRow('showsRow', [], 'showsSection');
-      renderRow('trendingRow', [], 'trendingSection');
-    });
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   BOOT
-   ═══════════════════════════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', function(){
-  var yearEl = $('year');
-  if (yearEl) yearEl.textContent = new Date().getFullYear();
-  refreshIcons();
-  wireSignout();
-
-  if (firebaseReady && auth){
-    auth.onAuthStateChanged(function(user){
-      currentUser = user;
-      updateNavAuth(user);
-      if (!allLoaded){
-        allLoaded = true;
-        loadHomepage();
-      }
-    });
-  } else {
-    updateNavAuth(null);
-    loadHomepage();
-  }
-});
-
-var allLoaded = false;
-
 })();
 </script>
-
 </body>
-              </html>
+</html>
