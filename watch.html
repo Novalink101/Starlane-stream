@@ -42,6 +42,11 @@
   .player-container { position: relative; width: 100%; max-width: 1100px; aspect-ratio: 16/9; background: #000; border-radius: 20px; overflow: hidden; margin-top: 60px; z-index: 1; }
   .player-container video { width: 100%; height: 100%; display: block; object-fit: contain; }
 
+  /* Multi-Cam Split Screen */
+  .split-screen { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; width: 100%; height: 100%; gap: 2px; background: #000; }
+  .split-screen video { width: 100%; height: 100%; object-fit: cover; }
+  .split-screen video:first-child { grid-column: 1 / -1; }
+
   .fullscreen-overlay { position: absolute; inset: 0; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0a0a0f; }
   .fullscreen-overlay.hidden { display: none; }
   .fullscreen-overlay .logos { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 24px; }
@@ -78,7 +83,18 @@
 
 <div id="screen-player" class="hidden" style="width:100%; display:flex; justify-content:center;">
   <div class="player-container">
+    
+    <!-- SINGLE CAMERA VIEW -->
     <video id="video" playsinline autoplay muted></video>
+
+    <!-- SPLIT SCREEN VIEW (Hidden by default) -->
+    <div class="split-screen hidden" id="split-screen">
+      <video id="video-cam1" playsinline autoplay muted></video>
+      <video id="video-cam2" playsinline autoplay muted></video>
+      <video id="video-cam3" playsinline autoplay muted></video>
+    </div>
+
+    <!-- WAITING OVERLAY -->
     <div class="fullscreen-overlay" id="waiting-overlay">
       <div class="prestream-spinner"></div>
       <div class="logos">
@@ -107,6 +123,10 @@
   var auth = firebase.auth();
 
   var video = document.getElementById('video');
+  var splitScreen = document.getElementById('split-screen');
+  var cam1Video = document.getElementById('video-cam1');
+  var cam2Video = document.getElementById('video-cam2');
+  var cam3Video = document.getElementById('video-cam3');
   var waitingOverlay = document.getElementById('waiting-overlay');
   
   var screens = {
@@ -163,25 +183,47 @@
   function startPlayer() {
     showScreen('player');
     
-    // Poll the database every 3 seconds for the latest Camera 1 chunk
+    // Poll the database every 3 seconds for camera updates
     setInterval(function() {
       db.collection('streams').doc(streamId).get().then(function(doc) {
         if (!doc.exists) return;
         var data = doc.data();
         
-        // Look specifically for cam1
-        var camUrl = data.cams && data.cams.cam1 ? data.cams.cam1 : null;
-
-        if (camUrl) {
-          if (camUrl !== currentVideoUrl) {
-            currentVideoUrl = camUrl;
-            video.src = camUrl;
-            video.play().catch(function(){});
-            waitingOverlay.classList.add('hidden');
-          }
+        var activeCam = data.activeCamera || 'cam1';
+        
+        if (activeCam === 'split') {
+          // SHOW SPLIT SCREEN
+          video.classList.add('hidden');
+          splitScreen.classList.remove('hidden');
+          waitingOverlay.classList.add('hidden');
+          
+          if (data.cams && data.cams.cam1) { cam1Video.src = data.cams.cam1; cam1Video.play().catch(()=>{}); }
+          if (data.cams && data.cams.cam2) { cam2Video.src = data.cams.cam2; cam2Video.play().catch(()=>{}); }
+          if (data.cams && data.cams.cam3) { cam3Video.src = data.cams.cam3; cam3Video.play().catch(()=>{}); }
+          
         } else {
-          waitingOverlay.classList.remove('hidden');
-          document.getElementById('waiting-title').textContent = "Waiting for camera...";
+          // SHOW SINGLE CAMERA
+          splitScreen.classList.add('hidden');
+          video.classList.remove('hidden');
+          
+          var camUrl = null;
+          if (data.cams && data.cams[activeCam]) {
+            camUrl = data.cams[activeCam];
+          } else if (data.streamUrl && data.streamUrl !== 'broadcasting') {
+            camUrl = data.streamUrl;
+          }
+
+          if (camUrl) {
+            if (camUrl !== currentVideoUrl) {
+              currentVideoUrl = camUrl;
+              video.src = camUrl;
+              video.play().catch(function(){});
+              waitingOverlay.classList.add('hidden');
+            }
+          } else {
+            waitingOverlay.classList.remove('hidden');
+            document.getElementById('waiting-title').textContent = "Waiting for camera...";
+          }
         }
       });
     }, 3000);
