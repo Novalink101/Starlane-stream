@@ -134,6 +134,48 @@ h1,h2,h3{line-height:1.15;font-weight:900;letter-spacing:-.02em;color:#fff}
   .nav-btn{padding:9px 12px}
 }
 
+/* ── PAYWALL & LOADING SCREENS ── */
+.nl-screen {
+  position: fixed; inset: 0; z-index: 1000;
+  background: #050508;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; text-align: center; padding: 24px;
+}
+.nl-spinner {
+  width: 44px; height: 44px;
+  border: 4px solid rgba(255,255,255,.1);
+  border-top-color: var(--red);
+  border-radius: 50%;
+  animation: spin .9s linear infinite;
+  margin: 0 auto 20px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.nl-screen h2 { font-size: 18px; font-weight: 700; color: var(--text-2); }
+
+.paywall-icon {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: rgba(229,9,20,.12); border: 2px solid rgba(229,9,20,.3);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px; font-size: 36px;
+}
+.nl-screen h1 { font-size: clamp(1.5rem, 4vw, 2.2rem); margin-bottom: 10px; color: #fff; }
+.nl-screen p { color: var(--text-3); font-size: 15px; line-height: 1.6; max-width: 480px; margin: 0 auto 24px; }
+.paywall-ref {
+  display: inline-block; margin-top: 10px; font-family: var(--mono);
+  font-size: 12.5px; color: var(--text-3); padding: 6px 12px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 8px;
+}
+.btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.nl-btn {
+  display: inline-flex; align-items: center; gap: 9px; padding: 14px 26px;
+  border-radius: 999px; font-size: 15px; font-weight: 900; text-decoration: none;
+  border: none; cursor: pointer; font-family: inherit; transition: all .2s;
+}
+.nl-btn.primary { background: var(--red); color: #fff; box-shadow: 0 10px 28px rgba(229,9,20,.4); }
+.nl-btn.primary:hover { background: var(--red-hover); transform: translateY(-2px); }
+.nl-btn.ghost { background: rgba(255,255,255,.06); color: #fff; border: 1px solid rgba(255,255,255,.14); }
+.nl-btn.ghost:hover { background: rgba(255,255,255,.12); }
+
 /* ── PAGE HEADER (breadcrumb + title) ── */
 .pg-head{
   background:linear-gradient(180deg, #0A0A0F 0%, #050508 100%);
@@ -1336,6 +1378,26 @@ main{flex:1;padding:22px 0 60px}
 
 <div class="starfield" aria-hidden="true"></div>
 
+<!-- ═══════════════════════════════════════════════════════════════
+     NOVALINK TICKET CHECK (LOADING / PAYWALL)
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="nl-loading" class="nl-screen hidden">
+  <div class="nl-spinner"></div>
+  <h2>Verifying your Novalink ticket…</h2>
+</div>
+
+<div id="nl-paywall" class="nl-screen hidden">
+  <div class="paywall-icon" id="nl-paywall-icon">🔒</div>
+  <h1 id="nl-paywall-title">Access denied</h1>
+  <p id="nl-paywall-msg">You need a valid Novalink ticket to watch this stream.</p>
+  <div id="nl-paywall-ref" class="paywall-ref" style="display:none;"></div>
+  <div class="btn-row">
+    <a href="https://novalink-tickets.onrender.com/events.html" class="nl-btn primary">Buy a ticket on Novalink</a>
+    <a href="index.html" class="nl-btn ghost">Back to home</a>
+  </div>
+</div>
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
 <nav class="nav">
   <div class="nav-inner">
     <a href="index.html" class="nav-brand" aria-label="Starlane Stream home">
@@ -1388,25 +1450,7 @@ main{flex:1;padding:22px 0 60px}
 
 <div id="toast"></div>
 
-<!--
-  ═══════════════════════════════════════════════════════════════
-  STOP HERE
-  ═══════════════════════════════════════════════════════════════
-  Part 1 (this message) is DONE.
-  Do NOT save yet — the file has no closing </body></html>.
-
-  Reply "next" and I'll send Part 2 (JavaScript part 1 — config,
-  helpers, platform detection, loaders for HLS/DASH/MPEG-TS/
-  YouTube/iframe/video).
-
-  Then reply "next" again for Part 3 (JavaScript part 2 — controls,
-  ads, tickers, segment/show/movie logic, boot code + closing tags).
-
-  After all 3 parts, save the whole thing to watch-847291563.html
-  and commit.
-  ═══════════════════════════════════════════════════════════════
--->
-  <script>
+<script>
 (function(){
 'use strict';
 
@@ -1431,6 +1475,7 @@ var STREAMS = "streams";
 var ADS = "ads";
 var SETTINGS = "settings";
 var SETTINGS_DOC = "ads";
+var NOVALINK_API = "https://novalink-api-8vfg.onrender.com/api/verify-stream";
 
 var REPLAY_DAYS = 30;
 var CONTROLS_HIDE_MS = 6000;
@@ -1446,6 +1491,7 @@ var db = null;
 var auth = null;
 var currentUser = null;
 var isAdminUser = false;
+var novalinkGuestName = '';
 
 if (firebaseReady && !firebase.apps.length){
   firebase.initializeApp(firebaseConfig);
@@ -1485,8 +1531,17 @@ function esc(s){
 }
 function refreshIcons(){ if (window.lucide) lucide.createIcons(); }
 function icon(n){ return '<i data-lucide="'+n+'"></i>'; }
+
+/* 
+ * FIX: Handles the Novalink double '?' bug 
+ * (e.g. ?id=123?ticketRef=456 -> ?id=123&ticketRef=456)
+ */
 function getParam(n){
-  try { return new URLSearchParams(window.location.search).get(n); }
+  try { 
+    var search = window.location.search;
+    search = search.replace(/\?ticketRef=/, '&ticketRef=');
+    return new URLSearchParams(search).get(n); 
+  }
   catch(e){ return null; }
 }
 
@@ -1752,6 +1807,24 @@ var adState = {
 var _nlUnmuteBound = false;
 
 /* ═══════════════════════════════════════════════════════════════
+   NOVALINK VERIFICATION
+   ═══════════════════════════════════════════════════════════════ */
+async function verifyNovalinkTicket(ticketRef){
+  try {
+    var res = await fetch(NOVALINK_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticketRef: ticketRef })
+    });
+    if (!res.ok) throw new Error("Network response was not ok");
+    return await res.json();
+  } catch(e) {
+    console.error("Novalink verify error:", e);
+    return { valid: false, error: "Could not connect to Novalink to verify ticket." };
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
    AUTH
    ═══════════════════════════════════════════════════════════════ */
 function applyAuth(user){
@@ -1904,7 +1977,6 @@ function updateCurtainCountdown(){
 function getSegments(){
   if (!streamData) return [];
 
-  // ── MOVIE: single URL, plays anytime, ad gaps apply ──
   if (streamData.type === 'movie'){
     var url = streamData.streamUrl || '';
     var dur = parseInt(streamData.durationMinutes, 10) || 120;
@@ -1912,14 +1984,13 @@ function getSegments(){
       url: url,
       startTime: '00:00',
       endTime: minutesToTime(dur),
-      startMs: Date.now() - 1000, // movies are always "live" (playable now)
+      startMs: Date.now() - 1000,
       endMs: Date.now() + dur * 60000,
       platform: detectPlatformFromUrl(url),
       isMovie: true
     }];
   }
 
-  // ── SHOW: episodes, one URL each ──
   if (streamData.type === 'show' && Array.isArray(streamData.episodes)){
     var ep = streamData.episodes[currentEpisodeIndex] || streamData.episodes[0];
     if (!ep) return [];
@@ -1936,7 +2007,6 @@ function getSegments(){
     }];
   }
 
-  // ── LIVE/HIGHLIGHT: scheduled segments (existing behavior) ──
   if (Array.isArray(streamData.segments) && streamData.segments.length){
     var dateStr = streamData.startDate || '';
     return streamData.segments.map(function(s){
@@ -1954,7 +2024,6 @@ function getSegments(){
     }).filter(function(s){ return !isNaN(s.startMs) && !isNaN(s.endMs); });
   }
 
-  // ── SINGLE URL LIVE/HIGHLIGHT ──
   var ds2 = streamData.startDate || '';
   var ts2 = streamData.startTime || '00:00';
   var dur3 = parseInt(streamData.durationMinutes, 10) || 90;
@@ -1988,7 +2057,6 @@ function getTiming(){
 function computePhase(){
   if (!streamData) return 'unknown';
 
-  // Movies and shows are always "live" (on-demand, playable now)
   if (streamData.type === 'movie' || streamData.type === 'show'){
     return 'live';
   }
@@ -2018,7 +2086,6 @@ function getActiveSegment(){
   var segs = getSegments();
   var now = Date.now();
 
-  // For movies/shows, there's always an "active" segment (index 0)
   if (streamData && (streamData.type === 'movie' || streamData.type === 'show')){
     return segs[0] ? { seg: segs[0], index: 0 } : null;
   }
@@ -2134,7 +2201,6 @@ function clearPlayerHost(){
   }
 }
 
-/* ── HLS ── */
 function loadHlsPlayer(url, isLive){
   var host = getHost(); if (!host) return;
   showCurtain('loading', 'Connecting…', 'HLS stream');
@@ -2182,7 +2248,6 @@ function loadHlsPlayer(url, isLive){
   updateJumpLiveButton();
 }
 
-/* ── DASH ── */
 function loadDashPlayer(url, isLive){
   var host = getHost(); if (!host) return;
   if (!window.dashjs){
@@ -2213,7 +2278,6 @@ function loadDashPlayer(url, isLive){
   updateJumpLiveButton();
 }
 
-/* ── MPEG-TS ── */
 function loadMpegTsPlayer(url, isLive){
   var host = getHost(); if (!host) return;
   if (!window.mpegts){
@@ -2246,7 +2310,6 @@ function loadMpegTsPlayer(url, isLive){
   updateJumpLiveButton();
 }
 
-/* ── Direct video file ── */
 function loadDirectVideoPlayer(url){
   var host = getHost(); if (!host) return;
   showCurtain('loading', 'Loading video…');
@@ -2264,7 +2327,6 @@ function loadDirectVideoPlayer(url){
   updateJumpLiveButton();
 }
 
-/* ── YouTube ── */
 function loadYouTubePlayer(url){
   var host = getHost(); if (!host) return;
   clearPlayerHost();
@@ -2373,7 +2435,6 @@ function createYTPlayer(videoId){
   });
 }
 
-/* ── Iframe (Twitch, Vimeo, Facebook, Kick, Rumble, etc.) ── */
 function loadIframePlayer(url, platform){
   var host = getHost(); if (!host) return;
   showCurtain('loading', 'Loading…', 'Connecting to ' + platformLabel(platform));
@@ -2424,7 +2485,6 @@ function loadIframePlayer(url, platform){
   host.appendChild(iframe);
 }
 
-/* ── Router ── */
 function routeToPlayer(url, platform){
   if (!url){
     showCurtain('error', 'No source', 'This item has no playable URL.');
@@ -2440,7 +2500,8 @@ function routeToPlayer(url, platform){
   if (platform === 'video-file') return loadDirectVideoPlayer(url);
   return loadHlsPlayer(url, isLive);
 }
-  /* ═══════════════════════════════════════════════════════════════
+
+/* ═══════════════════════════════════════════════════════════════
    CONTROLS AUTO-HIDE
    ═══════════════════════════════════════════════════════════════ */
 function wireControlsAutoHide(){
@@ -2859,12 +2920,10 @@ function pickAd(slot){
   return picked;
 }
 
-/* ── Build an ad queue for a given gap duration ── */
 function buildAdQueue(slot, gapMs){
   var pool = (adPool[slot] || []).slice();
   if (!pool.length) return [];
 
-  // Shuffle pool (Fisher-Yates)
   for (var i = pool.length - 1; i > 0; i--){
     var j = Math.floor(Math.random() * (i + 1));
     var tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
@@ -2874,7 +2933,6 @@ function buildAdQueue(slot, gapMs){
   var queue = [];
   var usedIds = getRecentAdIds(slot);
 
-  // Greedy fill: pick ads whose duration fits remaining
   var safety = 0;
   while (remaining > 5000 && safety < 30){
     safety++;
@@ -2884,7 +2942,6 @@ function buildAdQueue(slot, gapMs){
     });
 
     if (!candidates.length){
-      // Allow reuse if nothing left
       candidates = pool.filter(function(ad){
         var dur = (parseInt(ad.durationSeconds, 10) || 30) * 1000;
         return dur <= remaining;
@@ -2892,22 +2949,18 @@ function buildAdQueue(slot, gapMs){
       if (!candidates.length) break;
     }
 
-    // Pick a random candidate
     var pick = candidates[Math.floor(Math.random() * candidates.length)];
     queue.push(pick);
     usedIds.push(pick.id);
     remaining -= (parseInt(pick.durationSeconds, 10) || 30) * 1000;
   }
 
-  // Remember the picks
   usedIds = usedIds.slice(-RECENT_ADS_MAX);
   setRecentAdIds(slot, usedIds);
 
-  // If no ads fit and theme fallback is enabled, we'll handle in caller
   return queue;
 }
 
-/* ── Track ad events ── */
 function trackAdEvent(ad, type){
   if (!ad || !ad.id) return;
   try {
@@ -2918,7 +2971,6 @@ function trackAdEvent(ad, type){
   } catch(e){}
 }
 
-/* ── Clear all ad-related timers ── */
 function clearAdTimers(){
   clearInterval(adState.countdownTimerId);
   clearTimeout(adState.skipTimerId);
@@ -2927,7 +2979,6 @@ function clearAdTimers(){
   clearTimeout(adState.autoplayRetryId);
 }
 
-/* ── Play an ad queue in a gap. Last ad is skippable. ── */
 function playAdBreak(slot, onComplete){
   var gapMs = 0;
   var queue = [];
@@ -2943,13 +2994,11 @@ function playAdBreak(slot, onComplete){
     queue = singleMid ? [singleMid] : [];
   }
 
-  // If nothing fit and we're filling a gap, use theme fallback
   if (!queue.length){
     if (slot === 'gap' && adSettings.themeFallbackEnabled){
       playThemeFallback(gapMs, onComplete);
       return;
     }
-    // No ads and no gap — skip ad break entirely
     if (onComplete) onComplete();
     return;
   }
@@ -2965,7 +3014,6 @@ function playNextAdInQueue(){
   var idx = adState.currentAdIndex;
 
   if (idx >= queue.length){
-    // Queue done
     if (adState.onGapComplete) adState.onGapComplete();
     return;
   }
@@ -2975,9 +3023,7 @@ function playNextAdInQueue(){
 
   showSingleAd(ad, isLast, function(){
     adState.currentAdIndex++;
-    // Check if we still have time left in the gap
     if (adState.gapEndsAt && Date.now() < adState.gapEndsAt - 3000){
-      // Build a new queue to fill remaining time
       var remaining = adState.gapEndsAt - Date.now();
       if (adSettings.themeFallbackEnabled && remaining > 5000){
         playThemeFallback(remaining, adState.onGapComplete);
@@ -3015,8 +3061,6 @@ function showSingleAd(ad, isLastInQueue, onComplete){
   var skipAfter = parseInt(adSettings.skipAfterSeconds, 10);
   if (isNaN(skipAfter)) skipAfter = 5;
 
-  // Only the LAST ad in the queue is skippable.
-  // Skip disabled for all others.
   var skippable = isLastInQueue;
   if (!skippable){
     skipBtn.style.display = 'none';
@@ -3160,7 +3204,6 @@ function showSingleAd(ad, isLastInQueue, onComplete){
     attachRobustVideoPlayback(vid);
     bindGlobalUnmute();
   } else if (ad.mediaUrl){
-    // Image ad
     var img = document.createElement('img');
     img.src = ad.mediaUrl;
     img.alt = ad.title || 'Ad';
@@ -3168,7 +3211,6 @@ function showSingleAd(ad, isLastInQueue, onComplete){
     img.addEventListener('error', function(){ fallbackToHouseAd(); });
     media.appendChild(img);
 
-    // Auto-advance after duration
     if (durationSec > 0){
       setTimeout(function(){
         hideAd();
@@ -3212,7 +3254,6 @@ function playThemeFallback(durationMs, onComplete){
   cta.href = 'index.html';
   ctaLabel.textContent = 'Watch now';
 
-  // Build the theme block
   var theme = document.createElement('div');
   theme.className = 'house-ad';
   theme.innerHTML =
@@ -3227,21 +3268,18 @@ function playThemeFallback(durationMs, onComplete){
     '<div class="hh-s">We\'ll return to your stream in just a moment.</div>';
   media.appendChild(theme);
 
-  // Progress bar countdown
   var startTime = Date.now();
   var progressInterval = setInterval(function(){
     var pct = Math.min(100, ((Date.now() - startTime) / durationMs) * 100);
     progressFill.style.width = pct + '%';
   }, 200);
 
-  // Timer to end
   var endTimer = setTimeout(function(){
     clearInterval(progressInterval);
     hideAd();
     if (onComplete) onComplete();
   }, durationMs);
 
-  // Clean up interval if user leaves
   adState.themeFallbackTimer = endTimer;
   adState.themeFallbackInterval = progressInterval;
 }
@@ -3287,14 +3325,12 @@ function setupMidrollTimer(){
   if (streamData.midrollEnabled === false) return;
   if (currentPhase !== 'live') return;
 
-  // For movies/shows with adGaps array
   if ((streamData.type === 'movie' || streamData.type === 'show') && Array.isArray(streamData.adGaps)){
     var gaps = streamData.adGaps.slice().sort(function(a, b){ return a - b; });
     if (!gaps.length) return;
 
-    // Track which gaps have fired
     if (!streamData._firedGaps) streamData._firedGaps = {};
-    var currentTime = getPlayerCurrentTime() / 60; // in minutes
+    var currentTime = getPlayerCurrentTime() / 60;
 
     for (var i = 0; i < gaps.length; i++){
       var gapMin = gaps[i];
@@ -3306,12 +3342,10 @@ function setupMidrollTimer(){
       }
     }
 
-    // Schedule next check
     adState.midrollTimerId = setTimeout(setupMidrollTimer, 2000);
     return;
   }
 
-  // For live streams with midrollMinute
   var midMin = parseInt(streamData.midrollMinute, 10) || adSettings.midrollMinute || 30;
   var active = getActiveSegment();
   if (!active) return;
@@ -3331,7 +3365,6 @@ function setupMidrollTimer(){
 }
 
 function fireMidrollGap(){
-  // Simple midroll: play a single midroll ad, then resume
   var player = getActivePlayer();
   var wasPaused = false;
 
@@ -3351,7 +3384,6 @@ function fireMidrollGap(){
         try { player.instance.play().catch(function(){}); } catch(e){}
       }
     }
-    // Re-schedule for next gap
     setTimeout(setupMidrollTimer, 1000);
   });
 }
@@ -3373,9 +3405,7 @@ function startGapAdLoop(endMs){
   }
 
   playAdBreak('gap', function(){
-    // Queue done; check if still in gap
     if (Date.now() < adState.gapEndsAt - 3000){
-      // Still time left, loop again
       gapAdTimer = setTimeout(function(){
         startGapAdLoop(adState.gapEndsAt);
       }, 500);
@@ -3415,11 +3445,9 @@ function handleSegmentEnd(){
   }
 }
 
-/* ── Show episode ending → auto-advance ── */
 function handleEpisodeEnd(){
   if (!Array.isArray(streamData.episodes)) return;
   if (currentEpisodeIndex >= streamData.episodes.length - 1){
-    // Last episode — show ended state
     showCurtain('ended', 'End of series', 'You\'ve finished the last available episode.');
     return;
   }
@@ -3509,7 +3537,6 @@ function decideAndPlay(){
   var phase = computePhase();
   currentPhase = phase;
 
-  // ── MOVIES / SHOWS: always playable now ──
   if (streamData.type === 'movie' || streamData.type === 'show'){
     mode = 'normal';
     hideCurtain();
@@ -3517,7 +3544,6 @@ function decideAndPlay(){
     liveSyncState.isLive = false;
     renderPhaseUI();
 
-    // Preroll (movies/shows)
     if (adSettings.prerollEnabled
         && streamData.prerollEnabled !== false
         && !adState.firedPreroll
@@ -3532,7 +3558,6 @@ function decideAndPlay(){
     return;
   }
 
-  // ── LIVE / HIGHLIGHT ──
   if (phase === 'upcoming'){
     hideUpNext();
     mode = 'gap-ads';
@@ -3646,7 +3671,6 @@ function renderEpisodePanel(){
   });
   seasonNums.sort(function(a, b){ return a - b; });
 
-  // Season tabs
   var seasonTabsHTML = '';
   if (seasonNums.length > 1){
     seasonTabsHTML = '<div class="season-picker" id="seasonPicker">';
@@ -3657,7 +3681,6 @@ function renderEpisodePanel(){
     seasonTabsHTML += '</div>';
   }
 
-  // Episode list for current season
   var filtered = episodes.filter(function(ep){
     return (parseInt(ep.seasonNumber, 10) || 1) === currentSeason;
   });
@@ -3688,7 +3711,6 @@ function renderEpisodePanel(){
     '</div>' +
     '<div class="episode-list">' + listHTML + '</div>';
 
-  // Wire season tabs
   var seasonPicker = $('seasonPicker');
   if (seasonPicker){
     seasonPicker.querySelectorAll('.season-btn').forEach(function(btn){
@@ -3699,7 +3721,6 @@ function renderEpisodePanel(){
     });
   }
 
-  // Wire episode clicks
   panel.querySelectorAll('.episode-item').forEach(function(item){
     item.addEventListener('click', function(e){
       e.preventDefault();
@@ -4122,10 +4143,8 @@ function renderPage(){
       '</div>' +
     '</div>';
 
-  // Episode panel (only for shows)
   var episodePanelHTML = (sType === 'show') ? '<div class="episode-panel" id="episodePanel"></div>' : '';
 
-  // Info card
   var infoHTML =
     '<div class="card">' +
       '<div class="card-title">' + icon('info') + ' Details</div>' +
@@ -4139,13 +4158,12 @@ function renderPage(){
       '<div class="free-note">' +
         icon('badge-check') +
         '<div>' +
-          '<div class="t">Free to watch</div>' +
-          '<div class="s">All content on Starlane Stream is free. Short ads keep the platform running.</div>' +
+          '<div class="t">' + (novalinkGuestName ? 'Novalink Ticket Verified' : 'Free to watch') + '</div>' +
+          '<div class="s">' + (novalinkGuestName ? 'Welcome, ' + esc(novalinkGuestName) + '. Your access is verified.' : 'All content on Starlane Stream is free. Short ads keep the platform running.') + '</div>' +
         '</div>' +
       '</div>' +
     '</div>';
 
-  // Description card
   var descHTML = s.description ? (
     '<div class="card">' +
       '<div class="card-title">' + icon('file-text') + ' About</div>' +
@@ -4153,7 +4171,6 @@ function renderPage(){
     '</div>'
   ) : '';
 
-  // Owner controls
   var ownerHTML =
     '<div class="card" id="ownerCard" style="display:none;">' +
       '<div class="card-title">' + icon('wrench') + ' Admin</div>' +
@@ -4194,7 +4211,6 @@ function renderPage(){
   main.innerHTML = html;
   refreshIcons();
 
-  // Wire everything
   wireControlsAutoHide();
   wireDoubleTap();
   wirePlayerControls();
@@ -4240,7 +4256,6 @@ function loadStream(){
       if (streamData._firedGaps){ /* reset local state each load */ }
       streamData._firedGaps = {};
 
-      // Init show episode index
       if (streamData.type === 'show'){
         if (!Array.isArray(streamData.episodes) || !streamData.episodes.length){
           renderError('Show has no episodes', 'This series has no episodes yet.');
@@ -4252,7 +4267,6 @@ function loadStream(){
 
       currentPhase = computePhase();
 
-      // Load related content
       db.collection(STREAMS).limit(20).get().then(function(snap){
         relatedContent = [];
         snap.forEach(function(s){
@@ -4262,7 +4276,6 @@ function loadStream(){
             relatedContent.push(d);
           }
         });
-        // Shuffle and take 8
         for (var i = relatedContent.length - 1; i > 0; i--){
           var j = Math.floor(Math.random() * (i + 1));
           var tmp = relatedContent[i]; relatedContent[i] = relatedContent[j]; relatedContent[j] = tmp;
@@ -4280,7 +4293,7 @@ function loadStream(){
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   BOOT
+   BOOT & NOVALINK INTEGRATION
    ═══════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function(){
   refreshIcons();
@@ -4307,12 +4320,40 @@ document.addEventListener('DOMContentLoaded', function(){
     return;
   }
 
-  auth.onAuthStateChanged(function(user){
-    applyAuth(user);
-    if (!streamData){
-      loadStream();
-    }
-  });
+  // Check Novalink Ticket first
+  var ticketRef = getParam('ticketRef');
+  
+  function startApp() {
+    auth.onAuthStateChanged(function(user){
+      applyAuth(user);
+      if (!streamData){
+        loadStream();
+      }
+    });
+  }
+
+  if (ticketRef) {
+    // Show loading screen
+    $('nl-loading').classList.remove('hidden');
+    
+    verifyNovalinkTicket(ticketRef).then(function(res) {
+      $('nl-loading').classList.add('hidden');
+      
+      if (res.valid) {
+        novalinkGuestName = res.guestName || 'Ticket Holder';
+        startApp(); // Proceed to load player
+      } else {
+        // Show paywall
+        $('nl-paywall').classList.remove('hidden');
+        $('nl-paywall-msg').textContent = res.error || 'This ticket is invalid or unpaid.';
+        $('nl-paywall-ref').textContent = 'Ticket: ' + ticketRef;
+        $('nl-paywall-ref').style.display = 'inline-block';
+      }
+    });
+  } else {
+    // No ticket ref, play normally (for free streams)
+    startApp();
+  }
 });
 
 window.addEventListener('beforeunload', function(){
@@ -4334,4 +4375,4 @@ window.addEventListener('beforeunload', function(){
 </script>
 
 </body>
-</html>
+  </html>
