@@ -12,25 +12,15 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
-  :root { 
-    --red: #E50914; --red-hover: #FF3B4E;
-    --bg: #ffffff; --surface: #f9fafb; 
-    --text: #111827; --text-muted: #6b7280; --border: #e5e7eb;
-  }
+  :root { --red: #E50914; --red-hover: #FF3B4E; --bg: #ffffff; --surface: #f9fafb; --text: #111827; --text-muted: #6b7280; --border: #e5e7eb; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { 
-    background: var(--bg); color: var(--text); 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-    display: flex; flex-direction: column; align-items: center; justify-content: center; 
-    min-height: 100vh; padding: 24px; overflow-x: hidden; position: relative; text-align: center;
-  }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; overflow-x: hidden; position: relative; text-align: center; }
   a { text-decoration: none; color: inherit; }
   .hidden { display: none !important; }
 
   /* Starfield */
   .starfield { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: #ffffff; overflow: hidden; }
   .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(229,9,20,.15), transparent 100%), radial-gradient(1px 1px at 85% 15%, rgba(0,0,0,.08), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
-  .stars-2 { position: absolute; inset: -50%; background-image: radial-gradient(1px 1px at 20% 30%, rgba(229,9,20,.3), transparent 100%), radial-gradient(2px 2px at 60% 10%, rgba(0,0,0,.15), transparent 100%); background-size: 300px 300px; animation: drift 20s linear infinite reverse; }
   @keyframes drift { 0% { transform: translateY(0) translateX(0); } 100% { transform: translateY(-200px) translateX(-100px); } }
 
   /* Navbar */
@@ -42,58 +32,21 @@
   .btn-nav { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-muted); transition: 0.2s; }
   .btn-nav:hover { color: var(--text); }
 
-  /* Auth / Paywall Cards */
+  /* Cards */
   .card { background: #ffffff; border: 1px solid var(--border); border-radius: 24px; padding: 48px 40px; max-width: 480px; margin: 0 auto; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08); z-index: 1; margin-top: 60px; }
   .icon-box { width: 72px; height: 72px; background: #fee2e2; color: var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 32px; }
   .card h1 { font-size: 26px; font-weight: 900; margin-bottom: 12px; letter-spacing: -0.5px; color: #111827; }
   .card p { font-size: 15px; color: var(--text-muted); line-height: 1.6; margin-bottom: 28px; }
+
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 16px 24px; border-radius: 12px; font-weight: 800; font-size: 16px; text-decoration: none; border: none; cursor: pointer; transition: 0.2s; width: 100%; margin-bottom: 12px; }
   .btn-primary { background: var(--red); color: #fff; box-shadow: 0 8px 20px rgba(229,9,20,0.3); }
   .btn-primary:hover { background: var(--red-hover); transform: translateY(-2px); }
   .btn-ghost { background: #ffffff; color: var(--text); border: 1px solid var(--border); }
   .btn-ghost:hover { background: var(--surface); }
 
-  /* ══════════════════════════════════════════════════════════════
-     VIDEO PLAYER & MULTI-CAM CSS
-     ══════════════════════════════════════════════════════════════ */
+  /* Player */
   .player-container { position: relative; width: 100%; max-width: 1100px; aspect-ratio: 16/9; background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.2); border: 1px solid var(--border); margin-top: 60px; z-index: 1; user-select: none; }
   .player-container video { width: 100%; height: 100%; display: block; object-fit: contain; }
-  
-  /* Multi-Cam Split Screen */
-  .split-screen { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; width: 100%; height: 100%; gap: 2px; background: #000; }
-  .split-screen video { width: 100%; height: 100%; object-fit: cover; }
-  .split-screen video:first-child { grid-column: 1 / -1; /* Top video is full width */ }
-
-  /* Watermark */
-  .player-watermark { position: absolute; top: 20px; left: 20px; z-index: 25; display: flex; align-items: center; gap: 8px; opacity: 0.85; transition: opacity 0.3s; pointer-events: none; }
-  .player-watermark svg { width: 24px; height: 30px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
-  .player-watermark b { font-weight: 900; font-size: 16px; color: #fff; letter-spacing: -0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-  .player-watermark b span { color: var(--red); }
-  
-  /* Hide Controls */
-  .player-container.inactive { cursor: none; }
-  .player-container.inactive .controls-overlay, .player-container.inactive .player-watermark { opacity: 0; pointer-events: none; }
-  
-  /* Controls */
-  .controls-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 40%, transparent 100%); transition: opacity 0.3s ease; z-index: 10; }
-  
-  /* Timeline */
-  .timeline-container { position: absolute; bottom: 70px; left: 24px; right: 24px; height: 20px; display: flex; align-items: center; cursor: pointer; z-index: 20; }
-  .timeline-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.3); border-radius: 4px; position: relative; transition: height 0.1s; }
-  .timeline-container:hover .timeline-bg { height: 8px; }
-  .timeline-buffer { position: absolute; top: 0; left: 0; height: 100%; background: rgba(255,255,255,0.4); border-radius: 4px; pointer-events: none; }
-  .timeline-progress { position: absolute; top: 0; left: 0; height: 100%; background: var(--red); border-radius: 4px; pointer-events: none; }
-  
-  /* Bottom Bar */
-  .bottom-bar { display: flex; align-items: center; justify-content: space-between; padding: 0 24px 20px 24px; color: white; z-index: 20; }
-  .left-controls, .right-controls { display: flex; align-items: center; gap: 16px; }
-  .ctrl-btn { background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; padding: 4px; }
-  .ctrl-btn:hover { transform: scale(1.1); }
-  .ctrl-btn svg { width: 22px; height: 22px; fill: white; }
-  .time-display { font-size: 13px; font-weight: 600; }
-  .live-badge { background: var(--red); color: white; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px; display: none; align-items: center; gap: 4px; }
-  .live-badge .dot { width: 6px; height: 6px; background: white; border-radius: 50%; animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
   /* Waiting Overlay */
   .fullscreen-overlay { position: absolute; inset: 0; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; background: #0a0a0f; transition: opacity 0.5s; }
@@ -102,17 +55,18 @@
   .fullscreen-overlay .logos .plus { font-size: 24px; color: rgba(255,255,255,0.3); font-weight: 300; }
   .fullscreen-overlay h2 { font-size: 24px; font-weight: 900; color: #fff; letter-spacing: -0.5px; margin-bottom: 8px; }
   .fullscreen-overlay p { font-size: 15px; color: rgba(255,255,255,0.6); font-weight: 500; }
-  
+  .prestream-spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--red); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 24px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
   @media (max-width: 768px) {
-    .bottom-bar { padding: 0 12px 12px 12px; gap: 8px; }
-    .left-controls, .right-controls { gap: 12px; }
-    .time-display { font-size: 11px; }
+    .nav { padding: 12px 16px; }
+    .logo b { font-size: 18px; }
   }
 </style>
 </head>
 <body>
 
-<div class="starfield"><div class="stars-1"></div><div class="stars-2"></div></div>
+<div class="starfield"><div class="stars-1"></div></div>
 
 <nav class="nav">
   <a href="index.html" class="logo">
@@ -128,51 +82,26 @@
 </nav>
 
 <div id="screen-loading" class="card">
-  <div class="spinner" style="margin: 0 auto 20px; width:40px; height:40px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+  <div class="prestream-spinner" style="margin: 0 auto 20px;"></div>
   <h1 style="font-size:20px;">Checking access…</h1>
-</div>
-
-<!-- PIN SCREEN -->
-<div id="screen-pin" class="card hidden">
-  <div class="icon-box"><i data-lucide="lock"></i></div>
-  <h1>Private Event</h1>
-  <p>This stream is protected. Please enter the 4-digit PIN to continue.</p>
-  <input type="text" id="pin-input" placeholder="••••" maxlength="4" style="width:100%; padding:16px; border:1px solid var(--border); border-radius:12px; font-size:24px; text-align:center; letter-spacing:8px; margin-bottom:20px;" />
-  <button id="pin-btn" class="btn btn-primary">Unlock Stream <i data-lucide="unlock" size="18"></i></button>
 </div>
 
 <!-- PAYWALL SCREEN -->
 <div id="screen-paywall" class="card hidden">
   <div class="icon-box"><i data-lucide="ticket"></i></div>
   <h1>Ticket Required</h1>
-  <p id="paywall-msg">You don't have a Novalink ticket. You can pay a discounted rate to watch this stream directly on Starlane.</p>
+  <p id="paywall-msg">You need a ticket to watch this event.</p>
   <div id="paywall-actions"></div>
 </div>
 
 <!-- VIDEO PLAYER SCREEN -->
 <div id="screen-player" class="hidden" style="width:100%; display:flex; justify-content:center;">
-  
   <div class="player-container" id="player-container">
-    
-    <!-- MAIN PLAYER (Single Cam) -->
-    <video id="video" playsinline></video>
-
-    <!-- SPLIT SCREEN (3 Cams) -->
-    <div class="split-screen hidden" id="split-screen">
-      <video id="video-cam1" playsinline muted></video>
-      <video id="video-cam2" playsinline muted></video>
-      <video id="video-cam3" playsinline muted></video>
-    </div>
-
-    <!-- WATERMARK -->
-    <div class="player-watermark">
-      <svg viewBox="0 0 60 74"><path d="M10 60 Q 22 32 44 20" stroke="#E50914" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="18" r="5" fill="#fff"/></svg>
-      <b>STAR<span>LANE</span></b>
-    </div>
+    <video id="video" playsinline autoplay muted></video>
 
     <!-- WAITING / POST-STREAM OVERLAY -->
     <div class="fullscreen-overlay" id="waiting-overlay">
-      <div class="prestream-spinner" style="width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--red); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 24px;"></div>
+      <div class="prestream-spinner"></div>
       <div class="logos">
         <b style="color:#00E5E5; font-size:20px; font-weight:900;">NOVALINK</b>
         <span class="plus">×</span>
@@ -181,28 +110,6 @@
       <h2 id="waiting-title">Connecting to live feed...</h2>
       <p id="waiting-sub">More than just ticketing.</p>
     </div>
-
-    <!-- CONTROLS -->
-    <div class="controls-overlay" id="controls-overlay">
-      <div class="timeline-container" id="timeline-container">
-        <div class="timeline-bg">
-          <div class="timeline-buffer" id="timeline-buffer"></div>
-          <div class="timeline-progress" id="timeline-progress"></div>
-        </div>
-      </div>
-
-      <div class="bottom-bar">
-        <div class="left-controls">
-          <button class="ctrl-btn" id="btn-play"><i data-lucide="pause"></i></button>
-          <div class="live-badge" id="live-badge"><span class="dot"></span> LIVE</div>
-          <span class="time-display" id="time-display">LIVE</span>
-        </div>
-        <div class="right-controls">
-          <button class="ctrl-btn" id="btn-fullscreen"><i data-lucide="maximize"></i></button>
-        </div>
-      </div>
-    </div>
-
   </div>
 </div>
 
@@ -220,229 +127,110 @@
   var db = firebase.firestore();
   var auth = firebase.auth();
 
+  var video = document.getElementById('video');
+  var waitingOverlay = document.getElementById('waiting-overlay');
+  
   var screens = {
     loading: document.getElementById('screen-loading'),
-    pin: document.getElementById('screen-pin'),
     paywall: document.getElementById('screen-paywall'),
     player: document.getElementById('screen-player')
   };
 
   function showScreen(name) {
     screens.loading.classList.add('hidden');
-    screens.pin.classList.add('hidden');
     screens.paywall.classList.add('hidden');
     screens.player.classList.add('hidden');
     screens[name].classList.remove('hidden');
   }
 
-  var search = window.location.search.replace(/\?ticketRef=/, '&ticketRef=');
-  var params = new URLSearchParams(search);
-  var streamId = params.get('id');
-  var ticketRef = params.get('ticketRef');
-  
-  var streamData = null;
-  var currentUser = null;
-  var hlsInstances = {}; // Store HLS instances for multi-cam
-
+  var streamId = new URLSearchParams(window.location.search).get('id');
   if (!streamId) {
     showScreen('paywall');
     document.getElementById('paywall-msg').textContent = "This link is missing the event ID.";
     return;
   }
 
-  var deviceId = localStorage.getItem('starlane_device_id');
-  if (!deviceId) {
-    deviceId = 'dev_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('starlane_device_id', deviceId);
-  }
-
+  // 1. Verify Access
   auth.onAuthStateChanged(function(user) {
-    currentUser = user;
     db.collection('streams').doc(streamId).get().then(function(doc) {
-      if (!doc.exists || doc.data().active === false) {
+      if (!doc.exists) {
         showScreen('paywall');
-        document.getElementById('paywall-msg').textContent = "This event does not exist or has ended.";
+        document.getElementById('paywall-msg').textContent = "Event not found.";
         return;
       }
-      streamData = doc.data();
-      if (streamData.visibility === 'private') {
-        var urlPin = params.get('pin');
-        if (urlPin === streamData.pin) { checkAccess(); } else { showScreen('pin'); }
-      } else { checkAccess(); }
-    }).catch(function(err) {
-      showScreen('paywall');
-      document.getElementById('paywall-msg').textContent = err.message;
+      
+      var streamData = doc.data();
+      var price = streamData.ppvPrice || 0;
+      
+      // If Free, play immediately
+      if (price === 0) {
+        startPlayer();
+        return;
+      }
+
+      // If Paid, check passes (simplified for this demo)
+      if (user) {
+        db.collection('users').doc(user.uid).collection('passes').doc(streamId).get().then(function(passDoc) {
+          if (passDoc.exists) {
+            startPlayer();
+          } else {
+            showPaywall(price);
+          }
+        });
+      } else {
+        showPaywall(price);
+      }
     });
   });
 
-  document.getElementById('pin-btn').addEventListener('click', function() {
-    if (document.getElementById('pin-input').value === streamData.pin) { checkAccess(); } else { alert("Incorrect PIN."); }
-  });
-
-  function checkAccess() {
-    var price = streamData.ppvPrice || 0;
-    if (price === 0) { startPlayer(); return; }
-    if (ticketRef) { verifyNovalinkTicket(ticketRef); return; }
-    if (currentUser) {
-      db.collection('users').doc(currentUser.uid).collection('passes').doc(streamId).get().then(function(passDoc) {
-        if (passDoc.exists) { startPlayer(); } else { showStarlaneCheckout(price); }
-      }).catch(function() { showStarlaneCheckout(price); });
-      return;
-    }
-    showPaywallForLogin();
-  }
-
-  function showPaywallForLogin() {
+  function showPaywall(price) {
     showScreen('paywall');
-    document.getElementById('paywall-msg').textContent = "You need a ticket or a PPV pass to watch this event. Please sign in to continue.";
+    document.getElementById('paywall-msg').textContent = "You need a ticket or pass to watch this event.";
     document.getElementById('paywall-actions').innerHTML = `
-      <a href="auth.html?redirect=${encodeURIComponent(location.pathname + location.search)}" class="btn btn-primary">Sign In to Continue</a>
-      <a href="https://novalink-tickets.onrender.com" class="btn btn-ghost">Buy Ticket on Novalink</a>
+      <a href="checkout.html?streamId=${streamId}&price=${price}" class="btn btn-primary" style="margin-bottom: 12px;">Pay R${price} Now</a>
+      <a href="https://novalink-tickets.onrender.com" class="btn btn-ghost">Buy on Novalink</a>
     `;
     if (window.lucide) lucide.createIcons();
   }
 
-  function showStarlaneCheckout(price) {
-    showScreen('paywall');
-    document.getElementById('paywall-msg').textContent = "You don't have a Novalink ticket. You can pay a discounted rate to watch this stream directly on Starlane.";
-    document.getElementById('paywall-actions').innerHTML = `
-      <a href="checkout.html?streamId=${streamId}&price=${price}" class="btn btn-primary" style="margin-bottom: 12px;">Pay R${price} (65% PPV)</a>
-      <a href="https://novalink-tickets.onrender.com" class="btn btn-ghost">Buy Full Ticket on Novalink</a>
-    `;
-    if (window.lucide) lucide.createIcons();
-  }
-
-  async function verifyNovalinkTicket(ref) {
-    try {
-      var res = await fetch('https://novalink-api-8vfg.onrender.com/api/verify-stream', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticketRef: ref })
-      });
-      var data = await res.json();
-
-      if (data.valid) {
-        var lockedDevice = localStorage.getItem('lock_' + ref);
-        if (lockedDevice && lockedDevice !== deviceId) {
-          showScreen('paywall');
-          document.getElementById('paywall-msg').textContent = "This ticket is already being used on another device.";
-          document.getElementById('paywall-actions').innerHTML = "";
-          return;
-        }
-        if (!lockedDevice) localStorage.setItem('lock_' + ref, deviceId);
-        startPlayer();
-      } else {
-        showScreen('paywall');
-        document.getElementById('paywall-msg').textContent = data.error || "This Novalink ticket is invalid.";
-        document.getElementById('paywall-actions').innerHTML = `<a href="https://novalink-tickets.onrender.com" class="btn btn-primary">Buy Ticket</a>`;
-      }
-    } catch(e) {
-      showScreen('paywall');
-      document.getElementById('paywall-msg').textContent = "Could not reach Novalink to verify ticket.";
-      document.getElementById('paywall-actions').innerHTML = "";
-    }
-  }
-
-  /* ══════════════════════════════════════════════════════════════
-     PLAYER LOGIC (SINGLE CAM & MULTI-CAM)
-     ══════════════════════════════════════════════════════════════ */
-  var mainVideo = document.getElementById('video');
-  var splitScreen = document.getElementById('split-screen');
-  var cam1Video = document.getElementById('video-cam1');
-  var cam2Video = document.getElementById('video-cam2');
-  var cam3Video = document.getElementById('video-cam3');
-  var waitingOverlay = document.getElementById('waiting-overlay');
-  var playerContainer = document.getElementById('player-container');
-
+  // 2. The Multi-Cam Player Logic
+  var currentVideoUrl = '';
+  
   function startPlayer() {
     showScreen('player');
-    checkCameraUpdates();
     
-    // Check for camera changes every 3 seconds
-    setInterval(checkCameraUpdates, 3000);
-  }
-
-  function checkCameraUpdates() {
-    if (!streamId) return;
-    
-    db.collection('streams').doc(streamId).get().then(function(doc) {
-      if (!doc.exists) return;
-      var data = doc.data();
-      
-      // If the database has a cams object, we are in multi-cam mode
-      if (data.cams) {
-        var activeCam = data.activeCamera || 'cam1';
+    // Poll the database every 3 seconds for new video chunks or camera changes
+    setInterval(function() {
+      db.collection('streams').doc(streamId).get().then(function(doc) {
+        if (!doc.exists) return;
+        var data = doc.data();
         
-        if (activeCam === 'split') {
-          // SHOW SPLIT SCREEN
-          mainVideo.classList.add('hidden');
-          splitScreen.classList.remove('hidden');
-          waitingOverlay.classList.add('hidden');
-          loadSplitStreams(data.cams);
-        } else {
-          // SHOW SINGLE CAM
-          splitScreen.classList.add('hidden');
-          mainVideo.classList.remove('hidden');
-          
-          var camUrl = data.cams[activeCam];
-          if (!camUrl) {
-            waitingOverlay.classList.remove('hidden');
-            document.getElementById('waiting-title').textContent = "Camera Offline";
-            document.getElementById('waiting-sub').textContent = "Waiting for feed...";
-          } else {
+        var activeCam = data.activeCamera || 'cam1';
+        var camUrl = null;
+        
+        // Find the URL for the active camera
+        if (data.cams && data.cams[activeCam]) {
+          camUrl = data.cams[activeCam];
+        } else if (data.streamUrl && data.streamUrl !== 'broadcasting') {
+          // Fallback for standard HLS links
+          camUrl = data.streamUrl;
+        }
+
+        if (camUrl) {
+          // If it's a new URL, load it
+          if (camUrl !== currentVideoUrl) {
+            currentVideoUrl = camUrl;
+            video.src = camUrl;
+            video.play().catch(function(){});
             waitingOverlay.classList.add('hidden');
-            if (mainVideo.src !== camUrl) {
-              mainVideo.src = camUrl;
-              mainVideo.play().catch(function(){});
-            }
           }
+        } else {
+          waitingOverlay.classList.remove('hidden');
+          document.getElementById('waiting-title').textContent = "Waiting for camera...";
         }
-      } else {
-        // Fallback for single standard HLS link
-        var videoUrl = data.streamUrl;
-        if (videoUrl && mainVideo.src !== videoUrl) {
-          waitingOverlay.classList.add('hidden');
-          loadHLS(mainVideo, videoUrl, 'main');
-        }
-      }
-    });
+      });
+    }, 3000);
   }
-
-  function loadHLS(videoElement, url, id) {
-    if (hlsInstances[id]) {
-      hlsInstances[id].destroy();
-    }
-    
-    if (url.includes('.m3u8') && Hls.isSupported()) {
-      hlsInstances[id] = new Hls();
-      hlsInstances[id].loadSource(url);
-      hlsInstances[id].attachMedia(videoElement);
-      hlsInstances[id].on(Hls.Events.MANIFEST_PARSED, function() { videoElement.play().catch(function(){}); });
-    } else {
-      videoElement.src = url;
-      videoElement.play().catch(function(){});
-    }
-  }
-
-  function loadSplitStreams(cams) {
-    if (cams.cam1) loadHLS(cam1Video, cams.cam1, 'cam1');
-    if (cams.cam2) loadHLS(cam2Video, cams.cam2, 'cam2');
-    if (cams.cam3) loadHLS(cam3Video, cams.cam3, 'cam3');
-  }
-
-  // Fullscreen & Controls
-  document.getElementById('btn-fullscreen').addEventListener('click', function() {
-    if (!document.fullscreenElement) {
-      if (playerContainer.requestFullscreen) playerContainer.requestFullscreen().catch(function(){});
-      else if (playerContainer.webkitRequestFullscreen) playerContainer.webkitRequestFullscreen();
-    } else {
-      document.exitFullscreen();
-    }
-  });
-
-  document.getElementById('btn-play').addEventListener('click', function() {
-    if (mainVideo.paused) { mainVideo.play(); this.innerHTML = '<i data-lucide="pause"></i>'; }
-    else { mainVideo.pause(); this.innerHTML = '<i data-lucide="play"></i>'; }
-    if (window.lucide) lucide.createIcons();
-  });
 
   if (window.lucide) lucide.createIcons();
 })();
