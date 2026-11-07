@@ -38,50 +38,52 @@
   @keyframes drift { 0% { transform: translateY(0) translateX(0); } 100% { transform: translateY(-200px) translateX(-100px); } }
 
   /* Navbar */
-  .nav { border-bottom: 1px solid var(--border); padding: 16px 0; position: sticky; top: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); z-index: 50; }
-  .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
-  .logo { display: flex; align-items: center; gap: 12px; }
-  .logo svg { width: 32px; height: 38px; display: block; filter: drop-shadow(0 4px 6px rgba(229,9,20,0.2)); }
-  .logo b { font-weight: 900; font-size: 22px; letter-spacing: -0.5px; color: #111827; }
+  .nav { border-bottom: 1px solid var(--border); padding: 16px 0; position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); z-index: 50; }
+  .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  
+  .logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .logo svg { width: 28px; height: 34px; display: block; filter: drop-shadow(0 4px 6px rgba(229,9,20,0.2)); }
+  .logo b { font-weight: 900; font-size: 20px; letter-spacing: -0.5px; color: #111827; }
   .logo b span { color: var(--red); }
 
-  .nav-actions { display: flex; gap: 12px; align-items: center; }
-  .btn-auth { font-weight: 700; font-size: 14px; padding: 10px 20px; border-radius: 8px; transition: all 0.2s; cursor: pointer; border: none; }
+  .nav-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .btn-auth { font-weight: 700; font-size: 13px; padding: 10px 16px; border-radius: 8px; transition: all 0.2s; cursor: pointer; border: none; white-space: nowrap; }
   .btn-auth.ghost { background: transparent; color: var(--text); }
   .btn-auth.ghost:hover { background: var(--surface); }
   .btn-auth.primary { background: var(--red); color: #fff; box-shadow: 0 4px 12px rgba(229,9,20,0.2); }
   .btn-auth.primary:hover { background: var(--red-hover); transform: translateY(-1px); }
 
   /* Hero */
-  .hero { max-width: 1200px; margin: 0 auto; padding: 90px 24px 70px; text-align: center; }
-  .hero h1 { font-size: clamp(2.8rem, 6vw, 4.5rem); font-weight: 900; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 24px; color: #111827; }
+  .hero { max-width: 1200px; margin: 0 auto; padding: 80px 24px 60px; text-align: center; }
+  .hero h1 { font-size: clamp(2.2rem, 6vw, 4.5rem); font-weight: 900; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 20px; color: #111827; }
   .hero h1 .accent { background: linear-gradient(135deg, var(--red) 0%, #FF5566 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 12px rgba(229,9,20,0.2)); }
-  .hero p { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto; font-weight: 500; line-height: 1.6; }
+  .hero p { font-size: clamp(15px, 2vw, 18px); color: var(--text-muted); max-width: 600px; margin: 0 auto; font-weight: 500; line-height: 1.6; }
 
   /* Event Grid */
-  .events-section { max-width: 1200px; margin: 0 auto; padding: 20px 24px 80px; }
-  .section-title { font-size: 24px; font-weight: 800; margin-bottom: 32px; display: flex; align-items: center; gap: 10px; color: #111827; }
+  .events-section { max-width: 1200px; margin: 0 auto; padding: 20px 24px 80px; width: 100%; }
+  .section-title { font-size: 22px; font-weight: 800; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; color: #111827; }
   .section-title i { color: var(--red); }
   
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 32px; }
+  /* The grid will naturally flow to 1 column on mobile */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
   
-  .card { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s; display: flex; flex-direction: column; }
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s; display: flex; flex-direction: column; width: 100%; }
   .card:hover { transform: translateY(-6px); box-shadow: 0 24px 48px -12px rgba(229,9,20,0.15); border-color: rgba(229,9,20,0.2); }
   
   .card-img { width: 100%; aspect-ratio: 16/9; background: var(--surface); object-fit: cover; border-bottom: 1px solid var(--border); }
-  .card-content { padding: 24px; flex: 1; display: flex; flex-direction: column; }
+  .card-content { padding: 20px; flex: 1; display: flex; flex-direction: column; }
   
-  .badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; background: #fee2e2; color: var(--red); margin-bottom: 16px; align-self: flex-start; }
+  .badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; background: #fee2e2; color: var(--red); margin-bottom: 12px; align-self: flex-start; text-transform: uppercase; letter-spacing: 0.5px; }
   .badge.free { background: #dcfce7; color: #16a34a; }
   
-  .card-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; line-height: 1.3; color: #111827; }
-  .card-date { font-size: 14px; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 6px; margin-bottom: 24px; }
+  .card-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; line-height: 1.3; color: #111827; }
+  .card-date { font-size: 13px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 6px; margin-bottom: 20px; }
   
-  .card-footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; }
-  .price { font-size: 20px; font-weight: 900; color: #111827; }
-  .price span { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+  .card-footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .price { font-size: 20px; font-weight: 900; color: #111827; white-space: nowrap; }
+  .price span { font-size: 13px; color: var(--text-muted); font-weight: 600; }
   
-  .btn-watch { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 10px; background: var(--surface); color: var(--text); font-weight: 700; font-size: 14px; border: 1px solid var(--border); transition: all 0.2s; }
+  .btn-watch { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 16px; border-radius: 10px; background: var(--surface); color: var(--text); font-weight: 800; font-size: 13px; border: 1px solid var(--border); transition: all 0.2s; white-space: nowrap; flex: 1; max-width: 160px; }
   .btn-watch:hover { background: var(--text); color: #fff; border-color: var(--text); }
   .btn-buy { background: var(--red); color: #fff; border-color: var(--red); box-shadow: 0 4px 12px rgba(229,9,20,0.2); }
   .btn-buy:hover { background: var(--red-hover); border-color: var(--red-hover); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(229,9,20,0.3); }
@@ -92,23 +94,29 @@
   
   .empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
   .empty i { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; }
-  .empty h3 { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+  .empty h3 { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
 
   /* Footer */
-  .footer { border-top: 1px solid var(--border); background: #ffffff; padding: 40px 24px; position: relative; z-index: 10; }
+  .footer { border-top: 1px solid var(--border); background: #ffffff; padding: 32px 24px; position: relative; z-index: 10; width: 100%; }
   .footer-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
   .footer-brand { font-weight: 900; font-size: 18px; color: #111827; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
   .footer-brand span { color: var(--red); }
-  .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
-  .footer-links a { color: var(--text-muted); font-size: 14px; font-weight: 600; transition: color 0.2s; }
+  .footer-links { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+  .footer-links a { color: var(--text-muted); font-size: 13px; font-weight: 600; transition: color 0.2s; }
   .footer-links a:hover { color: var(--red); }
-  .footer-copy { color: var(--text-muted); font-size: 14px; font-weight: 500; }
+  .footer-copy { color: var(--text-muted); font-size: 13px; font-weight: 500; text-align: center; }
   
+  /* Mobile Fixes */
   @media (max-width: 768px) {
-    .hero { padding: 60px 24px 40px; }
-    .btn-auth.ghost { display: none; }
-    .footer-inner { flex-direction: column; text-align: center; justify-content: center; gap: 16px; }
-    .footer-links { justify-content: center; }
+    .nav-inner { flex-direction: column; padding: 12px 16px; gap: 12px; }
+    .nav-actions { width: 100%; justify-content: center; }
+    .btn-auth { width: 100%; text-align: center; }
+    .hero { padding: 50px 20px 40px; }
+    .grid { grid-template-columns: 1fr; gap: 20px; }
+    .footer-inner { flex-direction: column; text-align: center; gap: 16px; }
+    .btn-watch { max-width: none; width: 100%; }
+    .card-footer { flex-direction: column; align-items: stretch; gap: 12px; }
+    .price { text-align: center; }
   }
 </style>
 </head>
@@ -217,7 +225,6 @@
   document.addEventListener('DOMContentLoaded', function() {
     if (window.lucide) lucide.createIcons();
 
-    // Navbar logic
     auth.onAuthStateChanged(function(user) {
       var elLoggedOut = document.getElementById('nav-logged-out');
       var elUser = document.getElementById('nav-user');
@@ -240,7 +247,6 @@
       }
     });
 
-    // Load Events
     db.collection('streams').where('active', '==', true).get()
       .then(function(snap) {
         document.getElementById('loading').classList.add('hidden');
@@ -262,7 +268,6 @@
           var dateStr = formatDate(data.startDate, data.startTime);
           var poster = data.posterUrl || 'https://images.unsplash.com/photo-1540039155732-684736882207?q=80&w=800&auto=format&fit=crop';
           
-          // NEW LOGIC: Check if price is 0 or more
           var price = data.ppvPrice || 0;
           var isPaid = price > 0;
           
@@ -271,15 +276,13 @@
           var badgeHTML = '';
 
           if (isPaid) {
-            // Paid Stream Logic
             badgeHTML = '<span class="badge">Paid Stream</span>';
             priceHTML = '<div class="price">R' + price + '</div>';
-            actionBtn = '<a href="watch.html?id=' + id + '" class="btn-watch btn-buy">Get Access <i data-lucide="ticket"></i></a>';
+            actionBtn = '<a href="watch.html?id=' + id + '" class="btn-watch btn-buy">Get Access <i data-lucide="ticket" size="16"></i></a>';
           } else {
-            // Free to watch Logic
             badgeHTML = '<span class="badge free">Free to watch</span>';
             priceHTML = '<div class="price">R0 <span>Free</span></div>';
-            actionBtn = '<a href="watch.html?id=' + id + '" class="btn-watch">Watch Now <i data-lucide="play"></i></a>';
+            actionBtn = '<a href="watch.html?id=' + id + '" class="btn-watch">Watch Now <i data-lucide="play" size="16"></i></a>';
           }
 
           var card = document.createElement('div');
@@ -289,7 +292,7 @@
             <div class="card-content">
               ${badgeHTML}
               <h3 class="card-title">${title}</h3>
-              <div class="card-date"><i data-lucide="clock" size="16"></i> ${dateStr}</div>
+              <div class="card-date"><i data-lucide="clock" size="14"></i> ${dateStr}</div>
               <div class="card-footer">
                 ${priceHTML}
                 ${actionBtn}
