@@ -11,27 +11,54 @@
 <style>
   :root { --red: #E50914; --bg: #0a0a0f; --surface: #1a1a24; --text: #fff; --border: rgba(255,255,255,0.1); }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
   
-  .top-bar { padding: 16px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); z-index: 10; }
-  .status { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
-  .status .dot { width: 10px; height: 10px; border-radius: 50%; background: #555; }
+  body { 
+    background: #000; color: var(--text); 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    height: 100vh; width: 100vw; overflow: hidden; 
+    position: relative; 
+  }
+
+  /* Video fills the entire screen */
+  #preview { 
+    position: absolute; inset: 0; 
+    width: 100%; height: 100%; 
+    object-fit: cover; 
+    z-index: 1;
+  }
+
+  /* Overlay wrapper (Hidden by default, toggled with double tap) */
+  .overlay-wrapper {
+    position: absolute; inset: 0; z-index: 10;
+    display: flex; flex-direction: column; justify-content: space-between;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 20%, transparent 70%, rgba(0,0,0,0.9) 100%);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .overlay-wrapper.show {
+    opacity: 1; pointer-events: auto;
+  }
+
+  /* Top Bar */
+  .top-bar { padding: 30px 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .status { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 20px; backdrop-filter: blur(8px); }
+  .status .dot { width: 8px; height: 8px; border-radius: 50%; background: #555; }
   .status.live .dot { background: var(--red); box-shadow: 0 0 10px var(--red); animation: pulse 1s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-  .video-container { flex: 1; position: relative; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-  video { width: 100%; height: 100%; object-fit: cover; }
+  /* Bottom Controls */
+  .bottom-controls { padding: 20px 20px 40px 20px; display: flex; flex-direction: column; gap: 20px; }
   
-  .overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); z-index: 10; }
-  .control-group { margin-bottom: 16px; }
-  .control-group label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.7); margin-bottom: 8px; text-transform: uppercase; }
+  .control-group { background: rgba(0,0,0,0.6); backdrop-filter: blur(12px); padding: 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); }
+  .control-group label { display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.7); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
   .slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.2); outline: none; }
-  .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #fff; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+  .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
 
-  .btn { width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 900; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
-  .btn-start { background: var(--red); color: #fff; box-shadow: 0 8px 20px rgba(229,9,20,0.4); }
+  .btn { width: 100%; padding: 18px; border-radius: 16px; font-size: 16px; font-weight: 900; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
   .btn-stop { background: #fff; color: #000; }
-  
+  .btn-stop:active { transform: scale(0.98); }
+
+  /* Setup Screen */
   .setup-screen { position: absolute; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
   .setup-screen h2 { font-size: 24px; font-weight: 900; margin-bottom: 8px; color: #fff; }
   .setup-screen p { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 24px; }
@@ -63,37 +90,45 @@
     </div>
   </div>
 
-  <button class="btn btn-start" id="btn-start-setup">
+  <button class="btn btn-start" id="btn-start-setup" style="background: var(--red); color: #fff;">
     <i data-lucide="video"></i> Turn On Camera
   </button>
 </div>
 
-<!-- LIVE BROADCAST UI -->
-<div class="top-bar">
-  <div class="status" id="status-indicator">
-    <div class="dot"></div> <span id="status-text">OFFLINE</span>
-  </div>
-  <div style="font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.5);">STARLANE LIVE</div>
-</div>
+<!-- FULL SCREEN CAMERA -->
+<video id="preview" autoplay playsinline muted></video>
 
-<div class="video-container">
-  <video id="preview" autoplay playsinline muted></video>
+<!-- CONTROLS OVERLAY -->
+<div class="overlay-wrapper" id="overlay">
   
-  <div class="overlay">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="status" id="status-indicator">
+      <div class="dot"></div> <span id="status-text">OFFLINE</span>
+    </div>
+  </div>
+
+  <!-- Bottom Controls -->
+  <div class="bottom-controls">
+    
+    <!-- Zoom -->
     <div class="control-group">
       <label>Zoom <span id="zoom-val">1.0x</span></label>
       <input type="range" id="zoom-slider" class="slider" min="1" max="5" step="0.1" value="1" />
     </div>
 
+    <!-- Brightness -->
     <div class="control-group">
       <label>Brightness <span id="bright-val">100%</span></label>
       <input type="range" id="bright-slider" class="slider" min="0.5" max="1.5" step="0.1" value="1" />
     </div>
 
+    <!-- Stop Button -->
     <button class="btn btn-stop" id="btn-stop" style="display: none;">
       <i data-lucide="square"></i> STOP BROADCAST
     </button>
   </div>
+
 </div>
 
 <script>
@@ -109,6 +144,7 @@
   var db = firebase.firestore();
 
   var video = document.getElementById('preview');
+  var overlay = document.getElementById('overlay');
   var stream = null;
   var mediaRecorder = null;
   var isStreaming = false;
@@ -125,47 +161,39 @@
   }
 
   document.getElementById('btn-start-setup').addEventListener('click', async function() {
-    if (!currentEventId) return alert("No Event ID found. Use the Admin link.");
+    if (!currentEventId) return alert("No Event ID found.");
 
     var adsTime = parseInt(document.getElementById('ads-time').value) || 0;
     var adsDuration = parseInt(document.getElementById('ads-duration').value) || 0;
 
     try {
-      // Try HD First
+      // Request HD camera
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
           audio: true 
         });
       } catch (e) {
-        // Fallback to standard if HD fails on this phone
-        console.log("HD failed, trying standard resolution...");
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-          audio: true 
-        });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: true });
       }
       
       video.srcObject = stream;
       
-      // Send the "I am live" signal to Firebase
-      try {
-        await db.collection('streams').doc(currentEventId).update({
-          activeCamera: currentCamId,
-          streamUrl: 'broadcasting',
-          adSchedule: { preShowMins: adsTime, durationSecs: adsDuration }
-        });
-      } catch (dbErr) {
-        // If Firebase blocks it, alert the user clearly
-        console.error("Firebase Error:", dbErr);
-        return alert("Firebase Error: " + dbErr.message + "\n\nPlease check your Firestore Rules.");
-      }
+      await db.collection('streams').doc(currentEventId).update({
+        activeCamera: currentCamId,
+        streamUrl: 'broadcasting',
+        adSchedule: { preShowMins: adsTime, durationSecs: adsDuration }
+      });
       
       document.getElementById('setup-modal').style.display = 'none';
       document.getElementById('btn-stop').style.display = 'flex';
       document.getElementById('status-indicator').classList.add('live');
       document.getElementById('status-text').textContent = 'LIVE';
       
+      // Show overlay briefly on start
+      overlay.classList.add('show');
+      setTimeout(function() { overlay.classList.remove('show'); }, 3000);
+
       startRecording();
 
     } catch (err) {
@@ -173,6 +201,21 @@
     }
   });
 
+  // ── DOUBLE TAP TO TOGGLE CONTROLS ──
+  var lastTap = 0;
+  document.body.addEventListener('click', function(e) {
+    var currentTime = new Date().getTime();
+    var tapLength = currentTime - lastTap;
+    
+    if (tapLength < 300 && tapLength > 0) {
+      // Double tap detected
+      overlay.classList.toggle('show');
+      e.preventDefault();
+    }
+    lastTap = currentTime;
+  });
+
+  // Zoom Control
   document.getElementById('zoom-slider').addEventListener('input', function() {
     if (stream) {
       var track = stream.getVideoTracks()[0];
@@ -184,6 +227,7 @@
     }
   });
 
+  // Brightness Control
   document.getElementById('bright-slider').addEventListener('input', function() {
     if (stream) {
       var track = stream.getVideoTracks()[0];
@@ -195,6 +239,7 @@
     }
   });
 
+  // Stop Broadcast
   document.getElementById('btn-stop').addEventListener('click', async function() {
     if (confirm("Stop broadcasting immediately?")) {
       isStreaming = false;
@@ -209,6 +254,7 @@
     }
   });
 
+  // Recording Loop
   function startRecording() {
     isStreaming = true;
     mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8,opus' });
