@@ -58,6 +58,7 @@
   .event-item.active { border-color: var(--red); background: #fee2e2; }
   .event-info h4 { font-size: 15px; font-weight: 700; color: #111827; margin-bottom: 4px; }
   .event-info p { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+  
   .badge { font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; background: #dcfce7; color: #16a34a; }
   .badge.paid { background: #fee2e2; color: var(--red); }
 
@@ -123,7 +124,6 @@
 </nav>
 
 <div class="container">
-  <!-- LEFT SIDE: EVENT LIST -->
   <div class="list-section">
     <div class="list-title">
       All Events
@@ -134,7 +134,6 @@
     </div>
   </div>
 
-  <!-- RIGHT SIDE: FORM -->
   <div class="form-section">
     <div class="form-header">
       <h2 id="form-title">Create New Event</h2>
@@ -146,13 +145,11 @@
       <input type="hidden" id="poster-base64" />
       
       <div class="form-grid">
-        <!-- Title -->
         <div class="form-group full">
           <label>Event Title <span>*</span></label>
           <input type="text" id="title" placeholder="e.g. Boksburg Jazz Festival" required />
         </div>
 
-        <!-- Event Type & Date -->
         <div class="form-group">
           <label>Event Type <span>*</span></label>
           <select id="eventType" required>
@@ -174,13 +171,11 @@
           <input type="time" id="startTime" required />
         </div>
 
-        <!-- Spotify Link -->
         <div class="form-group">
           <label>Spotify Link <span style="color: var(--text-muted); font-weight: 500;">(Optional)</span></label>
           <input type="url" id="spotifyLink" placeholder="https://open.spotify.com/..." />
         </div>
 
-        <!-- Image Upload -->
         <div class="form-group full">
           <label>Cover / Poster Image <span>*</span></label>
           <div class="image-upload-row">
@@ -193,34 +188,21 @@
           <img id="image-preview" class="image-preview" />
         </div>
 
-        <!-- Stream URL -->
         <div class="form-group full">
           <label>HLS Stream URL <span>*</span></label>
           <input type="url" id="streamUrl" placeholder="https://... .m3u8" required />
           <div class="hint">The direct link to your live stream (Mux, Restream, Vimeo, etc).</div>
         </div>
 
-        <!-- Access Control -->
-        <div class="form-group full">
-          <div class="toggle-row">
-            <div class="toggle-label">
-              <h4>Paid Event (Requires Ticket)</h4>
-              <p>If off, anyone can watch for free.</p>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="isPaid" onchange="document.getElementById('price-group').classList.toggle('hidden', !this.checked)" />
-              <span class="slider"></span>
-            </label>
+        <!-- NEW SIMPLIFIED PRICING LOGIC -->
+        <div class="form-group full" style="background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+          <label style="font-size: 15px; margin-bottom: 8px;">Price (Rands) <span>*</span></label>
+          <input type="number" id="price" placeholder="Enter 0 for Free, or a price like 150" min="0" value="0" required style="background: #fff;" />
+          <div class="hint" style="margin-top: 8px;">
+            <strong>Important:</strong> If you put <strong>0</strong>, it will show as "Free to watch". If you put a price (e.g. 150), it will show as a "Paid Stream" and require payment.
           </div>
         </div>
 
-        <!-- Price -->
-        <div class="form-group hidden" id="price-group">
-          <label>Ticket Price (R) <span>*</span></label>
-          <input type="number" id="price" placeholder="e.g. 150" min="0" />
-        </div>
-
-        <!-- Visibility -->
         <div class="form-group full">
           <div class="toggle-row">
             <div class="toggle-label">
@@ -234,13 +216,11 @@
           </div>
         </div>
 
-        <!-- PIN -->
         <div class="form-group hidden" id="pin-group">
           <label>4-Digit PIN <span>*</span></label>
           <input type="text" id="pin" placeholder="e.g. 1234" maxlength="4" />
         </div>
 
-        <!-- Active Status -->
         <div class="form-group full">
           <div class="toggle-row">
             <div class="toggle-label">
@@ -281,7 +261,6 @@
   var imagePreview = document.getElementById('image-preview');
   var posterBase64 = document.getElementById('poster-base64');
 
-  // 1. AUTH GUARD
   auth.onAuthStateChanged(function(user) {
     if (!user || !ADMIN_EMAILS.includes(user.email.toLowerCase())) {
       window.location.href = 'index.html';
@@ -290,7 +269,6 @@
     }
   });
 
-  // 2. IMAGE UPLOAD LOGIC
   document.getElementById('imageFile').addEventListener('change', function(e) {
     var file = e.target.files[0];
     if (!file) return;
@@ -299,7 +277,6 @@
     reader.onload = function(event) {
       var img = new Image();
       img.onload = function() {
-        // Compress image to save database space
         var canvas = document.createElement('canvas');
         var MAX_WIDTH = 800;
         var scale = Math.min(MAX_WIDTH / img.width, 1);
@@ -314,14 +291,13 @@
         posterBase64.value = dataUrl;
         imagePreview.src = dataUrl;
         imagePreview.style.display = 'block';
-        document.getElementById('posterUrl').value = ''; // Clear URL input
+        document.getElementById('posterUrl').value = '';
       };
       img.src = event.target.result;
     };
     reader.readAsDataURL(file);
   });
 
-  // 3. LOAD EVENTS
   function loadEvents() {
     var listEl = document.getElementById('event-list');
     listEl.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 14px;">Loading...</div>';
@@ -335,7 +311,8 @@
 
       snap.forEach(function(doc) {
         var data = doc.data();
-        var isPaid = data.requiresTicket || data.ppvPrice > 0;
+        var price = data.ppvPrice || 0;
+        var isPaid = price > 0;
         
         var div = document.createElement('div');
         div.className = 'event-item';
@@ -354,7 +331,6 @@
     });
   }
 
-  // 4. EDIT EVENT
   function editEvent(id, data) {
     document.querySelectorAll('.event-item').forEach(el => el.classList.remove('active'));
     document.getElementById('list-item-' + id).classList.add('active');
@@ -370,8 +346,10 @@
     document.getElementById('streamUrl').value = data.streamUrl || '';
     document.getElementById('startDate').value = data.startDate || '';
     document.getElementById('startTime').value = data.startTime || '';
+    
+    // Set Price
+    document.getElementById('price').value = data.ppvPrice || 0;
 
-    // Image Logic
     if (data.posterUrl) {
       if (data.posterUrl.startsWith('data:image')) {
         posterBase64.value = data.posterUrl;
@@ -389,11 +367,6 @@
       imagePreview.style.display = 'none';
     }
 
-    var isPaid = data.requiresTicket || data.ppvPrice > 0;
-    document.getElementById('isPaid').checked = isPaid;
-    document.getElementById('price').value = data.ppvPrice || '';
-    document.getElementById('price-group').classList.toggle('hidden', !isPaid);
-
     var isPrivate = data.visibility === 'private';
     document.getElementById('isPrivate').checked = isPrivate;
     document.getElementById('pin').value = data.pin || '';
@@ -402,21 +375,19 @@
     document.getElementById('isActive').checked = data.active !== false;
   }
 
-  // 5. RESET FORM (New Event)
   document.getElementById('btn-new').onclick = function() {
     document.querySelectorAll('.event-item').forEach(el => el.classList.remove('active'));
     document.getElementById('form-title').textContent = 'Create New Event';
     document.getElementById('btn-delete').classList.add('hidden');
     document.getElementById('event-form').reset();
     document.getElementById('event-id').value = '';
-    document.getElementById('price-group').classList.add('hidden');
     document.getElementById('pin-group').classList.add('hidden');
     document.getElementById('isActive').checked = true;
+    document.getElementById('price').value = '0'; // Default to Free
     posterBase64.value = '';
     imagePreview.style.display = 'none';
   };
 
-  // 6. SAVE EVENT
   document.getElementById('event-form').onsubmit = function(e) {
     e.preventDefault();
     var btn = document.getElementById('btn-save');
@@ -424,11 +395,10 @@
     btn.disabled = true;
 
     var id = document.getElementById('event-id').value;
-    var isPaid = document.getElementById('isPaid').checked;
     var isPrivate = document.getElementById('isPrivate').checked;
     
-    // Get final image (Base64 takes priority if uploaded, otherwise use URL)
     var finalPoster = posterBase64.value || document.getElementById('posterUrl').value;
+    var finalPrice = parseInt(document.getElementById('price').value, 10) || 0;
 
     var eventData = {
       title: document.getElementById('title').value,
@@ -438,8 +408,8 @@
       streamUrl: document.getElementById('streamUrl').value,
       startDate: document.getElementById('startDate').value,
       startTime: document.getElementById('startTime').value,
-      requiresTicket: isPaid,
-      ppvPrice: isPaid ? parseInt(document.getElementById('price').value, 10) : 0,
+      ppvPrice: finalPrice, // Save the price directly
+      requiresTicket: finalPrice > 0, // Auto-toggle this for backwards compatibility
       visibility: isPrivate ? 'private' : 'public',
       pin: isPrivate ? document.getElementById('pin').value : '',
       active: document.getElementById('isActive').checked,
@@ -468,7 +438,6 @@
     }
   };
 
-  // 7. DELETE EVENT
   function deleteEvent(id) {
     if (!confirm('Delete this event permanently?')) return;
     db.collection('streams').doc(id).delete().then(function() {
