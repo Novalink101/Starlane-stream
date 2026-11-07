@@ -4,9 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#050508">
-<meta name="robots" content="noindex, nofollow">
 <title>Watch · Starlane Stream</title>
+
+<!-- HLS Player -->
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
 <style>
   :root{
     --red:#E50914; --red-hover:#FF3B4E;
@@ -16,9 +22,7 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background:
-      radial-gradient(ellipse at 50% 0%, rgba(229,9,20,.08), transparent 55%),
-      #050508;
+    background: radial-gradient(ellipse at 50% 0%, rgba(229,9,20,.08), transparent 55%), #050508;
     color: var(--text);
     font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     min-height: 100vh;
@@ -140,30 +144,18 @@
   'use strict';
 
   /* ══════════════════════════════════════════════════════════════════
-     CONFIG — the ONE thing you edit per event
-     ══════════════════════════════════════════════════════════════════
-     Each key is the URL slug the admin pastes into Event Studio.
-     Each value is the HLS (.m3u8) URL of that event's live stream.
-
-     Example:
-       Admin pastes into Event Studio:
-         https://starlane-stream.onrender.com/live/boksburg-jazz
-
-       Novalink sends the buyer to:
-         https://starlane-stream.onrender.com/live/boksburg-jazz?ticketRef=NL-...
-
-       Watch page looks up slug "boksburg-jazz" in this map:
-  */
-  var STREAM_MAP = {
-    // 'boksburg-jazz': 'https://your-cdn.com/boksburg-jazz.m3u8',
-    // 'cape-town-comedy': 'https://your-cdn.com/cape-town-comedy.m3u8',
+     STARLANE FIREBASE CONFIG
+     ══════════════════════════════════════════════════════════════════ */
+  var starlaneConfig = {
+    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+    authDomain: "starlane-stream.firebaseapp.com",
+    projectId: "starlane-stream",
+    storageBucket: "starlane-stream.firebasestorage.app",
+    messagingSenderId: "115625325145",
+    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
   };
-
-  /* If you ever run a single-event Starlane (one URL for one stream),
-     set DEFAULT_STREAM_URL and the slug is ignored. Otherwise leave blank. */
-  var DEFAULT_STREAM_URL = '';
-
-  /* ══════════════════════════════════════════════════════════════════ */
+  if (!firebase.apps.length) { firebase.initializeApp(starlaneConfig); }
+  var db = firebase.firestore();
 
   var VERIFY_ENDPOINT = 'https://novalink-api-8vfg.onrender.com/api/verify-stream';
   var CACHE_PREFIX = 'starlane_verified_';
@@ -182,7 +174,6 @@
   var unmuteBtn      = document.getElementById('unmute-btn');
 
   /* ── helpers ─────────────────────────────────────────────────────── */
-
   function show(el){ el.classList.remove('hidden'); }
   function hide(el){ el.classList.add('hidden'); }
 
@@ -192,17 +183,21 @@
       .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
-  function getTicketRef(){
-    return new URLSearchParams(window.location.search).get('ticketRef') || '';
-  }
-
-  /* Resolve stream URL from the current pathname /live/<slug> */
-  function resolveStreamUrl(){
-    var path = window.location.pathname || '/';
-    var m = path.match(/^\/live\/([^\/]+?)(?:\.html)?\/?$/i);
-    if (m && STREAM_MAP[m[1]]) return STREAM_MAP[m[1]];
-    if (!m && DEFAULT_STREAM_URL) return DEFAULT_STREAM_URL;
-    return '';
+  /* 
+   * THIS IS THE FIX FOR THE NOVALINK BUG 
+   * Novalink appends ?ticketRef= even if there is already a ?id=
+   * which results in ?id=123?ticketRef=456
+   */
+  function getUrlParams(){
+    var search = window.location.search;
+    // Replace the second question mark with an ampersand
+    search = search.replace(/\?ticketRef=/, '&ticketRef=');
+    
+    var params = new URLSearchParams(search);
+    return {
+      ticketRef: params.get('ticketRef') || '',
+      streamId: params.get('id') || ''
+    };
   }
 
   function renderRef(ref){
@@ -216,7 +211,7 @@
     paywallIcon.textContent    = opts.icon || '🔒';
     paywallTitle.textContent   = title;
     paywallMessage.textContent = message;
-    renderRef(opts.showRef ? getTicketRef() : '');
+    renderRef(opts.showRef ? getUrlParams().ticketRef : '');
 
     var html = '';
     if (opts.showRetry){
@@ -232,8 +227,7 @@
     if (retry) retry.addEventListener('click', boot);
   }
 
-  /* ── cache (protects against server flipping status on verify) ───── */
-
+  /* ── cache ───────────────────────────────────────────────────────── */
   function getCached(ref){
     try {
       var raw = sessionStorage.getItem(CACHE_PREFIX + ref);
@@ -254,8 +248,32 @@
     } catch(e){}
   }
 
-  /* ── stream loader (HLS + native) ────────────────────────────────── */
+  /* ── fetch stream URL from Starlane Firebase ─────────────────────── */
+  async function fetchStreamUrl(streamId){
+    if (!streamId) return '';
+    try {
+      var doc = await db.collection('streams').doc(streamId).get();
+      if (!doc.exists) {
+        console.warn("Stream ID not found in database:", streamId);
+        return '';
+      }
+      
+      var data = doc.data();
+      
+      if (data.streamUrl) return data.streamUrl;
+      
+      if (Array.isArray(data.segments) && data.segments.length > 0) {
+        return data.segments[0].url;
+      }
+      
+      return '';
+    } catch(e) {
+      console.error("Error fetching stream from Starlane DB:", e);
+      return '';
+    }
+  }
 
+  /* ── video player logic ──────────────────────────────────────────── */
   var hlsInstance = null;
 
   function attachStream(url){
@@ -316,8 +334,6 @@
     }
   }
 
-  /* ── unmute / resume button ──────────────────────────────────────── */
-
   unmuteBtn.addEventListener('click', function(){
     videoEl.muted = false;
     videoEl.volume = 1;
@@ -330,7 +346,6 @@
   });
 
   /* ── main flow ───────────────────────────────────────────────────── */
-
   var bootGuard = false;
 
   async function boot(){
@@ -340,9 +355,10 @@
 
     show(loadingState); hide(videoState); hide(paywallState);
 
-    var ticketRef = getTicketRef();
+    var params = getUrlParams();
+    console.log("Parsed params:", params);
 
-    if (!ticketRef){
+    if (!params.ticketRef){
       showPaywall(
         'No ticket found',
         'This link is missing a ticket reference. Use the exact link sent to your email after purchase, or buy a ticket below.',
@@ -351,21 +367,21 @@
       return;
     }
 
-    /* Cache hit — skip the API call entirely.
-       This is what saves buyers when the server flips status→checked-in
-       on first verify: refresh within the same tab still works. */
-    var cached = getCached(ticketRef);
+    // 1. Check Cache
+    var cached = getCached(params.ticketRef);
     if (cached){
-      grantAccess(cached.guestName);
+      var streamUrl = await fetchStreamUrl(params.streamId);
+      grantAccess(cached.guestName, streamUrl);
       return;
     }
 
+    // 2. Verify Ticket with Novalink API
     var response;
     try {
       response = await fetch(VERIFY_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ticketRef: ticketRef })
+        body: JSON.stringify({ ticketRef: params.ticketRef })
       });
     } catch (networkErr){
       showPaywall(
@@ -396,9 +412,14 @@
       return;
     }
 
+    // 3. Handle Novalink Result
     if (data && data.valid){
-      setCached(ticketRef, data.guestName || '');
-      grantAccess(data.guestName || '');
+      setCached(params.ticketRef, data.guestName || '');
+      
+      // 4. Fetch the Video URL from Starlane DB
+      var streamUrl = await fetchStreamUrl(params.streamId);
+      
+      grantAccess(data.guestName || '', streamUrl);
       return;
     }
 
@@ -409,16 +430,15 @@
     );
   }
 
-  function grantAccess(guestName){
+  function grantAccess(guestName, streamUrl){
     hide(loadingState); hide(paywallState); show(videoState);
     welcomeBar.innerHTML = guestName
       ? 'Welcome, <strong>' + escapeHtml(guestName) + '</strong>. Enjoy the stream.'
       : '';
-    attachStream(resolveStreamUrl());
+    attachStream(streamUrl);
   }
 
   /* ── go ──────────────────────────────────────────────────────────── */
-
   if (document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', boot);
   } else {
