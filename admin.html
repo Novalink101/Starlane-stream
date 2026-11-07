@@ -16,7 +16,6 @@
   a { text-decoration: none; color: inherit; }
   .hidden { display: none !important; }
   
-  /* Navbar */
   .nav { border-bottom: 1px solid var(--border); padding: 16px 0; background: #fff; position: sticky; top: 0; z-index: 50; }
   .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
   .logo { display: flex; align-items: center; gap: 12px; }
@@ -25,18 +24,15 @@
   .logo b span { color: var(--red); }
   .badge-admin { background: #fee2e2; color: var(--red); font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; margin-left: 10px; }
   
-  /* Main Content */
   .container { max-width: 1200px; margin: 60px auto; padding: 0 24px; flex: 1; }
   .page-title { font-size: 32px; font-weight: 900; letter-spacing: -1px; margin-bottom: 12px; }
   .page-sub { font-size: 16px; color: var(--text-muted); margin-bottom: 40px; }
 
-  /* Grid */
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
   
   .card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; transition: 0.3s; display: flex; flex-direction: column; gap: 16px; position: relative; overflow: hidden; }
   .card:hover { border-color: var(--red); box-shadow: 0 10px 30px -10px rgba(229,9,20,0.15); transform: translateY(-4px); }
   
-  /* Card Icons */
   .card-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .card-icon svg { width: 28px; height: 28px; }
   
@@ -48,13 +44,19 @@
   .card h3 { font-size: 20px; font-weight: 800; }
   .card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
   
-  .card-link { margin-top: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; }
+  .card-link { margin-top: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; cursor: pointer; background: none; border: none; padding: 0; text-align: left; }
   .card-link:hover { gap: 12px; }
   
   .link-red { color: var(--red); }
   .link-green { color: #16a34a; }
   .link-blue { color: #0284c7; }
   .link-purple { color: #9333ea; }
+
+  .btn-action { width: 100%; padding: 12px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.2s; border: 1px solid; text-align: center; display: block; margin-top: 8px; }
+  .btn-green { background: #f0fdf4; border-color: #16a34a; color: #16a34a; }
+  .btn-green:hover { background: #16a34a; color: #fff; }
+  .btn-purple { background: #eef2ff; border-color: #4f46e5; color: #4f46e5; }
+  .btn-purple:hover { background: #4f46e5; color: #fff; }
 
   @media (max-width: 768px) {
     .grid { grid-template-columns: 1fr; }
@@ -81,7 +83,7 @@
 
   <div class="grid">
     
-    <!-- 1. Event Studio (Fixed Link) -->
+    <!-- 1. Event Studio -->
     <a href="event-studio.html" class="card">
       <div class="card-icon icon-red"><i data-lucide="video"></i></div>
       <h3>Event Studio</h3>
@@ -98,26 +100,29 @@
     </a>
 
     <!-- 3. Broadcast (Phone Camera) -->
-    <a href="broadcast.html" class="card">
+    <div class="card">
       <div class="card-icon icon-green"><i data-lucide="camera"></i></div>
       <h3>Go Live (Phone)</h3>
-      <p>Open this on your phone to stream directly to Starlane using your camera.</p>
-      <span class="card-link link-green">Start Broadcasting <i data-lucide="radio" size="16"></i></span>
-    </a>
+      <p>Choose which camera to turn your phone into. This will generate a link to open on your phone.</p>
+      
+      <button onclick="getBroadcastLink('cam1')" class="btn-action btn-green">📱 Open Camera 1</button>
+      <button onclick="getBroadcastLink('cam2')" class="btn-action btn-green">📱 Open Camera 2</button>
+      <button onclick="getBroadcastLink('cam3')" class="btn-action btn-green">📱 Open Camera 3</button>
+    </div>
 
     <!-- 4. Director (Multi-Cam Switcher) -->
-    <a href="director.html" class="card">
+    <div class="card">
       <div class="card-icon icon-purple"><i data-lucide="sliders"></i></div>
       <h3>Multi-Cam Director</h3>
       <p>Switch between Camera 1, Camera 2, Camera 3, or Split Screen live.</p>
-      <span class="card-link link-purple">Open Director <i data-lucide="layout-grid" size="16"></i></span>
-    </a>
+      <button onclick="getDirectorLink()" class="btn-action btn-purple">Open Director</button>
+    </div>
 
   </div>
 </main>
 
 <script>
-  // Auth Guard: Only Admins can see this page
+  // Auth Guard
   var firebaseConfig = {
     apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
     authDomain: "starlane-stream.firebaseapp.com",
@@ -132,9 +137,28 @@
 
   auth.onAuthStateChanged(function(user) {
     if (!user || !ADMIN_EMAILS.includes(user.email.toLowerCase())) {
-      window.location.href = 'index.html'; // Kick non-admins out
+      window.location.href = 'index.html';
     }
   });
+
+  // Magic Link Generators
+  function getEventId() {
+    return prompt("Enter the Event ID you want to link to:");
+  }
+
+  function getBroadcastLink(cam) {
+    var id = getEventId();
+    if (!id) return;
+    var url = window.location.origin + '/broadcast.html?event=' + id + '&cam=' + cam;
+    prompt("Copy this link and open it on your phone:\n\n", url);
+  }
+
+  function getDirectorLink() {
+    var id = getEventId();
+    if (!id) return;
+    var url = window.location.origin + '/director.html?event=' + id;
+    prompt("Copy this link and open it on your tablet/laptop:\n\n", url);
+  }
 
   if (window.lucide) lucide.createIcons();
 </script>
