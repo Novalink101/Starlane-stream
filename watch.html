@@ -62,13 +62,13 @@
 <div id="screen-player" class="screen hidden">
   <div class="player-wrap">
     <div class="welcome hidden" id="welcome-banner"></div>
-    <video id="video" controls playsinline></video>
+    <!-- Added muted attribute to bypass browser autoplay blocks -->
+    <video id="video" controls playsinline muted></video>
   </div>
 </div>
 
 <script>
 (function(){
-  // Firebase Config
   var firebaseConfig = {
     apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
     authDomain: "starlane-stream.firebaseapp.com",
@@ -81,7 +81,6 @@
   var db = firebase.firestore();
   var auth = firebase.auth();
 
-  // UI Elements
   var screens = {
     loading: document.getElementById('screen-loading'),
     paywall: document.getElementById('screen-paywall'),
@@ -103,7 +102,6 @@
     if (window.lucide) lucide.createIcons();
   }
 
-  // Parse URL (Fixes the Novalink double '?' issue)
   var search = window.location.search.replace(/\?ticketRef=/, '&ticketRef=');
   var params = new URLSearchParams(search);
   var streamId = params.get('id');
@@ -115,7 +113,6 @@
     return;
   }
 
-  // 1. Verify Novalink Ticket (If URL has a ticket)
   async function verifyNovalink(ref) {
     try {
       var res = await fetch('https://novalink-api-8vfg.onrender.com/api/verify-stream', {
@@ -129,7 +126,6 @@
     }
   }
 
-  // 2. Fetch Stream Data & Play
   async function loadAndPlay(guestName) {
     try {
       var doc = await db.collection('streams').doc(streamId).get();
@@ -140,7 +136,6 @@
 
       if (!videoUrl) return showPaywall('Error', 'No video URL configured for this stream.', '');
 
-      // Show Player
       showScreen('player');
       var video = document.getElementById('video');
       
@@ -151,7 +146,6 @@
         setTimeout(function(){ banner.classList.add('hidden'); }, 5000);
       }
 
-      // Load Video (HLS or MP4)
       if (videoUrl.includes('.m3u8') && Hls.isSupported()) {
         var hls = new Hls();
         hls.loadSource(videoUrl);
@@ -163,11 +157,10 @@
       }
 
     } catch(err) {
-      showPaywall('Error', err.message, '');
+      showPaywall('Error', 'Could not load stream data: ' + err.message, '');
     }
   }
 
-  // BOOT SEQUENCE
   document.addEventListener('DOMContentLoaded', function() {
     if (window.lucide) lucide.createIcons();
     
@@ -185,8 +178,10 @@
       return;
     }
 
-    // B. If no ticket, check Starlane PPV logic
+    // B. Check Starlane PPV logic
     auth.onAuthStateChanged(function(user) {
+      
+      // Fetch the stream first to see if it even requires a ticket
       db.collection('streams').doc(streamId).get().then(function(doc) {
         if (!doc.exists) return showPaywall('Error', 'Stream not found.', '');
         
@@ -202,7 +197,6 @@
             return;
           }
 
-          // Check if they already bought the pass
           db.collection('users').doc(user.uid).collection('passes').doc(streamId).get().then(function(passDoc) {
             if (passDoc.exists) {
               loadAndPlay('PPV Pass Holder');
@@ -212,11 +206,14 @@
                 '<a href="https://novalink-tickets.onrender.com" class="btn ghost" target="_blank">Buy Full Ticket on Novalink</a>'
               );
             }
+          }).catch(function(err) {
+             showPaywall('Error', 'Could not check passes: ' + err.message, '');
           });
         } else {
-          // Free stream
           loadAndPlay(null);
         }
+      }).catch(function(err) {
+         showPaywall('Error', 'Could not connect to database.', '');
       });
     });
   });
