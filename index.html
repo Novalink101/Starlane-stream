@@ -21,29 +21,19 @@
     --border: #e5e7eb;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  
-  /* Make body a flex column to push footer to the bottom */
   body { 
-    background: var(--bg); 
-    color: var(--text); 
+    background: var(--bg); color: var(--text); 
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
-    position: relative;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    position: relative; min-height: 100vh; display: flex; flex-direction: column;
   }
   a { text-decoration: none; color: inherit; }
   .hidden { display: none !important; }
-  
-  /* Main content wrapper to take up available space */
   main { flex: 1; }
 
-  /* ── MOVING STARFIELD BACKGROUND ── */
+  /* Starfield */
   .starfield { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: #ffffff; overflow: hidden; }
-  .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(229,9,20,.15), transparent 100%), radial-gradient(1px 1px at 85% 15%, rgba(0,0,0,.08), transparent 100%), radial-gradient(2px 2px at 45% 35%, rgba(229,9,20,.1), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
+  .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(229,9,20,.15), transparent 100%), radial-gradient(1px 1px at 85% 15%, rgba(0,0,0,.08), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
   .stars-2 { position: absolute; inset: -50%; background-image: radial-gradient(1px 1px at 20% 30%, rgba(229,9,20,.3), transparent 100%), radial-gradient(2px 2px at 60% 10%, rgba(0,0,0,.15), transparent 100%); background-size: 300px 300px; animation: drift 20s linear infinite reverse; }
   @keyframes drift { 0% { transform: translateY(0) translateX(0); } 100% { transform: translateY(-200px) translateX(-100px); } }
 
@@ -104,7 +94,7 @@
   .empty i { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; }
   .empty h3 { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
 
-  /* ── FOOTER ── */
+  /* Footer */
   .footer { border-top: 1px solid var(--border); background: #ffffff; padding: 40px 24px; position: relative; z-index: 10; }
   .footer-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
   .footer-brand { font-weight: 900; font-size: 18px; color: #111827; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
@@ -181,7 +171,6 @@
   </section>
 </main>
 
-<!-- FOOTER -->
 <footer class="footer">
   <div class="footer-inner">
     <div class="footer-brand">
@@ -192,16 +181,12 @@
       </svg>
       STAR<span>LANE</span>
     </div>
-    
     <div class="footer-links">
       <a href="legal.html#terms">Terms of Service</a>
       <a href="legal.html#privacy">Privacy Policy</a>
       <a href="legal.html#popia">POPIA Notice</a>
     </div>
-    
-    <div class="footer-copy">
-      © 2027 Starlane Stream. All rights reserved.
-    </div>
+    <div class="footer-copy">© 2027 Starlane Stream. All rights reserved.</div>
   </div>
 </footer>
 
@@ -232,7 +217,7 @@
   document.addEventListener('DOMContentLoaded', function() {
     if (window.lucide) lucide.createIcons();
 
-    // 1. HANDLE USER ROLE
+    // Navbar logic
     auth.onAuthStateChanged(function(user) {
       var elLoggedOut = document.getElementById('nav-logged-out');
       var elUser = document.getElementById('nav-user');
@@ -255,7 +240,7 @@
       }
     });
 
-    // 2. LOAD EVENTS
+    // Load Events
     db.collection('streams').where('active', '==', true).get()
       .then(function(snap) {
         document.getElementById('loading').classList.add('hidden');
@@ -277,15 +262,23 @@
           var dateStr = formatDate(data.startDate, data.startTime);
           var poster = data.posterUrl || 'https://images.unsplash.com/photo-1540039155732-684736882207?q=80&w=800&auto=format&fit=crop';
           
-          var isPPV = data.requiresTicket || data.ppvPrice;
+          // NEW LOGIC: Check if price is 0 or more
+          var price = data.ppvPrice || 0;
+          var isPaid = price > 0;
+          
           var priceHTML = '';
           var actionBtn = '';
+          var badgeHTML = '';
 
-          if (isPPV) {
-            priceHTML = '<div class="price">R' + (data.ppvPrice || 150) + '</div>';
+          if (isPaid) {
+            // Paid Stream Logic
+            badgeHTML = '<span class="badge">Paid Stream</span>';
+            priceHTML = '<div class="price">R' + price + '</div>';
             actionBtn = '<a href="watch.html?id=' + id + '" class="btn-watch btn-buy">Get Access <i data-lucide="ticket"></i></a>';
           } else {
-            priceHTML = '<div class="price">Free <span>with ticket</span></div>';
+            // Free to watch Logic
+            badgeHTML = '<span class="badge free">Free to watch</span>';
+            priceHTML = '<div class="price">R0 <span>Free</span></div>';
             actionBtn = '<a href="watch.html?id=' + id + '" class="btn-watch">Watch Now <i data-lucide="play"></i></a>';
           }
 
@@ -294,7 +287,7 @@
           card.innerHTML = `
             <img src="${poster}" alt="${title}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1540039155732-684736882207?q=80&w=800&auto=format&fit=crop'">
             <div class="card-content">
-              <span class="badge ${isPPV ? '' : 'free'}">${isPPV ? 'Ticketed Event' : 'Free Stream'}</span>
+              ${badgeHTML}
               <h3 class="card-title">${title}</h3>
               <div class="card-date"><i data-lucide="clock" size="16"></i> ${dateStr}</div>
               <div class="card-footer">
