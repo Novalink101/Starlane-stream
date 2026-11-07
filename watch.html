@@ -97,13 +97,12 @@
   <button id="pin-btn" class="btn btn-primary">Unlock Stream <i data-lucide="unlock" size="18"></i></button>
 </div>
 
-<!-- PAYWALL SCREEN (The Checkout Redirect) -->
+<!-- PAYWALL SCREEN -->
 <div id="screen-paywall" class="card hidden">
   <div class="icon-box"><i data-lucide="ticket"></i></div>
   <h1>Ticket Required</h1>
   <p id="paywall-msg">You don't have a Novalink ticket. You can pay a discounted rate to watch this stream directly on Starlane.</p>
   
-  <!-- These buttons are injected dynamically based on price and login state -->
   <div id="paywall-actions"></div>
 </div>
 
@@ -206,36 +205,37 @@
 
   // ── CORE LOGIC ──
   function checkAccess() {
-    // SCENARIO 1: Free Event
-    if (!streamData.requiresTicket) {
+    var price = streamData.ppvPrice || 0;
+
+    // SCENARIO 1: Free Event (Price is 0)
+    if (price === 0) {
       startPlayer();
       return;
     }
 
-    // SCENARIO 2: Event is Paid. 
+    // SCENARIO 2: Event is Paid.
     // A. If they have a Novalink TicketRef
     if (ticketRef) {
       verifyNovalinkTicket(ticketRef);
       return;
     }
 
-    // B. If they don't have a TicketRef, check if they are logged in
+    // B. If no TicketRef, check if they are logged in and bought a pass
     if (currentUser) {
-      // Check if they bought a Starlane PPV pass
       db.collection('users').doc(currentUser.uid).collection('passes').doc(streamId).get().then(function(passDoc) {
         if (passDoc.exists) {
           startPlayer(); // They have a pass!
         } else {
           // They are logged in, but haven't paid.
-          showStarlaneCheckout(); 
+          showStarlaneCheckout(price); 
         }
       }).catch(function() {
-        showStarlaneCheckout();
+        showStarlaneCheckout(price);
       });
       return;
     }
 
-    // C. Not logged in, no ticket ref
+    // C. Not logged in, no ticket ref, not free
     showPaywallForLogin();
   }
 
@@ -249,9 +249,8 @@
     if (window.lucide) lucide.createIcons();
   }
 
-  function showStarlaneCheckout() {
+  function showStarlaneCheckout(price) {
     showScreen('paywall');
-    var price = streamData.ppvPrice || 150;
     
     var buttons = `
       <a href="checkout.html?streamId=${streamId}&price=${price}" class="btn btn-primary" style="margin-bottom: 12px;">
