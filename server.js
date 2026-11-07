@@ -102,23 +102,15 @@ app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
     }
 
     try {
-        // Upload the chunk to Cloudinary using the official upload_stream
+        // STRIPPED DOWN: No folders, no complex params. Just raw upload.
         const uploadResult = await new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
-                { 
-                    resource_type: 'video', 
-                    folder: `live_streams/${eventId}/${camId}`
-                },
+                { resource_type: 'video' },
                 (error, result) => {
-                    if (error) {
-                        console.error("Cloudinary Upload Error:", error);
-                        reject(error);
-                    } else {
-                        resolve(result);
-                    }
+                    if (error) reject(error);
+                    else resolve(result);
                 }
             );
-            // End the stream with the video buffer
             uploadStream.end(req.file.buffer);
         });
 
