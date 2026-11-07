@@ -38,9 +38,9 @@
     <span style="font-size: 24px; font-weight: 900; color: var(--red);">R<span id="display-price">0</span></span>
   </div>
 
-  <!-- Replaced the static link with a dynamic button -->
+  <!-- Button updated to say "Pay Now" -->
   <button id="yocoBtn" class="btn" style="margin-bottom: 24px;">
-    Generate Payment Link <i data-lucide="credit-card"></i>
+    Pay Now <i data-lucide="credit-card"></i>
   </button>
 
   <div class="input-group">
@@ -85,7 +85,11 @@
     return;
   }
 
+  // Set the price and update the button text to say "Pay R65 Now"
   document.getElementById('display-price').textContent = price;
+  var yocoBtn = document.getElementById('yocoBtn');
+  yocoBtn.innerHTML = 'Pay R' + price + ' Now <i data-lucide="credit-card"></i>';
+  if (window.lucide) lucide.createIcons();
 
   auth.onAuthStateChanged(function(user) {
     if (!user) {
@@ -96,21 +100,20 @@
   });
 
   // 1. Generate Yoco Link via Novalink API
-  document.getElementById('yocoBtn').addEventListener('click', async function() {
+  yocoBtn.addEventListener('click', async function() {
     var btn = this;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Connecting to Yoco...';
 
     try {
-      // We use the Novalink API to create the checkout for the custom amount
       var res = await fetch('https://novalink-api-8vfg.onrender.com/api/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           eventId: streamId,
           ticketId: currentUser.uid,
-          orderRef: 'SPPV-' + Date.now(), // Unique reference for Starlane PPV
-          amount: parseInt(price, 10) * 100, // Yoco requires amount in cents (R65 = 6500)
+          orderRef: 'SPPV-' + Date.now(),
+          amount: parseInt(price, 10) * 100, // Convert to cents
           collection: 'starlane_passes'
         })
       });
@@ -118,17 +121,17 @@
       var data = await res.json();
 
       if (data.redirectUrl) {
-        window.location.href = data.redirectUrl; // Send them to Yoco
+        window.location.href = data.redirectUrl;
       } else {
         alert(data.error || 'Failed to generate payment link.');
         btn.disabled = false;
-        btn.innerHTML = 'Generate Payment Link <i data-lucide="credit-card"></i>';
+        btn.innerHTML = 'Pay R' + price + ' Now <i data-lucide="credit-card"></i>';
         lucide.createIcons();
       }
     } catch(e) {
       alert('Network error connecting to payment server.');
       btn.disabled = false;
-      btn.innerHTML = 'Generate Payment Link <i data-lucide="credit-card"></i>';
+      btn.innerHTML = 'Pay R' + price + ' Now <i data-lucide="credit-card"></i>';
       lucide.createIcons();
     }
   });
