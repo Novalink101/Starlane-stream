@@ -17,7 +17,7 @@
   a { text-decoration: none; color: inherit; }
   .hidden { display: none !important; }
   
-  .nav { border-bottom: 1px solid var(--border); padding: 16px 0; background: #fff; position: sticky; top: 0; z-index: 50; }
+  .nav { border-bottom: 1px solid var(--border); padding: 16px 0; background: #fff; }
   .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
   .logo { display: flex; align-items: center; gap: 12px; }
   .logo svg { width: 28px; height: 34px; }
@@ -31,7 +31,7 @@
 
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
   
-  .card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; transition: 0.3s; display: flex; flex-direction: column; gap: 16px; position: relative; }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; transition: 0.3s; display: flex; flex-direction: column; gap: 16px; }
   .card:hover { border-color: var(--red); box-shadow: 0 10px 30px -10px rgba(229,9,20,0.15); transform: translateY(-4px); }
   
   .card-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -41,19 +41,13 @@
   .icon-green { background: #dcfce7; color: #16a34a; }
   .icon-blue { background: #e0f2fe; color: #0284c7; }
   .icon-purple { background: #f3e8ff; color: #9333ea; }
+  .icon-dark { background: #f3f4f6; color: #111827; }
   
   .card h3 { font-size: 20px; font-weight: 800; }
   .card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
   
   .card-link { margin-top: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; cursor: pointer; background: none; border: none; padding: 0; text-align: left; }
-  .card-link:hover { gap: 12px; }
   
-  .link-red { color: var(--red); }
-  .link-green { color: #16a34a; }
-  .link-blue { color: #0284c7; }
-  .link-purple { color: #9333ea; }
-
-  /* Event Selector Dropdown */
   .event-selector { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
   .event-selector select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-size: 14px; font-family: inherit; cursor: pointer; }
   .event-selector select:focus { outline: none; border-color: var(--red); }
@@ -63,11 +57,10 @@
   .btn-green:hover { background: #16a34a; color: #fff; }
   .btn-purple { background: #eef2ff; border-color: #4f46e5; color: #4f46e5; }
   .btn-purple:hover { background: #4f46e5; color: #fff; }
+  .btn-dark { background: #f3f4f6; border-color: #111827; color: #111827; }
+  .btn-dark:hover { background: #111827; color: #fff; }
 
-  @media (max-width: 768px) {
-    .grid { grid-template-columns: 1fr; }
-    .container { margin: 30px auto; }
-  }
+  @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .container { margin: 30px auto; } }
 </style>
 </head>
 <body>
@@ -94,7 +87,7 @@
       <div class="card-icon icon-red"><i data-lucide="video"></i></div>
       <h3>Event Studio</h3>
       <p>Create live events, upload posters, set prices, and manage the private PINs.</p>
-      <span class="card-link link-red">Open Studio <i data-lucide="arrow-right" size="16"></i></span>
+      <span class="card-link" style="color: var(--red);">Open Studio <i data-lucide="arrow-right" size="16"></i></span>
     </a>
 
     <!-- 2. Ads Manager -->
@@ -102,23 +95,24 @@
       <div class="card-icon icon-blue"><i data-lucide="megaphone"></i></div>
       <h3>Ads Manager</h3>
       <p>Upload video and image ads. Track clicks and views across all streams.</p>
-      <span class="card-link link-blue">Manage Ads <i data-lucide="arrow-right" size="16"></i></span>
+      <span class="card-link" style="color: #0284c7;">Manage Ads <i data-lucide="arrow-right" size="16"></i></span>
     </a>
 
     <!-- 3. Broadcast (Phone Camera) -->
     <div class="card">
       <div class="card-icon icon-green"><i data-lucide="camera"></i></div>
-      <h3>Go Live (Phone)</h3>
-      <p>Select an event below to generate your camera link.</p>
+      <h3>Go Live (Phones)</h3>
+      <p>Select an event to generate your camera links.</p>
       
       <div class="event-selector">
         <select id="broadcast-event-select">
           <option value="">Loading events...</option>
         </select>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-          <button onclick="generateLink('broadcast', 'cam1')" class="btn-action btn-green" style="margin-top:0;">Cam 1</button>
-          <button onclick="generateLink('broadcast', 'cam2')" class="btn-action btn-green" style="margin-top:0;">Cam 2</button>
-          <button onclick="generateLink('broadcast', 'cam3')" class="btn-action btn-green" style="margin-top:0;">Cam 3</button>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px;">
+          <button onclick="generateLink('broadcast', 'cam1')" class="btn-action btn-green" style="margin-top:0; padding:8px; font-size:11px;">Cam 1</button>
+          <button onclick="generateLink('broadcast', 'cam2')" class="btn-action btn-green" style="margin-top:0; padding:8px; font-size:11px;">Cam 2</button>
+          <button onclick="generateLink('broadcast', 'cam3')" class="btn-action btn-green" style="margin-top:0; padding:8px; font-size:11px;">Cam 3</button>
+          <button onclick="generateLink('broadcast', 'cam4')" class="btn-action btn-green" style="margin-top:0; padding:8px; font-size:11px;">Cam 4</button>
         </div>
       </div>
     </div>
@@ -126,8 +120,8 @@
     <!-- 4. Director (Multi-Cam Switcher) -->
     <div class="card">
       <div class="card-icon icon-purple"><i data-lucide="sliders"></i></div>
-      <h3>Multi-Cam Director</h3>
-      <p>Select an event to open the switcher on your tablet.</p>
+      <h3>Director Studio</h3>
+      <p>Switch between cameras or split screen on your tablet.</p>
       
       <div class="event-selector">
         <select id="director-event-select">
@@ -135,6 +129,15 @@
         </select>
         <button onclick="generateLink('director')" class="btn-action btn-purple">Open Director</button>
       </div>
+    </div>
+
+    <!-- 5. TV Receiver (For the Venue Screen) -->
+    <div class="card">
+      <div class="card-icon icon-dark"><i data-lucide="monitor-play"></i></div>
+      <h3>TV Receiver</h3>
+      <p>Open this on the laptop connected to the venue's TV or projector.</p>
+      
+      <button onclick="generateReceiverLink()" class="btn-action btn-dark" style="margin-top:auto;">📺 Open TV Screen</button>
     </div>
 
   </div>
@@ -154,7 +157,6 @@
   var auth = firebase.auth();
   var ADMIN_EMAILS = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
 
-  // Auth Guard
   auth.onAuthStateChanged(function(user) {
     if (!user || !ADMIN_EMAILS.includes(user.email.toLowerCase())) {
       window.location.href = 'index.html';
@@ -163,7 +165,6 @@
     }
   });
 
-  // Load Events into both Dropdowns
   function loadEventsDropdowns() {
     db.collection('streams').orderBy('createdAt', 'desc').get().then(function(snap) {
       var bSelect = document.getElementById('broadcast-event-select');
@@ -187,14 +188,9 @@
         bSelect.insertAdjacentHTML('beforeend', optionHTML);
         dSelect.insertAdjacentHTML('beforeend', optionHTML);
       });
-      
-    }).catch(function(err) {
-      console.error(err);
-      alert("Error loading events: " + err.message);
     });
   }
 
-  // Generate the Magic Link based on selection
   function generateLink(type, cam) {
     var selectId = type === 'broadcast' ? 'broadcast-event-select' : 'director-event-select';
     var eventId = document.getElementById(selectId).value;
@@ -208,11 +204,19 @@
       url = window.location.origin + '/director.html?event=' + eventId;
     }
 
-    // Try to copy to clipboard and show prompt
     navigator.clipboard.writeText(url).then(function() {
       prompt("Link copied to clipboard! Open this on your device:\n\n", url);
     }).catch(function() {
       prompt("Copy this link and open it on your device:\n\n", url);
+    });
+  }
+
+  function generateReceiverLink() {
+    var eventId = document.getElementById('director-event-select').value;
+    if (!eventId) return alert("Please select an event first.");
+    var url = window.location.origin + '/receiver.html?id=' + eventId;
+    navigator.clipboard.writeText(url).then(function() {
+      prompt("TV Receiver Link copied! Open this on the laptop plugged into your TV:\n\n", url);
     });
   }
 
