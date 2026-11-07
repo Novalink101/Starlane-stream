@@ -14,54 +14,42 @@
 <style>
   :root { --red: #E50914; --red-hover: #FF3B4E; --bg: #ffffff; --surface: #f9fafb; --text: #111827; --text-muted: #6b7280; --border: #e5e7eb; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; overflow-x: hidden; position: relative; text-align: center; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; position: relative; text-align: center; }
   a { text-decoration: none; color: inherit; }
   .hidden { display: none !important; }
 
-  /* Starfield */
   .starfield { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: #ffffff; overflow: hidden; }
-  .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(229,9,20,.15), transparent 100%), radial-gradient(1px 1px at 85% 15%, rgba(0,0,0,.08), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
+  .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(229,9,20,.15), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
   @keyframes drift { 0% { transform: translateY(0) translateX(0); } 100% { transform: translateY(-200px) translateX(-100px); } }
 
-  /* Navbar */
   .nav { position: absolute; top: 0; left: 0; right: 0; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; z-index: 50; }
   .logo { display: flex; align-items: center; gap: 12px; }
   .logo svg { width: 28px; height: 34px; }
-  .logo b { font-weight: 900; font-size: 20px; color: #111827; letter-spacing: -0.5px; }
+  .logo b { font-weight: 900; font-size: 20px; color: #111827; }
   .logo b span { color: var(--red); }
-  .btn-nav { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-muted); transition: 0.2s; }
+  .btn-nav { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-muted); }
   .btn-nav:hover { color: var(--text); }
 
-  /* Cards */
   .card { background: #ffffff; border: 1px solid var(--border); border-radius: 24px; padding: 48px 40px; max-width: 480px; margin: 0 auto; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08); z-index: 1; margin-top: 60px; }
   .icon-box { width: 72px; height: 72px; background: #fee2e2; color: var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 32px; }
-  .card h1 { font-size: 26px; font-weight: 900; margin-bottom: 12px; letter-spacing: -0.5px; color: #111827; }
-  .card p { font-size: 15px; color: var(--text-muted); line-height: 1.6; margin-bottom: 28px; }
+  .card h1 { font-size: 26px; font-weight: 900; margin-bottom: 12px; }
+  .card p { font-size: 15px; color: var(--text-muted); margin-bottom: 28px; }
 
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 16px 24px; border-radius: 12px; font-weight: 800; font-size: 16px; text-decoration: none; border: none; cursor: pointer; transition: 0.2s; width: 100%; margin-bottom: 12px; }
-  .btn-primary { background: var(--red); color: #fff; box-shadow: 0 8px 20px rgba(229,9,20,0.3); }
-  .btn-primary:hover { background: var(--red-hover); transform: translateY(-2px); }
+  .btn-primary { background: var(--red); color: #fff; }
   .btn-ghost { background: #ffffff; color: var(--text); border: 1px solid var(--border); }
-  .btn-ghost:hover { background: var(--surface); }
 
-  /* Player */
-  .player-container { position: relative; width: 100%; max-width: 1100px; aspect-ratio: 16/9; background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.2); border: 1px solid var(--border); margin-top: 60px; z-index: 1; user-select: none; }
+  .player-container { position: relative; width: 100%; max-width: 1100px; aspect-ratio: 16/9; background: #000; border-radius: 20px; overflow: hidden; margin-top: 60px; z-index: 1; }
   .player-container video { width: 100%; height: 100%; display: block; object-fit: contain; }
 
-  /* Waiting Overlay */
-  .fullscreen-overlay { position: absolute; inset: 0; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; background: #0a0a0f; transition: opacity 0.5s; }
-  .fullscreen-overlay.hidden { opacity: 0; pointer-events: none; }
+  .fullscreen-overlay { position: absolute; inset: 0; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0a0a0f; }
+  .fullscreen-overlay.hidden { display: none; }
   .fullscreen-overlay .logos { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 24px; }
-  .fullscreen-overlay .logos .plus { font-size: 24px; color: rgba(255,255,255,0.3); font-weight: 300; }
-  .fullscreen-overlay h2 { font-size: 24px; font-weight: 900; color: #fff; letter-spacing: -0.5px; margin-bottom: 8px; }
-  .fullscreen-overlay p { font-size: 15px; color: rgba(255,255,255,0.6); font-weight: 500; }
+  .fullscreen-overlay .logos .plus { font-size: 24px; color: rgba(255,255,255,0.3); }
+  .fullscreen-overlay h2 { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 8px; }
+  .fullscreen-overlay p { font-size: 15px; color: rgba(255,255,255,0.6); }
   .prestream-spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--red); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 24px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  @media (max-width: 768px) {
-    .nav { padding: 12px 16px; }
-    .logo b { font-size: 18px; }
-  }
 </style>
 </head>
 <body>
@@ -70,12 +58,7 @@
 
 <nav class="nav">
   <a href="index.html" class="logo">
-    <svg viewBox="0 0 60 74" aria-hidden="true">
-      <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#E50914"/><stop offset="100%" stop-color="#FF5566"/></linearGradient></defs>
-      <path d="M10 60 Q 22 32 44 20" stroke="url(#sg)" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <path d="M16 62 Q 26 40 46 26" stroke="url(#sg)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
-      <circle cx="46" cy="18" r="5" fill="#fff"/><circle cx="46" cy="18" r="2.5" fill="#E50914"/>
-    </svg>
+    <svg viewBox="0 0 60 74"><defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#E50914"/><stop offset="100%" stop-color="#FF5566"/></linearGradient></defs><path d="M10 60 Q 22 32 44 20" stroke="url(#sg)" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="46" cy="18" r="5" fill="#fff"/><circle cx="46" cy="18" r="2.5" fill="#E50914"/></svg>
     <b>STAR<span>LANE</span></b>
   </a>
   <a href="index.html" class="btn-nav"><i data-lucide="arrow-left" size="16"></i> Back to Home</a>
@@ -86,7 +69,6 @@
   <h1 style="font-size:20px;">Checking access…</h1>
 </div>
 
-<!-- PAYWALL SCREEN -->
 <div id="screen-paywall" class="card hidden">
   <div class="icon-box"><i data-lucide="ticket"></i></div>
   <h1>Ticket Required</h1>
@@ -94,12 +76,9 @@
   <div id="paywall-actions"></div>
 </div>
 
-<!-- VIDEO PLAYER SCREEN -->
 <div id="screen-player" class="hidden" style="width:100%; display:flex; justify-content:center;">
-  <div class="player-container" id="player-container">
+  <div class="player-container">
     <video id="video" playsinline autoplay muted></video>
-
-    <!-- WAITING / POST-STREAM OVERLAY -->
     <div class="fullscreen-overlay" id="waiting-overlay">
       <div class="prestream-spinner"></div>
       <div class="logos">
@@ -150,32 +129,19 @@
     return;
   }
 
-  // 1. Verify Access
   auth.onAuthStateChanged(function(user) {
     db.collection('streams').doc(streamId).get().then(function(doc) {
-      if (!doc.exists) {
-        showScreen('paywall');
-        document.getElementById('paywall-msg').textContent = "Event not found.";
-        return;
-      }
+      if (!doc.exists) return showPaywall("Event not found.");
       
       var streamData = doc.data();
       var price = streamData.ppvPrice || 0;
       
-      // If Free, play immediately
-      if (price === 0) {
-        startPlayer();
-        return;
-      }
+      if (price === 0) return startPlayer();
 
-      // If Paid, check passes (simplified for this demo)
       if (user) {
         db.collection('users').doc(user.uid).collection('passes').doc(streamId).get().then(function(passDoc) {
-          if (passDoc.exists) {
-            startPlayer();
-          } else {
-            showPaywall(price);
-          }
+          if (passDoc.exists) startPlayer();
+          else showPaywall(price);
         });
       } else {
         showPaywall(price);
@@ -185,39 +151,28 @@
 
   function showPaywall(price) {
     showScreen('paywall');
-    document.getElementById('paywall-msg').textContent = "You need a ticket or pass to watch this event.";
     document.getElementById('paywall-actions').innerHTML = `
-      <a href="checkout.html?streamId=${streamId}&price=${price}" class="btn btn-primary" style="margin-bottom: 12px;">Pay R${price} Now</a>
+      <a href="checkout.html?streamId=${streamId}&price=${price}" class="btn btn-primary">Pay R${price} Now</a>
       <a href="https://novalink-tickets.onrender.com" class="btn btn-ghost">Buy on Novalink</a>
     `;
     if (window.lucide) lucide.createIcons();
   }
 
-  // 2. The Multi-Cam Player Logic
   var currentVideoUrl = '';
   
   function startPlayer() {
     showScreen('player');
     
-    // Poll the database every 3 seconds for new video chunks or camera changes
+    // Poll the database every 3 seconds for the latest Camera 1 chunk
     setInterval(function() {
       db.collection('streams').doc(streamId).get().then(function(doc) {
         if (!doc.exists) return;
         var data = doc.data();
         
-        var activeCam = data.activeCamera || 'cam1';
-        var camUrl = null;
-        
-        // Find the URL for the active camera
-        if (data.cams && data.cams[activeCam]) {
-          camUrl = data.cams[activeCam];
-        } else if (data.streamUrl && data.streamUrl !== 'broadcasting') {
-          // Fallback for standard HLS links
-          camUrl = data.streamUrl;
-        }
+        // Look specifically for cam1
+        var camUrl = data.cams && data.cams.cam1 ? data.cams.cam1 : null;
 
         if (camUrl) {
-          // If it's a new URL, load it
           if (camUrl !== currentVideoUrl) {
             currentVideoUrl = camUrl;
             video.src = camUrl;
