@@ -34,38 +34,34 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Serve static HTML files
+// Serve static HTML files (Starlane website)
 app.use(express.static(path.join(__dirname, './')));
 
-// Setup Multer
+// Setup Multer for handling video chunk uploads in memory
 const upload = multer({ storage: multer.memoryStorage() });
 
+
 /* ───────────────────────────────────────────────────────────
-   2. FIREBASE ADMIN INITIALIZATION (BULLETPROOF)
+   2. FIREBASE ADMIN INITIALIZATION
    ─────────────────────────────────────────────────────────── */
 let db; 
 
 try {
-    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-        throw new Error("FIREBASE_SERVICE_ACCOUNT environment variable is missing.");
-    }
-
-    // Parse the JSON string
     let serviceAccount;
-    try {
+
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+        // Parse the JSON string from Render
         serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    } catch (e) {
-        // If it fails to parse, it might be because Render formatted the quotes wrong. 
-        // We try a quick cleanup.
-        let cleaned = process.env.FIREBASE_SERVICE_ACCOUNT.trim();
-        serviceAccount = JSON.parse(cleaned);
+    } else {
+        // Fallback to separate variables
+        serviceAccount = {
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
+        };
     }
 
-    if (!serviceAccount.project_id) {
-        throw new Error("The JSON is missing the 'project_id' field. Make sure you pasted the whole file.");
-    }
-
-    // Fix the private key newlines
+    // Fix the private key newlines if they exist in the JSON
     if (serviceAccount.private_key) {
         serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
     }
@@ -110,9 +106,13 @@ app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
     }
 
     try {
+        // Upload the chunk to Cloudinary
         const uploadResult = await new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
-                { resource_type: 'video', folder: `live_streams/${eventId}/${camId}` },
+                { 
+                    resource_type: 'video', 
+                    folder: `live_streams/${eventId}/${camId}`
+                },
                 (error, result) => {
                     if (error) reject(error);
                     else resolve(result);
@@ -121,6 +121,7 @@ app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
             uploadStream.end(req.file.buffer);
         });
 
+        // Save the latest chunk URL to Firebase
         const updateData = {};
         updateData[`cams.${camId}`] = uploadResult.secure_url;
         
@@ -134,7 +135,7 @@ app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
 });
 
 /* ───────────────────────────────────────────────────────────
-   5. YOCO CHECKOUT
+   5. YOCO CHECKOUT (Starlane PPV)
    ─────────────────────────────────────────────────────────── */
 app.post('/api/create-yoco-checkout', async (req, res) => {
     try {
@@ -151,7 +152,7 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
         const successUrl = `https://starlane-stream-api.onrender.com/watch.html?id=${streamId}&paid=true`;
 
         const yocoResponse = await axios.post('https://payments.yoco.com/api/checkouts', {
-            amount: parseInt(price) * 100,
+            amount: parseInt(price) * 100, // Yoco expects cents
             currency: 'ZAR',
             successUrl: successUrl,
             cancelUrl: `https://starlane-stream-api.onrender.com/watch.html?id=${streamId}`,
@@ -176,11 +177,12 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
 });
 
 /* ───────────────────────────────────────────────────────────
-   6. NOVALINK STREAM VERIFICATION
+   6. NOVALINK STREAM VERIFICATION (Bridge for Novalink Tickets)
    ─────────────────────────────────────────────────────────── */
 app.post('/api/verify-stream', async (req, res) => {
     try {
         const { ticketRef } = req.body;
+        
         if (!ticketRef) return res.status(400).json({ valid: false, error: 'Missing ticketRef' });
 
         const ticketsSnapshot = await db.collectionGroup('tickets').where('paymentRef', '==', ticketRef).limit(1).get();
