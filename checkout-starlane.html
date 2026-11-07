@@ -13,15 +13,16 @@
   body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
   .card { background: var(--surface); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 40px; max-width: 480px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
   h1 { margin: 0 0 10px; font-size: 24px; }
-  p { color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 24px; }
+  p { color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 24px; font-size: 15px; }
   .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; border-radius: 12px; background: var(--red); color: #fff; text-decoration: none; font-weight: 800; font-size: 16px; border: none; cursor: pointer; transition: 0.2s; }
   .btn:hover:not(:disabled) { background: #ff3b4e; transform: translateY(-2px); }
   .btn:disabled { opacity: 0.7; cursor: not-allowed; }
-  .input-group { margin-bottom: 20px; }
-  .input-group label { display: block; font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; color: rgba(255,255,255,0.5); }
-  .input-group input { width: 100%; padding: 14px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 16px; font-family: monospace; }
-  .input-group input:focus { outline: none; border-color: var(--red); }
-  .hidden { display: none !important; }
+  
+  .checkbox-group { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 24px; font-size: 13px; color: rgba(255,255,255,0.7); cursor: pointer; line-height: 1.5; }
+  .checkbox-group input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--red); cursor: pointer; }
+  .checkbox-group a { color: var(--red); text-decoration: none; font-weight: 700; }
+  .checkbox-group a:hover { text-decoration: underline; }
+
   .success-icon { width: 64px; height: 64px; border-radius: 50%; background: rgba(16,185,129,0.1); border: 2px solid #10B981; color: #10B981; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 32px; }
   .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -38,26 +39,20 @@
     <span style="font-size: 24px; font-weight: 900; color: var(--red);">R<span id="display-price">0</span></span>
   </div>
 
-  <!-- Button updated to say "Pay Now" -->
-  <button id="yocoBtn" class="btn" style="margin-bottom: 24px;">
+  <label class="checkbox-group">
+    <input type="checkbox" id="termsCheck" />
+    <span>I agree to the <a href="legal.html#terms" target="_blank">Terms of Service</a>, <a href="legal.html#privacy" target="_blank">Privacy Policy</a>, and understand this is a non-refundable digital purchase.</span>
+  </label>
+
+  <button id="yocoBtn" class="btn">
     Pay Now <i data-lucide="credit-card"></i>
-  </button>
-
-  <div class="input-group">
-    <label>Paste your Yoco Reference</label>
-    <input type="text" id="refInput" placeholder="e.g. 8A7B-3C2D-9E4F" />
-    <p style="font-size: 11px; margin-top: 8px; color: var(--text-3);">After paying on Yoco, copy the reference number and paste it here.</p>
-  </div>
-
-  <button class="btn" id="submitRefBtn">
-    Unlock Stream <i data-lucide="unlock"></i>
   </button>
 </div>
 
 <div class="card hidden" id="success-step" style="text-align: center;">
   <div class="success-icon"><i data-lucide="check"></i></div>
-  <h1>Access Granted</h1>
-  <p>Your payment reference has been submitted. You can now watch the stream.</p>
+  <h1>Payment Successful</h1>
+  <p>Your access is unlocked. You can now watch the stream.</p>
   <a href="#" id="watchBtn" class="btn">Go to Stream <i data-lucide="play"></i></a>
 </div>
 
@@ -85,7 +80,6 @@
     return;
   }
 
-  // Set the price and update the button text to say "Pay R65 Now"
   document.getElementById('display-price').textContent = price;
   var yocoBtn = document.getElementById('yocoBtn');
   yocoBtn.innerHTML = 'Pay R' + price + ' Now <i data-lucide="credit-card"></i>';
@@ -99,13 +93,30 @@
     currentUser = user;
   });
 
-  // 1. Generate Yoco Link via Novalink API
   yocoBtn.addEventListener('click', async function() {
+    var termsCheck = document.getElementById('termsCheck');
+    
+    // 1. Check Terms & Conditions
+    if (!termsCheck.checked) {
+      termsCheck.parentElement.style.color = '#EF4444';
+      alert("Please agree to the Terms of Service before paying.");
+      return;
+    }
+
     var btn = this;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Connecting to Yoco...';
 
     try {
+      // 2. Auto-unlock the pass in Firebase FIRST
+      await db.collection('users').doc(currentUser.uid).collection('passes').doc(streamId).set({
+        streamId: streamId,
+        price: parseInt(price, 10),
+        status: 'approved',
+        purchasedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      // 3. Generate the Yoco link via Novalink API
       var res = await fetch('https://novalink-api-8vfg.onrender.com/api/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -113,7 +124,7 @@
           eventId: streamId,
           ticketId: currentUser.uid,
           orderRef: 'SPPV-' + Date.now(),
-          amount: parseInt(price, 10) * 100, // Convert to cents
+          amount: parseInt(price, 10) * 100,
           collection: 'starlane_passes'
         })
       });
@@ -121,46 +132,20 @@
       var data = await res.json();
 
       if (data.redirectUrl) {
+        // 4. Send them to Yoco to pay
         window.location.href = data.redirectUrl;
       } else {
-        alert(data.error || 'Failed to generate payment link.');
-        btn.disabled = false;
-        btn.innerHTML = 'Pay R' + price + ' Now <i data-lucide="credit-card"></i>';
-        lucide.createIcons();
+        throw new Error(data.error || 'Failed to generate payment link.');
       }
     } catch(e) {
-      alert('Network error connecting to payment server.');
+      // Rollback the pass if Yoco fails to generate
+      await db.collection('users').doc(currentUser.uid).collection('passes').doc(streamId).delete().catch(function(){});
+      
+      alert(e.message || 'Network error connecting to payment server.');
       btn.disabled = false;
       btn.innerHTML = 'Pay R' + price + ' Now <i data-lucide="credit-card"></i>';
       lucide.createIcons();
     }
-  });
-
-  // 2. Submit the Reference to unlock the video
-  document.getElementById('submitRefBtn').addEventListener('click', function() {
-    var ref = document.getElementById('refInput').value.trim();
-    if (!ref) return alert("Please paste your Yoco reference.");
-
-    this.innerHTML = '<span class="spinner"></span> Verifying...';
-    this.disabled = true;
-
-    db.collection('users').doc(currentUser.uid).collection('passes').doc(streamId).set({
-      streamId: streamId,
-      reference: ref,
-      price: parseInt(price, 10),
-      status: 'approved', 
-      purchasedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(function() {
-      document.getElementById('checkout-step').classList.add('hidden');
-      document.getElementById('success-step').classList.remove('hidden');
-      document.getElementById('watchBtn').href = 'watch.html?id=' + streamId;
-      lucide.createIcons();
-    }).catch(function(err) {
-      alert("Error saving pass: " + err.message);
-      document.getElementById('submitRefBtn').innerHTML = 'Unlock Stream <i data-lucide="unlock"></i>';
-      document.getElementById('submitRefBtn').disabled = false;
-      lucide.createIcons();
-    });
   });
 })();
 </script>
