@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<title>Live Stream Receiver · Starlane</title>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :root { --red: #E50914; --bg: #000; }
+  * { box-sizing: border-box; margin: 0; padding: 0; overflow: hidden; }
+  body { background: var(--bg); height: 100vh; width: 100vw; display: flex; align-items: center; justify-content: center; }
+  
+  /* Multi-Cam Grids */
+  .cam-grid { display: grid; width: 100%; height: 100%; gap: 4px; background: #000; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+  .cam-box { position: relative; width: 100%; height: 100%; background: #0a0a0f; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .cam-box video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  
+  /* Offline Camera Fallback */
+  .cam-offline { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2; background: #0a0a0f; }
+  .cam-offline svg { width: 60px; height: 74px; opacity: 0.5; margin-bottom: 12px; }
+  .cam-offline p { font-size: 16px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 2px; }
+
+  /* Watermark */
+  .watermark { position: absolute; top: 40px; left: 40px; z-index: 10; display: flex; align-items: center; gap: 12px; opacity: 0.7; }
+  .watermark svg { width: 40px; height: 50px; }
+  .watermark b { font-family: system-ui, sans-serif; font-weight: 900; font-size: 24px; color: #fff; }
+  .watermark b span { color: var(--red); }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="watermark">
+  <svg viewBox="0 0 60 74"><path d="M10 60 Q 22 32 44 20" stroke="#E50914" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="18" r="5" fill="#fff"/></svg>
+  <b>STAR<span>LANE</span></b>
+</div>
+
+<!-- SINGLE VIEW -->
+<div id="view-single" class="cam-box">
+  <video id="video-single" playsinline autoplay muted preload="auto"></video>
+  <div class="cam-offline" id="offline-single">
+    <svg viewBox="0 0 60 74"><path d="M10 60 Q 22 32 44 20" stroke="#E50914" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="18" r="5" fill="#fff"/></svg>
+    <p>Waiting for feed...</p>
+  </div>
+</div>
+
+<!-- 2-WAY SPLIT -->
+<div id="view-2way" class="cam-grid grid-2 hidden">
+  <div class="cam-box">
+    <video id="video-cam1-2" playsinline autoplay muted preload="auto"></video>
+    <div class="cam-offline" id="offline-cam1-2"><svg viewBox="0 0 60 74"><path d="M10 60 Q 22 32 44 20" stroke="#E50914" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="18" r="5" fill="#fff"/></svg><p>CAM 1</p></div>
+  </div>
+  <div class="cam-box">
+    <video id="video-cam2-2" playsinline autoplay muted preload="auto"></video>
+    <div class="cam-offline" id="offline-cam2-2"><svg viewBox="0 0 60 74"><path d="M10 60 Q 22 32 44 20" stroke="#E50914" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="18" r="5" fill="#fff"/></svg><p>CAM 2</p></div>
+  </div>
+</div>
+
+<!-- 4-WAY SPLIT -->
+<div id="view-4way" class="cam-grid grid-4 hidden">
+  <div class="cam-box">
+    <video id="video-cam1-4" playsinline autoplay muted preload="auto"></video>
+    <div class="cam-offline" id="offline-cam1-4"><svg viewBox="0 0 60 74"><path d="M10 60 Q 22 32 44 20" stroke="#E50914" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="18" r="5" fill="#fff"/></svg><p>CAM 1</p></div>
+  </div>
+  <div class="cam-box">
+    <video id="video-cam2-4" playsinline autoplay muted preload="auto"></video>
+    <div class="cam-offline" id="offline-cam2-4"><svg viewBox="0 0 60 74"><path d="M10 60 Q 22 32 44 20" stroke="#E50914" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="18" r="5" fill="#fff"/></svg><p>CAM 2</p></div>
+  </div>
+  <div class="cam-box">
+    <video id="video-cam3-4" playsinline autoplay muted preload="auto"></video>
+    <div class="cam-offline" id="offline-cam3-4"><svg viewBox="0 0 60 74"><path d="M10 60 Q 22 32 44 20" stroke="#E50914" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="18" r="5" fill="#fff"/></svg><p>CAM 3</p></div>
+  </div>
+  <div class="cam-box">
+    <video id="video-cam4-4" playsinline autoplay muted preload="auto"></video>
+    <div class="cam-offline" id="offline-cam4-4"><svg viewBox="0 0 60 74"><path d="M10 60 Q 22 32 44 20" stroke="#E50914" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="18" r="5" fill="#fff"/></svg><p>CAM 4</p></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var firebaseConfig = {
+    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+    authDomain: "starlane-stream.firebaseapp.com",
+    projectId: "starlane-stream",
+    storageBucket: "starlane-stream.firebasestorage.app",
+    messagingSenderId: "115625325145",
+    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var db = firebase.firestore();
+
+  var streamId = new URLSearchParams(window.location.search).get('id');
+  if (!streamId) {
+    document.body.innerHTML = '<h1 style="color:white; font-family:sans-serif;">Error: No Event ID provided.</h1>';
+    return;
+  }
+
+  var views = {
+    single: document.getElementById('view-single'),
+    way2: document.getElementById('view-2way'),
+    way4: document.getElementById('view-4way')
+  };
+
+  function updateCamBox(videoId, offlineId, url) {
+    var vid = document.getElementById(videoId);
+    var offline = document.getElementById(offlineId);
+    if (url && url !== 'broadcasting') {
+      offline.classList.add('hidden');
+      if (vid.src !== url) {
+        vid.src = url;
+        vid.play().catch(()=>{});
+      }
+    } else {
+      offline.classList.remove('hidden');
+      vid.src = '';
+    }
+  }
+
+  // Poll Firebase every 2 seconds to stay perfectly in sync with the Director
+  setInterval(function() {
+    db.collection('streams').doc(streamId).get().then(function(doc) {
+      if (!doc.exists) return;
+      var data = doc.data();
+      var cams = data.cams || {};
+      var activeCam = data.activeCamera || 'cam1';
+
+      Object.values(views).forEach(v => v.classList.add('hidden'));
+
+      if (activeCam === 'split4') {
+        views.way4.classList.remove('hidden');
+        updateCamBox('video-cam1-4', 'offline-cam1-4', cams.cam1);
+        updateCamBox('video-cam2-4', 'offline-cam2-4', cams.cam2);
+        updateCamBox('video-cam3-4', 'offline-cam3-4', cams.cam3);
+        updateCamBox('video-cam4-4', 'offline-cam4-4', cams.cam4);
+      } else if (activeCam === 'split2') {
+        views.way2.classList.remove('hidden');
+        updateCamBox('video-cam1-2', 'offline-cam1-2', cams.cam1);
+        updateCamBox('video-cam2-2', 'offline-cam2-2', cams.cam2);
+      } else {
+        views.single.classList.remove('hidden');
+        updateCamBox('video-single', 'offline-single', cams[activeCam]);
+      }
+    });
+  }, 2000);
+
+})();
+</script>
+</body>
+  </html>
