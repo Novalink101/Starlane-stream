@@ -34,7 +34,7 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Serve static HTML files (Starlane website)
+// Serve static HTML files
 app.use(express.static(path.join(__dirname, './')));
 
 // Setup Multer for handling video chunk uploads in memory
@@ -50,10 +50,8 @@ try {
     let serviceAccount;
 
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-        // Parse the JSON string from Render
         serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
     } else {
-        // Fallback to separate variables
         serviceAccount = {
             projectId: process.env.FIREBASE_PROJECT_ID,
             clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
@@ -61,7 +59,6 @@ try {
         };
     }
 
-    // Fix the private key newlines if they exist in the JSON
     if (serviceAccount.private_key) {
         serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
     }
@@ -72,7 +69,6 @@ try {
     
 } catch (error) {
     console.error('❌ Firebase Admin init error:', error.message);
-    console.error('⚠️ SERVER STOPPING: Cannot start without Firebase.');
     process.exit(1);
 }
 
@@ -106,7 +102,7 @@ app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
     }
 
     try {
-        // Upload the chunk to Cloudinary
+        // Upload the chunk to Cloudinary using the official upload_stream
         const uploadResult = await new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 { 
@@ -114,10 +110,15 @@ app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
                     folder: `live_streams/${eventId}/${camId}`
                 },
                 (error, result) => {
-                    if (error) reject(error);
-                    else resolve(result);
+                    if (error) {
+                        console.error("Cloudinary Upload Error:", error);
+                        reject(error);
+                    } else {
+                        resolve(result);
+                    }
                 }
             );
+            // End the stream with the video buffer
             uploadStream.end(req.file.buffer);
         });
 
@@ -135,7 +136,7 @@ app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
 });
 
 /* ───────────────────────────────────────────────────────────
-   5. YOCO CHECKOUT (Starlane PPV)
+   5. YOCO CHECKOUT
    ─────────────────────────────────────────────────────────── */
 app.post('/api/create-yoco-checkout', async (req, res) => {
     try {
@@ -152,7 +153,7 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
         const successUrl = `https://starlane-stream-api.onrender.com/watch.html?id=${streamId}&paid=true`;
 
         const yocoResponse = await axios.post('https://payments.yoco.com/api/checkouts', {
-            amount: parseInt(price) * 100, // Yoco expects cents
+            amount: parseInt(price) * 100,
             currency: 'ZAR',
             successUrl: successUrl,
             cancelUrl: `https://starlane-stream-api.onrender.com/watch.html?id=${streamId}`,
@@ -177,7 +178,7 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
 });
 
 /* ───────────────────────────────────────────────────────────
-   6. NOVALINK STREAM VERIFICATION (Bridge for Novalink Tickets)
+   6. NOVALINK STREAM VERIFICATION
    ─────────────────────────────────────────────────────────── */
 app.post('/api/verify-stream', async (req, res) => {
     try {
