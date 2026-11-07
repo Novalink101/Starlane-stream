@@ -15,13 +15,16 @@
   h1 { margin: 0 0 10px; font-size: 24px; }
   p { color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 24px; }
   .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; border-radius: 12px; background: var(--red); color: #fff; text-decoration: none; font-weight: 800; font-size: 16px; border: none; cursor: pointer; transition: 0.2s; }
-  .btn:hover { background: #ff3b4e; }
+  .btn:hover:not(:disabled) { background: #ff3b4e; transform: translateY(-2px); }
+  .btn:disabled { opacity: 0.7; cursor: not-allowed; }
   .input-group { margin-bottom: 20px; }
   .input-group label { display: block; font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; color: rgba(255,255,255,0.5); }
   .input-group input { width: 100%; padding: 14px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 16px; font-family: monospace; }
   .input-group input:focus { outline: none; border-color: var(--red); }
   .hidden { display: none !important; }
   .success-icon { width: 64px; height: 64px; border-radius: 50%; background: rgba(16,185,129,0.1); border: 2px solid #10B981; color: #10B981; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 32px; }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -35,13 +38,15 @@
     <span style="font-size: 24px; font-weight: 900; color: var(--red);">R<span id="display-price">0</span></span>
   </div>
 
-  <a href="#" id="yocoBtn" class="btn" target="_blank" style="margin-bottom: 24px;">
-    Pay on Yoco <i data-lucide="external-link"></i>
-  </a>
+  <!-- Replaced the static link with a dynamic button -->
+  <button id="yocoBtn" class="btn" style="margin-bottom: 24px;">
+    Generate Payment Link <i data-lucide="credit-card"></i>
+  </button>
 
   <div class="input-group">
     <label>Paste your Yoco Reference</label>
     <input type="text" id="refInput" placeholder="e.g. 8A7B-3C2D-9E4F" />
+    <p style="font-size: 11px; margin-top: 8px; color: var(--text-3);">After paying on Yoco, copy the reference number and paste it here.</p>
   </div>
 
   <button class="btn" id="submitRefBtn">
@@ -81,42 +86,77 @@
   }
 
   document.getElementById('display-price').textContent = price;
-  
-  // TEMPORARY: Using your R90 Starter Yoco Link for testing
-  document.getElementById('yocoBtn').href = 'https://pay.yoco.com/r/ePKzdb';
 
   auth.onAuthStateChanged(function(user) {
     if (!user) {
-      // Force login
       window.location.href = 'auth.html?redirect=' + encodeURIComponent(location.pathname + location.search);
       return;
     }
     currentUser = user;
   });
 
+  // 1. Generate Yoco Link via Novalink API
+  document.getElementById('yocoBtn').addEventListener('click', async function() {
+    var btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Connecting to Yoco...';
+
+    try {
+      // We use the Novalink API to create the checkout for the custom amount
+      var res = await fetch('https://novalink-api-8vfg.onrender.com/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: streamId,
+          ticketId: currentUser.uid,
+          orderRef: 'SPPV-' + Date.now(), // Unique reference for Starlane PPV
+          amount: parseInt(price, 10) * 100, // Yoco requires amount in cents (R65 = 6500)
+          collection: 'starlane_passes'
+        })
+      });
+
+      var data = await res.json();
+
+      if (data.redirectUrl) {
+        window.location.href = data.redirectUrl; // Send them to Yoco
+      } else {
+        alert(data.error || 'Failed to generate payment link.');
+        btn.disabled = false;
+        btn.innerHTML = 'Generate Payment Link <i data-lucide="credit-card"></i>';
+        lucide.createIcons();
+      }
+    } catch(e) {
+      alert('Network error connecting to payment server.');
+      btn.disabled = false;
+      btn.innerHTML = 'Generate Payment Link <i data-lucide="credit-card"></i>';
+      lucide.createIcons();
+    }
+  });
+
+  // 2. Submit the Reference to unlock the video
   document.getElementById('submitRefBtn').addEventListener('click', function() {
     var ref = document.getElementById('refInput').value.trim();
-    if (!ref) return alert("Please enter your Yoco reference.");
+    if (!ref) return alert("Please paste your Yoco reference.");
 
-    this.innerHTML = 'Verifying...';
+    this.innerHTML = '<span class="spinner"></span> Verifying...';
     this.disabled = true;
 
-    // Save the pending pass to Firebase
     db.collection('users').doc(currentUser.uid).collection('passes').doc(streamId).set({
       streamId: streamId,
       reference: ref,
       price: parseInt(price, 10),
-      status: 'approved', // Auto-approves for testing
+      status: 'approved', 
       purchasedAt: firebase.firestore.FieldValue.serverTimestamp()
     }).then(function() {
       document.getElementById('checkout-step').classList.add('hidden');
       document.getElementById('success-step').classList.remove('hidden');
-      document.getElementById('watchBtn').href = 'watch-847291563.html?id=' + streamId;
+      document.getElementById('watchBtn').href = 'watch.html?id=' + streamId;
       lucide.createIcons();
     }).catch(function(err) {
       alert("Error saving pass: " + err.message);
-      this.innerHTML = 'Unlock Stream';
-      this.disabled = false;
+      document.getElementById('submitRefBtn').innerHTML = 'Unlock Stream <i data-lucide="unlock"></i>';
+      document.getElementById('submitRefBtn').disabled = false;
+      lucide.createIcons();
     });
   });
 })();
