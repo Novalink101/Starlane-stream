@@ -152,7 +152,6 @@
 
   if (!streamId) {
     showScreen('paywall');
-    document.getElementById('paywall-title').textContent = "Invalid Link";
     document.getElementById('paywall-msg').textContent = "This link is missing the event ID.";
     return;
   }
@@ -164,9 +163,11 @@
     localStorage.setItem('starlane_device_id', deviceId);
   }
 
+  // 1. Wait for Firebase to authenticate
   auth.onAuthStateChanged(function(user) {
     currentUser = user;
 
+    // 2. Load Event Data
     db.collection('streams').doc(streamId).get().then(function(doc) {
       if (!doc.exists || doc.data().active === false) {
         showScreen('paywall');
@@ -176,7 +177,7 @@
 
       streamData = doc.data();
 
-      // 1. PIN CHECK
+      // 3. PIN CHECK
       if (streamData.visibility === 'private') {
         var urlPin = params.get('pin');
         if (urlPin === streamData.pin) {
@@ -203,30 +204,28 @@
     }
   });
 
-  // ── CORE LOGIC ──
+  // 4. CORE LOGIC
   function checkAccess() {
     var price = streamData.ppvPrice || 0;
 
-    // SCENARIO 1: Free Event (Price is 0)
+    // Free Event
     if (price === 0) {
       startPlayer();
       return;
     }
 
-    // SCENARIO 2: Event is Paid.
-    // A. If they have a Novalink TicketRef
+    // Has Novalink TicketRef
     if (ticketRef) {
       verifyNovalinkTicket(ticketRef);
       return;
     }
 
-    // B. If no TicketRef, check if they are logged in and bought a pass
+    // Paid Event, No TicketRef. Check Login & Passes.
     if (currentUser) {
       db.collection('users').doc(currentUser.uid).collection('passes').doc(streamId).get().then(function(passDoc) {
         if (passDoc.exists) {
-          startPlayer(); // They have a pass!
+          startPlayer(); // Pass found, play video!
         } else {
-          // They are logged in, but haven't paid.
           showStarlaneCheckout(price); 
         }
       }).catch(function() {
@@ -235,7 +234,7 @@
       return;
     }
 
-    // C. Not logged in, no ticket ref, not free
+    // Not logged in
     showPaywallForLogin();
   }
 
@@ -251,7 +250,6 @@
 
   function showStarlaneCheckout(price) {
     showScreen('paywall');
-    
     var buttons = `
       <a href="checkout.html?streamId=${streamId}&price=${price}" class="btn btn-primary" style="margin-bottom: 12px;">
         <i data-lucide="credit-card" size="18"></i> Pay R${price} (65% PPV)
@@ -260,7 +258,6 @@
         <i data-lucide="ticket" size="18"></i> Buy Full Ticket on Novalink
       </a>
     `;
-
     document.getElementById('paywall-msg').textContent = "You don't have a Novalink ticket. You can pay a discounted rate to watch this stream directly on Starlane, or buy a full ticket on Novalink.";
     document.getElementById('paywall-actions').innerHTML = buttons;
     if (window.lucide) lucide.createIcons();
@@ -284,7 +281,6 @@
           return;
         }
         if (!lockedDevice) localStorage.setItem('lock_' + ref, deviceId);
-
         startPlayer();
       } else {
         showScreen('paywall');
