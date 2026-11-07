@@ -134,7 +134,6 @@
   .prestream-overlay { position: absolute; inset: 0; background: #0a0a0f; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; transition: opacity 0.5s; }
   .prestream-overlay.hidden { opacity: 0; pointer-events: none; }
   .prestream-overlay .logos { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 24px; }
-  .prestream-overlay .logos img { height: 40px; object-fit: contain; }
   .prestream-overlay .logos .plus { font-size: 24px; color: rgba(255,255,255,0.3); font-weight: 300; }
   .prestream-overlay h2 { font-size: 20px; font-weight: 900; color: #fff; letter-spacing: -0.5px; margin-bottom: 8px; }
   .prestream-overlay p { font-size: 14px; color: rgba(255,255,255,0.6); font-weight: 500; }
@@ -194,13 +193,11 @@
   
   <div class="player-container" id="player-container">
     
-    <!-- PRE-STREAM LOADING OVERLAY (Novalink + Starlane Logos) -->
+    <!-- PRE-STREAM LOADING OVERLAY -->
     <div class="prestream-overlay" id="prestream-overlay">
       <div class="prestream-spinner"></div>
       <div class="logos">
-        <!-- Replace with actual Novalink logo image if you have one -->
-        <img src="https://novalink-tickets.onrender.com/assets/novalink-logo.png" alt="Novalink" onerror="this.style.display='none'; document.getElementById('novalink-text-fallback').style.display='block';">
-        <b id="novalink-text-fallback" style="display:none; color:#00E5E5; font-size:20px; font-weight:900;">NOVALINK</b>
+        <b id="novalink-text-fallback" style="color:#00E5E5; font-size:20px; font-weight:900;">NOVALINK</b>
         <span class="plus">×</span>
         <b style="color:#fff; font-size:20px; font-weight:900;">STAR<span style="color:var(--red)">LANE</span></b>
       </div>
@@ -209,7 +206,7 @@
     </div>
 
     <video id="video" playsinline></video>
-    <div class="buffer-spinner" id="buffer-spinner"></div>
+    <div class="buffer-spinner" id="buffer-spinner" style="display:none;"></div>
 
     <!-- Watermark Logo -->
     <div class="player-watermark">
@@ -651,7 +648,7 @@
   document.querySelectorAll('.settings-item').forEach(function(item) {
     item.addEventListener('click', function() {
       var action = this.dataset.action;
-      if (!action) return; // Only open menus if it's the main menu item
+      if (!action) return; 
       
       document.getElementById('settings-main').classList.add('hidden');
       if (action === 'quality') document.getElementById('settings-quality-list').classList.remove('hidden');
@@ -690,7 +687,10 @@
     showScreen('player');
     var videoUrl = streamData.streamUrl || (streamData.segments && streamData.segments[0] ? streamData.segments[0].url : '');
 
-    if (!videoUrl) { alert("No video URL configured."); return; }
+    if (!videoUrl) { 
+      alert("No video URL configured. Please add an HLS link in the admin panel."); 
+      return; 
+    }
 
     if (videoUrl.includes('.m3u8') && Hls.isSupported()) {
       hls = new Hls();
@@ -698,13 +698,12 @@
       hls.attachMedia(video);
       
       hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
-        // Generate Quality Options
         var qualityList = document.getElementById('settings-quality-list');
         var qualityOptions = document.createElement('div');
         qualityOptions.className = 'settings-item';
         qualityOptions.innerHTML = 'Auto <i data-lucide="check" size="14"></i>';
         qualityOptions.onclick = function() {
-          hls.currentLevel = -1; // Auto
+          hls.currentLevel = -1; 
           document.getElementById('val-quality').textContent = 'Auto';
           settingsMenu.classList.remove('show');
         };
@@ -715,7 +714,7 @@
           div.className = 'settings-item';
           div.innerHTML = level.height + 'p';
           div.onclick = function() {
-            hls.currentLevel = index; // Manual
+            hls.currentLevel = index; 
             document.getElementById('val-quality').textContent = level.height + 'p';
             settingsMenu.classList.remove('show');
           };
@@ -724,7 +723,6 @@
         
         isLive = hls.levels[0].details.live;
         
-        // Try to play immediately
         video.play().catch(function(){ 
           centerPlayBtn.style.display = 'flex';
           prestreamOverlay.classList.add('hidden');
@@ -768,4 +766,4 @@
 })();
 </script>
 </body>
-</html>
+      </html>
