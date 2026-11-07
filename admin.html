@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#ffffff" />
 <meta name="color-scheme" content="light" />
-<title>Admin Dashboard · Starlane Stream</title>
+<title>Admin Command Center · Starlane Stream</title>
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -14,8 +14,10 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
   a { text-decoration: none; color: inherit; }
+  .hidden { display: none !important; }
   
-  .nav { border-bottom: 1px solid var(--border); padding: 16px 0; background: #fff; }
+  /* Navbar */
+  .nav { border-bottom: 1px solid var(--border); padding: 16px 0; background: #fff; position: sticky; top: 0; z-index: 50; }
   .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
   .logo { display: flex; align-items: center; gap: 12px; }
   .logo svg { width: 28px; height: 34px; }
@@ -23,23 +25,41 @@
   .logo b span { color: var(--red); }
   .badge-admin { background: #fee2e2; color: var(--red); font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; margin-left: 10px; }
   
+  /* Main Content */
   .container { max-width: 1200px; margin: 60px auto; padding: 0 24px; flex: 1; }
   .page-title { font-size: 32px; font-weight: 900; letter-spacing: -1px; margin-bottom: 12px; }
   .page-sub { font-size: 16px; color: var(--text-muted); margin-bottom: 40px; }
 
+  /* Grid */
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
   
-  .card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; transition: 0.3s; display: flex; flex-direction: column; gap: 16px; }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; transition: 0.3s; display: flex; flex-direction: column; gap: 16px; position: relative; overflow: hidden; }
   .card:hover { border-color: var(--red); box-shadow: 0 10px 30px -10px rgba(229,9,20,0.15); transform: translateY(-4px); }
   
-  .card-icon { width: 56px; height: 56px; border-radius: 16px; background: #fee2e2; color: var(--red); display: flex; align-items: center; justify-content: center; }
+  /* Card Icons */
+  .card-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .card-icon svg { width: 28px; height: 28px; }
+  
+  .icon-red { background: #fee2e2; color: var(--red); }
+  .icon-green { background: #dcfce7; color: #16a34a; }
+  .icon-blue { background: #e0f2fe; color: #0284c7; }
+  .icon-purple { background: #f3e8ff; color: #9333ea; }
   
   .card h3 { font-size: 20px; font-weight: 800; }
   .card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
   
-  .card-link { margin-top: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; color: var(--red); }
+  .card-link { margin-top: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; }
   .card-link:hover { gap: 12px; }
+  
+  .link-red { color: var(--red); }
+  .link-green { color: #16a34a; }
+  .link-blue { color: #0284c7; }
+  .link-purple { color: #9333ea; }
+
+  @media (max-width: 768px) {
+    .grid { grid-template-columns: 1fr; }
+    .container { margin: 30px auto; }
+  }
 </style>
 </head>
 <body>
@@ -61,42 +81,61 @@
 
   <div class="grid">
     
-    <!-- Event Studio -->
-    <a href="admin-streams-582910374.html" class="card">
-      <div class="card-icon"><i data-lucide="video"></i></div>
+    <!-- 1. Event Studio (Fixed Link) -->
+    <a href="event-studio.html" class="card">
+      <div class="card-icon icon-red"><i data-lucide="video"></i></div>
       <h3>Event Studio</h3>
       <p>Create live events, upload posters, set prices, and manage the private PINs.</p>
-      <span class="card-link">Open Studio <i data-lucide="arrow-right" size="16"></i></span>
+      <span class="card-link link-red">Open Studio <i data-lucide="arrow-right" size="16"></i></span>
     </a>
 
-    <!-- Ads Manager -->
+    <!-- 2. Ads Manager -->
     <a href="admin-ads.html" class="card">
-      <div class="card-icon"><i data-lucide="megaphone"></i></div>
+      <div class="card-icon icon-blue"><i data-lucide="megaphone"></i></div>
       <h3>Ads Manager</h3>
       <p>Upload video and image ads. Track clicks and views across all streams.</p>
-      <span class="card-link">Manage Ads <i data-lucide="arrow-right" size="16"></i></span>
+      <span class="card-link link-blue">Manage Ads <i data-lucide="arrow-right" size="16"></i></span>
     </a>
 
-    <!-- Broadcast (New) -->
+    <!-- 3. Broadcast (Phone Camera) -->
     <a href="broadcast.html" class="card">
-      <div class="card-icon" style="background:#dcfce7; color:#16a34a;"><i data-lucide="camera"></i></div>
+      <div class="card-icon icon-green"><i data-lucide="camera"></i></div>
       <h3>Go Live (Phone)</h3>
       <p>Open this on your phone to stream directly to Starlane using your camera.</p>
-      <span class="card-link" style="color:#16a34a;">Start Broadcasting <i data-lucide="radio" size="16"></i></span>
+      <span class="card-link link-green">Start Broadcasting <i data-lucide="radio" size="16"></i></span>
     </a>
 
-    <!-- Director (New) -->
+    <!-- 4. Director (Multi-Cam Switcher) -->
     <a href="director.html" class="card">
-      <div class="card-icon" style="background:#e0e7ff; color:#4f46e5;"><i data-lucide="sliders"></i></div>
+      <div class="card-icon icon-purple"><i data-lucide="sliders"></i></div>
       <h3>Multi-Cam Director</h3>
       <p>Switch between Camera 1, Camera 2, Camera 3, or Split Screen live.</p>
-      <span class="card-link" style="color:#4f46e5;">Open Director <i data-lucide="layout-grid" size="16"></i></span>
+      <span class="card-link link-purple">Open Director <i data-lucide="layout-grid" size="16"></i></span>
     </a>
 
   </div>
 </main>
 
 <script>
+  // Auth Guard: Only Admins can see this page
+  var firebaseConfig = {
+    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+    authDomain: "starlane-stream.firebaseapp.com",
+    projectId: "starlane-stream",
+    storageBucket: "starlane-stream.firebasestorage.app",
+    messagingSenderId: "115625325145",
+    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var auth = firebase.auth();
+  var ADMIN_EMAILS = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
+
+  auth.onAuthStateChanged(function(user) {
+    if (!user || !ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+      window.location.href = 'index.html'; // Kick non-admins out
+    }
+  });
+
   if (window.lucide) lucide.createIcons();
 </script>
 </body>
