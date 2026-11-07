@@ -98,23 +98,15 @@
       <span class="card-link" style="color: #0284c7;">Manage Ads <i data-lucide="arrow-right" size="16"></i></span>
     </a>
 
-    <!-- 3. Broadcast (Phone Camera) -->
+    <!-- 3. Broadcast (Phone Camera App) -->
     <div class="card">
       <div class="card-icon icon-green"><i data-lucide="camera"></i></div>
-      <h3>Go Live (Phones)</h3>
-      <p>Select an event to generate your camera links.</p>
+      <h3>Camera App</h3>
+      <p>Open this app on all your phones. Log in and assign each phone to a camera slot.</p>
       
-      <div class="event-selector">
-        <select id="broadcast-event-select">
-          <option value="">Loading events...</option>
-        </select>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px;">
-          <button onclick="generateLink('broadcast', 'cam1')" class="btn-action btn-green" style="margin-top:0; padding:8px; font-size:11px;">Cam 1</button>
-          <button onclick="generateLink('broadcast', 'cam2')" class="btn-action btn-green" style="margin-top:0; padding:8px; font-size:11px;">Cam 2</button>
-          <button onclick="generateLink('broadcast', 'cam3')" class="btn-action btn-green" style="margin-top:0; padding:8px; font-size:11px;">Cam 3</button>
-          <button onclick="generateLink('broadcast', 'cam4')" class="btn-action btn-green" style="margin-top:0; padding:8px; font-size:11px;">Cam 4</button>
-        </div>
-      </div>
+      <button onclick="copyCameraAppLink()" class="btn-action btn-green" style="margin-top:auto;">
+        📱 Open Camera App
+      </button>
     </div>
 
     <!-- 4. Director (Multi-Cam Switcher) -->
@@ -137,7 +129,12 @@
       <h3>TV Receiver</h3>
       <p>Open this on the laptop connected to the venue's TV or projector.</p>
       
-      <button onclick="generateReceiverLink()" class="btn-action btn-dark" style="margin-top:auto;">📺 Open TV Screen</button>
+      <div class="event-selector">
+        <select id="receiver-event-select">
+          <option value="">Loading events...</option>
+        </select>
+        <button onclick="generateReceiverLink()" class="btn-action btn-dark">📺 Open TV Screen</button>
+      </div>
     </div>
 
   </div>
@@ -167,15 +164,15 @@
 
   function loadEventsDropdowns() {
     db.collection('streams').orderBy('createdAt', 'desc').get().then(function(snap) {
-      var bSelect = document.getElementById('broadcast-event-select');
       var dSelect = document.getElementById('director-event-select');
+      var rSelect = document.getElementById('receiver-event-select');
       
-      bSelect.innerHTML = '';
       dSelect.innerHTML = '';
+      rSelect.innerHTML = '';
 
       if (snap.empty) {
-        bSelect.innerHTML = '<option value="">No events found</option>';
         dSelect.innerHTML = '<option value="">No events found</option>';
+        rSelect.innerHTML = '<option value="">No events found</option>';
         return;
       }
 
@@ -185,38 +182,40 @@
         var date = data.startDate || 'No date';
         
         var optionHTML = `<option value="${doc.id}">${title} (${date})</option>`;
-        bSelect.insertAdjacentHTML('beforeend', optionHTML);
         dSelect.insertAdjacentHTML('beforeend', optionHTML);
+        rSelect.insertAdjacentHTML('beforeend', optionHTML);
       });
     });
   }
 
-  function generateLink(type, cam) {
-    var selectId = type === 'broadcast' ? 'broadcast-event-select' : 'director-event-select';
-    var eventId = document.getElementById(selectId).value;
-    
-    if (!eventId) return alert("Please select an event first.");
-
-    var url = '';
-    if (type === 'broadcast') {
-      url = window.location.origin + '/broadcast.html?event=' + eventId + '&cam=' + cam;
-    } else {
-      url = window.location.origin + '/director.html?event=' + eventId;
-    }
-
+  function copyCameraAppLink() {
+    var url = window.location.origin + '/broadcast.html';
     navigator.clipboard.writeText(url).then(function() {
-      prompt("Link copied to clipboard! Open this on your device:\n\n", url);
+      prompt("Camera App link copied! Open this on all 4 phones and log in:\n\n", url);
     }).catch(function() {
-      prompt("Copy this link and open it on your device:\n\n", url);
+      prompt("Copy this link and open it on all 4 phones:\n\n", url);
+    });
+  }
+
+  function generateLink(type) {
+    var eventId = document.getElementById('director-event-select').value;
+    if (!eventId) return alert("Please select an event first.");
+    var url = window.location.origin + '/director.html?event=' + eventId;
+    navigator.clipboard.writeText(url).then(function() {
+      prompt("Director link copied! Open this on your tablet:\n\n", url);
+    }).catch(function() {
+      prompt("Copy this link and open it on your tablet:\n\n", url);
     });
   }
 
   function generateReceiverLink() {
-    var eventId = document.getElementById('director-event-select').value;
+    var eventId = document.getElementById('receiver-event-select').value;
     if (!eventId) return alert("Please select an event first.");
     var url = window.location.origin + '/receiver.html?id=' + eventId;
     navigator.clipboard.writeText(url).then(function() {
-      prompt("TV Receiver Link copied! Open this on the laptop plugged into your TV:\n\n", url);
+      prompt("TV Receiver link copied! Open this on the laptop plugged into your TV:\n\n", url);
+    }).catch(function() {
+      prompt("Copy this link and open it on the laptop:\n\n", url);
     });
   }
 
