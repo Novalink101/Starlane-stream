@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050508">
+<meta name="robots" content="noindex, nofollow">
 <title>Watch · Starlane Stream</title>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <style>
@@ -14,9 +16,11 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: radial-gradient(ellipse at 50% 0%, rgba(229,9,20,.08), transparent 55%), #050508;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(229,9,20,.08), transparent 55%),
+      #050508;
     color: var(--text);
-    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     min-height: 100vh;
     display: flex; align-items: center; justify-content: center;
     padding: 24px;
@@ -24,6 +28,7 @@
   .hidden { display: none !important; }
   .stage { max-width: 1100px; width: 100%; text-align: center; }
 
+  /* Loading */
   .spinner {
     width: 44px; height: 44px;
     border: 4px solid rgba(255,255,255,.1);
@@ -35,6 +40,7 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   #loading-state h2 { font-size: 18px; font-weight: 700; color: var(--text-2); }
 
+  /* Player */
   .player-wrap {
     position: relative; background: #000;
     border-radius: 14px; overflow: hidden;
@@ -47,7 +53,7 @@
   }
   .unmute-btn {
     position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
-    background: rgba(0,0,0,.75);
+    background: rgba(0,0,0,.78);
     border: 1px solid rgba(255,255,255,.25);
     color: #fff; padding: 12px 22px;
     border-radius: 999px; font-size: 14px; font-weight: 800;
@@ -55,11 +61,13 @@
     backdrop-filter: blur(10px);
     transition: background .2s, border-color .2s;
     z-index: 5;
+    font-family: inherit;
   }
   .unmute-btn:hover { background: var(--red); border-color: var(--red); }
   .welcome-bar { margin-bottom: 14px; font-size: 13px; color: var(--text-3); font-weight: 600; }
   .welcome-bar strong { color: var(--green); }
 
+  /* Paywall / error */
   .paywall-icon {
     width: 72px; height: 72px; border-radius: 50%;
     background: rgba(229,9,20,.12);
@@ -71,6 +79,14 @@
   .paywall p {
     color: var(--text-3); font-size: 15px; line-height: 1.6;
     max-width: 480px; margin: 0 auto 24px;
+  }
+  .paywall .ref {
+    display: inline-block; margin-top: 14px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px; color: var(--text-3);
+    padding: 6px 12px; background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08); border-radius: 8px;
+    user-select: all;
   }
   .btn {
     display: inline-flex; align-items: center; gap: 9px;
@@ -93,23 +109,27 @@
 
 <div class="stage">
 
+  <!-- LOADING -->
   <div id="loading-state">
     <div class="spinner"></div>
     <h2>Verifying your ticket…</h2>
   </div>
 
+  <!-- PLAYER -->
   <div id="video-state" class="hidden">
     <div class="welcome-bar" id="welcome-bar"></div>
     <div class="player-wrap">
       <video id="live-stream" playsinline controls muted autoplay></video>
-      <button id="unmute-btn" class="unmute-btn" type="button">🔊 Tap to unmute</button>
+      <button id="unmute-btn" class="unmute-btn" type="button" hidden>🔊 Tap to unmute</button>
     </div>
   </div>
 
+  <!-- PAYWALL / ERROR -->
   <div id="paywall-state" class="paywall hidden">
     <div class="paywall-icon" id="paywall-icon">🔒</div>
     <h1 id="paywall-title">Access denied</h1>
     <p id="paywall-message">You need a valid Novalink ticket to watch this stream.</p>
+    <div id="paywall-ref"></div>
     <div class="btn-row" id="paywall-actions"></div>
   </div>
 
@@ -119,29 +139,35 @@
 (function(){
   'use strict';
 
-  /* ══════════════════════════════════════════════════════════════
+  /* ══════════════════════════════════════════════════════════════════
      CONFIG — the ONE thing you edit per event
-     ══════════════════════════════════════════════════════════════
-     Map the URL slug (the part after /live/) to the actual stream URL.
+     ══════════════════════════════════════════════════════════════════
+     Each key is the URL slug the admin pastes into Event Studio.
+     Each value is the HLS (.m3u8) URL of that event's live stream.
 
      Example:
-       Buyer lands on /live/boksburg-jazz?ticketRef=NL-ABCD
-       → slug is "boksburg-jazz"
-       → streamUrl resolves to the HLS URL below
+       Admin pastes into Event Studio:
+         https://starlane-stream.onrender.com/live/boksburg-jazz
+
+       Novalink sends the buyer to:
+         https://starlane-stream.onrender.com/live/boksburg-jazz?ticketRef=NL-...
+
+       Watch page looks up slug "boksburg-jazz" in this map:
   */
   var STREAM_MAP = {
-    'boksburg-jazz':  'https://your-cdn.com/boksburg-jazz.m3u8',
-    'cape-town-comedy': 'https://your-cdn.com/cape-town-comedy.m3u8'
+    // 'boksburg-jazz': 'https://your-cdn.com/boksburg-jazz.m3u8',
+    // 'cape-town-comedy': 'https://your-cdn.com/cape-town-comedy.m3u8',
   };
 
-  /* Fallback for the root path /?ticketRef= (single-event mode) */
+  /* If you ever run a single-event Starlane (one URL for one stream),
+     set DEFAULT_STREAM_URL and the slug is ignored. Otherwise leave blank. */
   var DEFAULT_STREAM_URL = '';
 
-  /* ══════════════════════════════════════════════════════════════ */
+  /* ══════════════════════════════════════════════════════════════════ */
 
   var VERIFY_ENDPOINT = 'https://novalink-api-8vfg.onrender.com/api/verify-stream';
   var CACHE_PREFIX = 'starlane_verified_';
-  var CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours — covers any event
+  var CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
 
   var loadingState   = document.getElementById('loading-state');
   var videoState     = document.getElementById('video-state');
@@ -149,10 +175,13 @@
   var paywallTitle   = document.getElementById('paywall-title');
   var paywallIcon    = document.getElementById('paywall-icon');
   var paywallMessage = document.getElementById('paywall-message');
+  var paywallRef     = document.getElementById('paywall-ref');
   var paywallActions = document.getElementById('paywall-actions');
   var welcomeBar     = document.getElementById('welcome-bar');
   var videoEl        = document.getElementById('live-stream');
   var unmuteBtn      = document.getElementById('unmute-btn');
+
+  /* ── helpers ─────────────────────────────────────────────────────── */
 
   function show(el){ el.classList.remove('hidden'); }
   function hide(el){ el.classList.add('hidden'); }
@@ -163,41 +192,51 @@
       .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
-  /* Resolve the stream URL from the current path. Handles:
-       /live/boksburg-jazz  → look up "boksburg-jazz"
-       /live/boksburg-jazz.html → same
-       /                    → DEFAULT_STREAM_URL
-  */
+  function getTicketRef(){
+    return new URLSearchParams(window.location.search).get('ticketRef') || '';
+  }
+
+  /* Resolve stream URL from the current pathname /live/<slug> */
   function resolveStreamUrl(){
     var path = window.location.pathname || '/';
     var m = path.match(/^\/live\/([^\/]+?)(?:\.html)?\/?$/i);
     if (m && STREAM_MAP[m[1]]) return STREAM_MAP[m[1]];
-    return DEFAULT_STREAM_URL;
+    if (!m && DEFAULT_STREAM_URL) return DEFAULT_STREAM_URL;
+    return '';
   }
 
-  function showError(title, message, opts){
+  function renderRef(ref){
+    if (!ref) { paywallRef.innerHTML = ''; return; }
+    paywallRef.innerHTML = '<span class="ref">Ticket: ' + escapeHtml(ref) + '</span>';
+  }
+
+  function showPaywall(title, message, opts){
     opts = opts || {};
     hide(loadingState); hide(videoState); show(paywallState);
-    paywallIcon.textContent   = opts.icon || '🔒';
-    paywallTitle.textContent  = title;
+    paywallIcon.textContent    = opts.icon || '🔒';
+    paywallTitle.textContent   = title;
     paywallMessage.textContent = message;
+    renderRef(opts.showRef ? getTicketRef() : '');
 
+    var html = '';
     if (opts.showRetry){
-      paywallActions.innerHTML =
-        '<button type="button" class="btn primary" id="retry-btn">Try again</button>' +
-        '<a href="https://novalink-tickets.onrender.com/events.html" class="btn ghost">Buy a ticket</a>';
-      document.getElementById('retry-btn').addEventListener('click', boot);
-    } else if (opts.showBuy){
-      paywallActions.innerHTML =
-        '<a href="https://novalink-tickets.onrender.com/events.html" class="btn primary">Buy a ticket on Novalink</a>';
-    } else {
-      paywallActions.innerHTML = '';
+      html += '<button type="button" class="btn primary" id="retry-btn">Try again</button>';
     }
+    if (opts.showBuy){
+      html += '<a href="https://novalink-tickets.onrender.com/events.html" class="btn ' +
+              (opts.showRetry ? 'ghost' : 'primary') + '">Buy a ticket on Novalink</a>';
+    }
+    paywallActions.innerHTML = html;
+
+    var retry = document.getElementById('retry-btn');
+    if (retry) retry.addEventListener('click', boot);
   }
 
-  function getCached(ticketRef){
+  /* ── cache (protects against server flipping status on verify) ───── */
+
+  function getCached(ref){
     try {
-      var raw = sessionStorage.getItem(CACHE_PREFIX + ticketRef);
+      var raw = sessionStorage.getItem(CACHE_PREFIX + ref);
       if (!raw) return null;
       var data = JSON.parse(raw);
       if (!data || !data.verifiedAt) return null;
@@ -206,28 +245,34 @@
     } catch(e){ return null; }
   }
 
-  function setCached(ticketRef, info){
+  function setCached(ref, guestName){
     try {
-      sessionStorage.setItem(CACHE_PREFIX + ticketRef, JSON.stringify({
-        guestName: info.guestName || '',
+      sessionStorage.setItem(CACHE_PREFIX + ref, JSON.stringify({
+        guestName: guestName || '',
         verifiedAt: Date.now()
       }));
     } catch(e){}
   }
 
+  /* ── stream loader (HLS + native) ────────────────────────────────── */
+
   var hlsInstance = null;
 
   function attachStream(url){
     if (!url){
-      showError('Stream not configured',
-        'This event does not have a stream URL set on Starlane. Contact support.',
-        { icon: '⚠️', showBuy: false });
+      showPaywall(
+        'Stream not configured',
+        'This event has no stream URL set on Starlane yet. If you just paid, contact support and quote your ticket number below.',
+        { icon: '⚠️', showRef: true }
+      );
       return;
     }
+
     if (hlsInstance){
       try { hlsInstance.destroy(); } catch(e){}
       hlsInstance = null;
     }
+
     var isHls = /\.m3u8(\?|#|$)/i.test(url);
 
     if (isHls && window.Hls && Hls.isSupported()){
@@ -237,11 +282,17 @@
       hlsInstance.on(Hls.Events.MANIFEST_PARSED, tryPlay);
       hlsInstance.on(Hls.Events.ERROR, function(evt, data){
         if (!data || !data.fatal) return;
-        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hlsInstance.startLoad();
-        else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hlsInstance.recoverMediaError();
-        else showError('Stream error',
-          'Could not connect to the live stream. Try refreshing.',
-          { icon: '📡', showRetry: true });
+        if (data.type === Hls.ErrorTypes.NETWORK_ERROR){
+          hlsInstance.startLoad();
+        } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR){
+          hlsInstance.recoverMediaError();
+        } else {
+          showPaywall(
+            'Stream error',
+            'We could not connect to the live stream. Try refreshing the page.',
+            { icon: '📡', showRetry: true, showRef: true }
+          );
+        }
       });
     } else if (isHls && videoEl.canPlayType('application/vnd.apple.mpegurl')){
       videoEl.src = url;
@@ -256,27 +307,29 @@
     videoEl.muted = true;
     var p = videoEl.play();
     if (p && typeof p.then === 'function'){
-      p.catch(function(){ unmuteBtn.textContent = '▶ Tap to play'; });
+      p.then(function(){
+        unmuteBtn.hidden = false;
+      }).catch(function(){
+        unmuteBtn.textContent = '▶ Tap to play';
+        unmuteBtn.hidden = false;
+      });
     }
   }
+
+  /* ── unmute / resume button ──────────────────────────────────────── */
 
   unmuteBtn.addEventListener('click', function(){
     videoEl.muted = false;
     videoEl.volume = 1;
     if (videoEl.paused) videoEl.play().catch(function(){});
-    unmuteBtn.classList.add('hidden');
+    unmuteBtn.hidden = true;
   });
 
   videoEl.addEventListener('volumechange', function(){
-    if (!videoEl.muted && videoEl.volume > 0) unmuteBtn.classList.add('hidden');
+    if (!videoEl.muted && videoEl.volume > 0) unmuteBtn.hidden = true;
   });
 
-  videoEl.addEventListener('pause', function(){
-    if (!videoEl.ended && videoEl.currentTime > 0){
-      unmuteBtn.textContent = '▶ Resume';
-      unmuteBtn.classList.remove('hidden');
-    }
-  });
+  /* ── main flow ───────────────────────────────────────────────────── */
 
   var bootGuard = false;
 
@@ -287,17 +340,20 @@
 
     show(loadingState); hide(videoState); hide(paywallState);
 
-    var ticketRef = new URLSearchParams(window.location.search).get('ticketRef');
+    var ticketRef = getTicketRef();
 
     if (!ticketRef){
-      showError('No ticket found',
-        'This link is missing a ticket reference. Use the exact link sent to your email after purchase.',
-        { icon: '🎫', showBuy: true });
+      showPaywall(
+        'No ticket found',
+        'This link is missing a ticket reference. Use the exact link sent to your email after purchase, or buy a ticket below.',
+        { icon: '🎫', showBuy: true }
+      );
       return;
     }
 
-    // Cache hit → skip the API call entirely.
-    // Protects against the server flipping status to checked-in on first call.
+    /* Cache hit — skip the API call entirely.
+       This is what saves buyers when the server flips status→checked-in
+       on first verify: refresh within the same tab still works. */
     var cached = getCached(ticketRef);
     if (cached){
       grantAccess(cached.guestName);
@@ -312,37 +368,45 @@
         body: JSON.stringify({ ticketRef: ticketRef })
       });
     } catch (networkErr){
-      showError('Could not reach server',
+      showPaywall(
+        'Could not reach server',
         'We could not verify your ticket right now. Check your connection and try again.',
-        { icon: '📡', showRetry: true });
+        { icon: '📡', showRetry: true, showRef: true }
+      );
       return;
     }
 
     if (!response.ok){
-      showError('Verification failed',
+      showPaywall(
+        'Verification failed',
         'The server returned an error. If this keeps happening, contact support.',
-        { icon: '⚠️', showRetry: true });
+        { icon: '⚠️', showRetry: true, showRef: true }
+      );
       return;
     }
 
     var data;
     try { data = await response.json(); }
     catch (parseErr){
-      showError('Unexpected response',
-        'The server sent something we could not read. Contact support.',
-        { icon: '⚠️', showRetry: true });
+      showPaywall(
+        'Unexpected response',
+        'The server sent something we could not read. Contact support and quote your ticket below.',
+        { icon: '⚠️', showRetry: true, showRef: true }
+      );
       return;
     }
 
     if (data && data.valid){
-      setCached(ticketRef, { guestName: data.guestName || '' });
-      grantAccess(data.guestName);
+      setCached(ticketRef, data.guestName || '');
+      grantAccess(data.guestName || '');
       return;
     }
 
-    showError('Ticket not valid',
+    showPaywall(
+      'Ticket not valid',
       (data && (data.error || data.message)) || 'This ticket is not valid for streaming.',
-      { icon: '🔒', showBuy: true });
+      { icon: '🔒', showBuy: true, showRef: true }
+    );
   }
 
   function grantAccess(guestName){
@@ -352,6 +416,8 @@
       : '';
     attachStream(resolveStreamUrl());
   }
+
+  /* ── go ──────────────────────────────────────────────────────────── */
 
   if (document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', boot);
@@ -363,4 +429,4 @@
 </script>
 
 </body>
-  </html>
+</html>
