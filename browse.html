@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#ffffff" />
+<meta name="color-scheme" content="light" />
+<title>Browse Events · Starlane Stream</title>
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<style>
+  :root { 
+    --red: #E50914; --red-hover: #FF3B4E;
+    --bg: #ffffff; --surface: #f9fafb; 
+    --text: #111827; --text-muted: #6b7280; --border: #e5e7eb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    background: var(--bg); color: var(--text); 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+    line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    position: relative; min-height: 100vh; display: flex; flex-direction: column;
+  }
+  a { text-decoration: none; color: inherit; }
+  .hidden { display: none !important; }
+  main { flex: 1; }
+
+  /* Starfield */
+  .starfield { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: #ffffff; overflow: hidden; }
+  .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(229,9,20,.15), transparent 100%), radial-gradient(1px 1px at 85% 15%, rgba(0,0,0,.08), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
+  @keyframes drift { 0% { transform: translateY(0) translateX(0); } 100% { transform: translateY(-200px) translateX(-100px); } }
+
+  /* Navbar */
+  .nav { border-bottom: 1px solid var(--border); padding: 16px 0; position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); z-index: 50; }
+  .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo svg { width: 32px; height: 38px; filter: drop-shadow(0 4px 6px rgba(229,9,20,0.2)); }
+  .logo b { font-weight: 900; font-size: 22px; letter-spacing: -0.5px; color: #111827; }
+  .logo b span { color: var(--red); }
+  .btn-nav { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-muted); transition: 0.2s; }
+  .btn-nav:hover { color: var(--text); }
+
+  /* Page Header & Filters */
+  .page-head { max-width: 1200px; margin: 0 auto; padding: 40px 24px 20px; width: 100%; }
+  .page-title { font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; letter-spacing: -1px; margin-bottom: 24px; }
+  
+  .filter-bar { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 32px; }
+  .search-box { flex: 1; min-width: 250px; position: relative; }
+  .search-box svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); }
+  .search-box input { width: 100%; padding: 14px 16px 14px 48px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; font-family: inherit; background: var(--surface); transition: 0.2s; }
+  .search-box input:focus { outline: none; border-color: var(--red); background: #fff; box-shadow: 0 0 0 3px rgba(229,9,20,0.1); }
+  
+  .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 12px 20px; border-radius: 50px; font-size: 14px; font-weight: 700; color: var(--text-muted); background: #fff; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; white-space: nowrap; }
+  .tab:hover { border-color: var(--text); color: var(--text); }
+  .tab.active { background: var(--red); color: #fff; border-color: var(--red); box-shadow: 0 4px 12px rgba(229,9,20,0.2); }
+
+  /* Event Grid */
+  .events-container { max-width: 1200px; margin: 0 auto; padding: 0 24px 80px; width: 100%; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+  
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; display: flex; flex-direction: column; width: 100%; }
+  .card:hover { transform: translateY(-6px); box-shadow: 0 24px 48px -12px rgba(229,9,20,0.15); border-color: rgba(229,9,20,0.2); }
+  
+  .card-img { width: 100%; aspect-ratio: 16/9; background: var(--surface); object-fit: cover; border-bottom: 1px solid var(--border); }
+  .card-content { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+  
+  .badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; background: #fee2e2; color: var(--red); margin-bottom: 12px; align-self: flex-start; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge.free { background: #dcfce7; color: #16a34a; }
+  .badge.live { background: #E50914; color: #fff; animation: pulse 2s infinite; }
+  
+  .card-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; line-height: 1.3; color: #111827; }
+  .card-date { font-size: 13px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 6px; margin-bottom: 20px; }
+  
+  .card-footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .price { font-size: 20px; font-weight: 900; color: #111827; white-space: nowrap; }
+  .price span { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+  
+  .btn-watch { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 16px; border-radius: 10px; background: var(--surface); color: var(--text); font-weight: 800; font-size: 13px; border: 1px solid var(--border); transition: all 0.2s; white-space: nowrap; flex: 1; max-width: 150px; }
+  .btn-watch:hover { background: var(--text); color: #fff; border-color: var(--text); }
+  .btn-buy { background: var(--red); color: #fff; border-color: var(--red); box-shadow: 0 4px 12px rgba(229,9,20,0.2); }
+  .btn-buy:hover { background: var(--red-hover); border-color: var(--red-hover); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(229,9,20,0.3); }
+
+  .empty-state { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+  .empty-state svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; }
+  .empty-state h3 { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+  
+  @media (max-width: 768px) {
+    .page-head { padding: 30px 16px 20px; }
+    .events-container { padding: 0 16px 60px; }
+    .grid { grid-template-columns: 1fr; gap: 20px; }
+    .filter-bar { flex-direction: column; }
+    .btn-watch { max-width: none; width: 100%; }
+    .card-footer { flex-direction: column; align-items: stretch; gap: 12px; }
+    .price { text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="starfield"><div class="stars-1"></div></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="logo">
+      <svg viewBox="0 0 60 74" aria-hidden="true">
+        <defs>
+          <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#E50914"/><stop offset="100%" stop-color="#FF5566"/>
+          </linearGradient>
+        </defs>
+        <path d="M10 60 Q 22 32 44 20" stroke="url(#starGrad)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
+        <path d="M16 62 Q 26 40 46 26" stroke="url(#starGrad)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+        <circle cx="46" cy="18" r="5" fill="#fff"/>
+        <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
+      </svg>
+      <b>STAR<span>LANE</span></b>
+    </a>
+    <a href="index.html" class="btn-nav"><i data-lucide="home" size="16"></i> Back to Home</a>
+  </div>
+</nav>
+
+<main>
+  <div class="page-head">
+    <h1 class="page-title">Browse Events</h1>
+    
+    <div class="filter-bar">
+      <div class="search-box">
+        <i data-lucide="search"></i>
+        <input type="text" id="search-input" placeholder="Search events by title..." />
+      </div>
+      
+      <div class="tabs">
+        <button class="tab active" data-filter="all">All Events</button>
+        <button class="tab" data-filter="live">Live Now</button>
+        <button class="tab" data-filter="upcoming">Upcoming</button>
+        <button class="tab" data-filter="free">Free Only</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="events-container">
+    <div id="loading" style="text-align:center; padding: 40px;"><div class="spinner" style="margin:0 auto; width:30px; height:30px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: spin 0.8s linear infinite;"></div></div>
+    <div id="event-grid" class="grid hidden"></div>
+    
+    <div id="empty-state" class="empty-state hidden">
+      <i data-lucide="search-x"></i>
+      <h3>No events found</h3>
+      <p>Try adjusting your search or filters.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  var firebaseConfig = {
+    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+    authDomain: "starlane-stream.firebaseapp.com",
+    projectId: "starlane-stream",
+    storageBucket: "starlane-stream.firebasestorage.app",
+    messagingSenderId: "115625325145",
+    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var db = firebase.firestore();
+  
+  var allEvents = [];
+  var currentFilter = 'all';
+  var searchQuery = '';
+
+  function formatDate(dateStr, timeStr) {
+    if (!dateStr) return 'Date TBA';
+    try {
+      var d = new Date(dateStr + 'T' + (timeStr || '00:00'));
+      return d.toLocaleDateString('en-ZA', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch(e) { return dateStr; }
+  }
+
+  function computeStatus(event) {
+    var start = new Date(event.startDate + 'T' + (event.startTime || '00:00')).getTime();
+    if (isNaN(start)) return 'upcoming';
+    
+    // Check if it has an active camera feed or stream URL
+    var hasFeed = event.streamUrl || (event.cams && event.activeCamera);
+    if (!hasFeed) return 'upcoming';
+    
+    var now = Date.now();
+    if (now >= start) return 'live'; // Simple logic: if time passed, it's live
+    return 'upcoming';
+  }
+
+  function renderEvents() {
+    var grid = document.getElementById('event-grid');
+    var empty = document.getElementById('empty-state');
+    
+    var filtered = allEvents.slice();
+
+    // Apply Search
+    if (searchQuery) {
+      var q = searchQuery.toLowerCase();
+      filtered = filtered.filter(function(e) { return (e.title || '').toLowerCase().includes(q); });
+    }
+
+    // Apply Tabs
+    if (currentFilter === 'live') {
+      filtered = filtered.filter(function(e) { return computeStatus(e) === 'live'; });
+    } else if (currentFilter === 'upcoming') {
+      filtered = filtered.filter(function(e) { return computeStatus(e) === 'upcoming'; });
+    } else if (currentFilter === 'free') {
+      filtered = filtered.filter(function(e) { return !e.ppvPrice || e.ppvPrice === 0; });
+    }
+
+    if (filtered.length === 0) {
+      grid.classList.add('hidden');
+      empty.classList.remove('hidden');
+      return;
+    }
+
+    empty.classList.add('hidden');
+    grid.classList.remove('hidden');
+    grid.innerHTML = '';
+
+    filtered.forEach(function(event) {
+      var id = event.id;
+      var title = event.title || 'Untitled Event';
+      var dateStr = formatDate(event.startDate, event.startTime);
+      var poster = event.posterUrl || 'https://images.unsplash.com/photo-1540039155732-684736882207?q=80&w=800&auto=format&fit=crop';
+      var status = computeStatus(event);
+      
+      var price = event.ppvPrice || 0;
+      var isPaid = price > 0;
+      
+      var badgeHTML = '';
+      if (status === 'live') {
+        badgeHTML = '<span class="badge live">LIVE NOW</span>';
+      } else if (isPaid) {
+        badgeHTML = '<span class="badge paid">Paid Stream</span>';
+      } else {
+        badgeHTML = '<span class="badge free">Free to watch</span>';
+      }
+
+      var priceHTML = isPaid ? '<div class="price">R' + price + '</div>' : '<div class="price">R0 <span>Free</span></div>';
+      var actionBtn = isPaid 
+        ? '<a href="watch.html?id=' + id + '" class="btn-watch btn-buy">Get Access <i data-lucide="ticket" size="16"></i></a>'
+        : '<a href="watch.html?id=' + id + '" class="btn-watch">Watch Now <i data-lucide="play" size="16"></i></a>';
+
+      var card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img src="${poster}" alt="${title}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1540039155732-684736882207?q=80&w=800&auto=format&fit=crop'">
+        <div class="card-content">
+          ${badgeHTML}
+          <h3 class="card-title">${title}</h3>
+          <div class="card-date"><i data-lucide="clock" size="14"></i> ${dateStr}</div>
+          <div class="card-footer">
+            ${priceHTML}
+            ${actionBtn}
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+    
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // Load Data
+  db.collection('streams').where('active', '==', true).get()
+    .then(function(snap) {
+      document.getElementById('loading').classList.add('hidden');
+      snap.forEach(function(doc) {
+        var data = doc.data();
+        data.id = doc.id;
+        allEvents.push(data);
+      });
+      renderEvents();
+    });
+
+  // Search Listener
+  document.getElementById('search-input').addEventListener('input', function(e) {
+    searchQuery = e.target.value;
+    renderEvents();
+  });
+
+  // Tab Listeners
+  document.querySelectorAll('.tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      currentFilter = this.dataset.filter;
+      renderEvents();
+    });
+  });
+
+})();
+</script>
+</body>
+</html>
