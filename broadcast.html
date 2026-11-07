@@ -13,80 +13,59 @@
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
   
-  /* Top Bar */
   .top-bar { padding: 16px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); z-index: 10; }
   .status { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
   .status .dot { width: 10px; height: 10px; border-radius: 50%; background: #555; }
   .status.live .dot { background: var(--red); box-shadow: 0 0 10px var(--red); animation: pulse 1s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-  /* Video Container */
   .video-container { flex: 1; position: relative; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; }
   video { width: 100%; height: 100%; object-fit: cover; }
   
-  /* Overlay Controls */
   .overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); z-index: 10; }
-  
   .control-group { margin-bottom: 16px; }
   .control-group label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.7); margin-bottom: 8px; text-transform: uppercase; }
   .slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.2); outline: none; }
   .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #fff; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
-  .slider::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: #fff; cursor: pointer; }
 
-  /* Buttons */
   .btn { width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 900; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
   .btn-start { background: var(--red); color: #fff; box-shadow: 0 8px 20px rgba(229,9,20,0.4); }
-  .btn-start:active { transform: scale(0.98); }
   .btn-stop { background: #fff; color: #000; }
   
-  /* Setup Modal */
-  .modal { position: absolute; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; padding: 24px; overflow-y: auto; }
-  .modal h2 { font-size: 24px; font-weight: 900; margin-bottom: 8px; }
-  .modal p { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 24px; line-height: 1.5; }
+  .setup-screen { position: absolute; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
+  .setup-screen h2 { font-size: 24px; font-weight: 900; margin-bottom: 8px; color: #fff; }
+  .setup-screen p { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 24px; }
   
-  .input-group { margin-bottom: 16px; }
-  .input-group label { display: block; font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.5); margin-bottom: 8px; text-transform: uppercase; }
-  .input-group input, .input-group select { width: 100%; padding: 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: #fff; font-size: 16px; font-family: inherit; }
-  .input-group input:focus { outline: none; border-color: var(--red); }
-
   /* Ads Config Row */
-  .ads-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.2); }
+  .ads-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; width: 100%; max-width: 400px; }
+  .ads-row div { text-align: left; }
+  .ads-row label { font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 4px; display: block; text-transform: uppercase; font-weight: 800; }
+  .ads-row input { width: 100%; padding: 12px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); color: #fff; font-size: 14px; }
 </style>
 </head>
 <body>
 
-<!-- SETUP MODAL -->
-<div class="modal" id="setup-modal">
-  <h2>Broadcast Setup</h2>
-  <p>Configure your camera settings, ad breaks, and link this phone to your live event.</p>
-  
-  <div class="input-group">
-    <label>Event ID</label>
-    <input type="text" id="event-id" placeholder="Paste the Event ID here..." />
+<!-- SETUP SCREEN (If no Event ID in URL) -->
+<div class="setup-screen" id="setup-modal">
+  <div style="width: 56px; height: 56px; background: rgba(229,9,20,0.15); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+    <i data-lucide="camera" style="color: var(--red); width: 28px; height: 28px;"></i>
   </div>
-
-  <div class="input-group">
-    <label>Camera Number</label>
-    <select id="cam-id">
-      <option value="cam1">Camera 1 (Main)</option>
-      <option value="cam2">Camera 2</option>
-      <option value="cam3">Camera 3</option>
-    </select>
-  </div>
+  <h2>Ready to Broadcast</h2>
+  <p id="setup-sub">Waiting for camera hardware...</p>
 
   <div class="ads-row">
     <div>
-      <label style="font-size:10px; margin-bottom:4px;">Pre-Show Ads (Mins)</label>
-      <input type="number" id="ads-time" value="5" style="padding:10px; font-size:14px;" />
+      <label>Pre-Show Ads (Mins)</label>
+      <input type="number" id="ads-time" value="5" />
     </div>
     <div>
-      <label style="font-size:10px; margin-bottom:4px;">Ad Duration (Secs)</label>
-      <input type="number" id="ads-duration" value="30" style="padding:10px; font-size:14px;" />
+      <label>Ad Duration (Secs)</label>
+      <input type="number" id="ads-duration" value="30" />
     </div>
   </div>
 
   <button class="btn btn-start" id="btn-start-setup">
-    <i data-lucide="camera"></i> Turn On Camera
+    <i data-lucide="video"></i> Turn On Camera
   </button>
 </div>
 
@@ -138,41 +117,46 @@
   var stream = null;
   var mediaRecorder = null;
   var isStreaming = false;
-  var currentEventId = '';
-  var currentCamId = 'cam1';
+  
+  // 1. Auto-Read URL Params
+  var params = new URLSearchParams(window.location.search);
+  var currentEventId = params.get('event');
+  var currentCamId = params.get('cam') || 'cam1';
 
-  // 1. Setup Camera
+  // If URL has event ID, skip setup screen
+  if (currentEventId) {
+    document.getElementById('setup-modal').style.display = 'none';
+    document.getElementById('setup-sub').textContent = "Auto-linked to event: " + currentEventId;
+    
+    // We auto-start the camera after a tiny delay
+    setTimeout(function() {
+      document.getElementById('btn-start-setup').click();
+    }, 500);
+  }
+
+  // 2. Start Camera
   document.getElementById('btn-start-setup').addEventListener('click', async function() {
-    currentEventId = document.getElementById('event-id').value.trim();
-    currentCamId = document.getElementById('cam-id').value;
+    if (!currentEventId) return alert("No Event ID found in URL.");
+
     var adsTime = parseInt(document.getElementById('ads-time').value) || 0;
     var adsDuration = parseInt(document.getElementById('ads-duration').value) || 0;
 
-    if (!currentEventId) return alert("Please paste the Event ID!");
-
     try {
-      // Request HD Camera
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: "environment",
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        },
+        video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
         audio: true 
       });
       
       video.srcObject = stream;
       
-      // Update UI
       document.getElementById('setup-modal').style.display = 'none';
       document.getElementById('btn-stop').style.display = 'flex';
       document.getElementById('status-indicator').classList.add('live');
       document.getElementById('status-text').textContent = 'LIVE';
       
-      // Set Firebase state
       await db.collection('streams').doc(currentEventId).update({
         activeCamera: currentCamId,
-        streamUrl: 'broadcasting', // Trigger the player to expect chunks
+        streamUrl: 'broadcasting',
         adSchedule: { preShowMins: adsTime, durationSecs: adsDuration }
       });
 
@@ -183,55 +167,46 @@
     }
   });
 
-  // 2. Zoom Control
+  // 3. Zoom Control
   document.getElementById('zoom-slider').addEventListener('input', function() {
     if (stream) {
       var track = stream.getVideoTracks()[0];
-      var capabilities = track.getCapabilities();
-      if (capabilities.zoom) {
+      if (track.getCapabilities().zoom) {
         var zoomValue = parseFloat(this.value);
         document.getElementById('zoom-val').textContent = zoomValue.toFixed(1) + 'x';
         track.applyConstraints({ advanced: [{ zoom: zoomValue }] });
-      } else {
-        alert("Your phone camera doesn't support hardware zoom.");
       }
     }
   });
 
-  // 3. Brightness Control
+  // 4. Brightness Control
   document.getElementById('bright-slider').addEventListener('input', function() {
     if (stream) {
       var track = stream.getVideoTracks()[0];
-      var capabilities = track.getCapabilities();
-      if (capabilities.brightness) {
+      if (track.getCapabilities().brightness) {
         var brightValue = parseFloat(this.value);
         document.getElementById('bright-val').textContent = Math.round(brightValue * 100) + '%';
         track.applyConstraints({ advanced: [{ brightness: brightValue }] });
-      } else {
-        alert("Your phone camera doesn't support hardware brightness.");
       }
     }
   });
 
-  // 4. Stop Broadcast
+  // 5. Stop Broadcast
   document.getElementById('btn-stop').addEventListener('click', async function() {
     if (confirm("Stop broadcasting immediately?")) {
       isStreaming = false;
-      
       if (mediaRecorder.state !== 'inactive') mediaRecorder.stop();
       if (stream) stream.getTracks().forEach(t => t.stop());
       
-      // Update Firebase to kill the stream
       await db.collection('streams').doc(currentEventId).update({
-        streamUrl: null,
-        activeCamera: null
+        streamUrl: null, activeCamera: null
       });
 
       window.location.reload();
     }
   });
 
-  // 5. Recording Loop (5-second chunks)
+  // 6. Recording Loop
   function startRecording() {
     isStreaming = true;
     mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8,opus' });
@@ -254,8 +229,6 @@
 
     mediaRecorder.onstop = () => { if (isStreaming) startRecording(); };
     mediaRecorder.start();
-    
-    // Send a chunk every 5 seconds
     setTimeout(() => { if (mediaRecorder.state === 'recording') mediaRecorder.stop(); }, 5000);
   }
 
