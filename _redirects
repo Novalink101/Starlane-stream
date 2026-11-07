@@ -1,2 +1,0 @@
-# Route /live/<slug> to the watch page (rewrite — URL stays visible)
-/live/*  /watch-novalink.html  200
