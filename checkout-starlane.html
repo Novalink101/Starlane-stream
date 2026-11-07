@@ -82,8 +82,8 @@
 
   document.getElementById('display-price').textContent = price;
   
-  // NOTE: Replace this with your actual Starlane Yoco Link for 65% payments
-  document.getElementById('yocoBtn').href = 'https://pay.yoco.com/r/YOUR_STARLANE_YOCO_LINK';
+  // TEMPORARY: Using your R90 Starter Yoco Link for testing
+  document.getElementById('yocoBtn').href = 'https://pay.yoco.com/r/ePKzdb';
 
   auth.onAuthStateChanged(function(user) {
     if (!user) {
@@ -106,7 +106,7 @@
       streamId: streamId,
       reference: ref,
       price: parseInt(price, 10),
-      status: 'approved', // In a real app, set to 'pending' and approve via admin
+      status: 'approved', // Auto-approves for testing
       purchasedAt: firebase.firestore.FieldValue.serverTimestamp()
     }).then(function() {
       document.getElementById('checkout-step').classList.add('hidden');
