@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#ffffff" />
+<title>Watch Event · Starlane Stream</title>
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :root { 
+    --red: #E50914; 
+    --bg: #ffffff; 
+    --surface: #f9fafb; 
+    --text: #111827; 
+    --text-muted: #6b7280; 
+    --border: #e5e7eb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    background: var(--bg); 
+    color: var(--text); 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    min-height: 100vh; 
+    padding: 20px; 
+  }
+  .hidden { display: none !important; }
+  .container { width: 100%; max-width: 1000px; text-align: center; }
+  
+  /* Loading Spinner */
+  .spinner { 
+    width: 40px; height: 40px; 
+    border: 3px solid var(--border); 
+    border-top-color: var(--red); 
+    border-radius: 50%; 
+    animation: spin .8s linear infinite; 
+    margin: 0 auto 20px; 
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 16px; color: var(--text-muted); font-weight: 500; }
+
+  /* Paywall Card */
+  .card { 
+    background: var(--surface); 
+    border: 1px solid var(--border); 
+    border-radius: 24px; 
+    padding: 48px 32px; 
+    max-width: 480px; 
+    margin: 0 auto;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  }
+  .icon { 
+    width: 72px; height: 72px; 
+    border-radius: 50%; 
+    background: #fee2e2; 
+    color: var(--red); 
+    display: flex; align-items: center; justify-content: center; 
+    margin: 0 auto 24px; font-size: 32px; 
+  }
+  .card h1 { font-size: 26px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; }
+  .card p { color: var(--text-muted); font-size: 15px; line-height: 1.6; margin-bottom: 32px; }
+  
+  .btn { 
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; 
+    padding: 16px 24px; border-radius: 12px; 
+    font-weight: 700; font-size: 16px; text-decoration: none; 
+    border: none; cursor: pointer; transition: 0.2s; width: 100%; 
+    background: var(--red); color: #fff; 
+  }
+  .btn:hover { background: #cc0812; transform: translateY(-1px); }
+
+  /* Player */
+  .player-wrapper { 
+    width: 100%; aspect-ratio: 16/9; 
+    background: #000; border-radius: 20px; 
+    overflow: hidden; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.2); 
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  video { width: 100%; height: 100%; display: block; outline: none; }
+  
+  .welcome-badge { 
+    position: absolute; top: 20px; left: 20px; 
+    background: rgba(255,255,255,0.95); 
+    color: var(--text);
+    padding: 10px 20px; border-radius: 30px; 
+    font-size: 14px; font-weight: 700; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex; align-items: center; gap: 8px;
+    backdrop-filter: blur(10px);
+  }
+  .welcome-badge i { color: #10b981; }
+</style>
+</head>
+<body>
+
+<!-- 1. LOADING STATE -->
+<div id="screen-loading" class="container">
+  <div class="spinner"></div>
+  <div class="loading-text">Verifying your access…</div>
+</div>
+
+<!-- 2. PAYWALL / ERROR STATE -->
+<div id="screen-paywall" class="container hidden">
+  <div class="card">
+    <div class="icon" id="paywall-icon">🔒</div>
+    <h1 id="paywall-title">Access Required</h1>
+    <p id="paywall-msg">You need a valid Novalink ticket to watch this event. Please check your email for your ticket link, or buy one below.</p>
+    <a href="https://novalink-tickets.onrender.com" id="paywall-btn" class="btn">
+      <i data-lucide="ticket"></i> Buy Ticket on Novalink
+    </a>
+  </div>
+</div>
+
+<!-- 3. VIDEO PLAYER -->
+<div id="screen-player" class="container hidden">
+  <div class="player-wrapper">
+    <div class="welcome-badge hidden" id="welcome-badge">
+      <i data-lucide="check-circle-2"></i> <span id="guest-name">Verified Ticket</span>
+    </div>
+    <video id="video" controls playsinline muted></video>
+  </div>
+</div>
+
+<script>
+(function(){
+  var firebaseConfig = {
+    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+    authDomain: "starlane-stream.firebaseapp.com",
+    projectId: "starlane-stream",
+    storageBucket: "starlane-stream.firebasestorage.app",
+    messagingSenderId: "115625325145",
+    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var db = firebase.firestore();
+
+  var screens = {
+    loading: document.getElementById('screen-loading'),
+    paywall: document.getElementById('screen-paywall'),
+    player: document.getElementById('screen-player')
+  };
+
+  function showScreen(name) {
+    screens.loading.classList.add('hidden');
+    screens.paywall.classList.add('hidden');
+    screens.player.classList.add('hidden');
+    screens[name].classList.remove('hidden');
+  }
+
+  var search = window.location.search.replace(/\?ticketRef=/, '&ticketRef=');
+  var params = new URLSearchParams(search);
+  var streamId = params.get('id');
+  var ticketRef = params.get('ticketRef');
+
+  if (!streamId) {
+    showScreen('paywall');
+    document.getElementById('paywall-title').textContent = "Invalid Link";
+    document.getElementById('paywall-msg').textContent = "This link is missing the event ID.";
+    return;
+  }
+
+  if (!ticketRef) {
+    showScreen('paywall');
+    if (window.lucide) lucide.createIcons();
+    return;
+  }
+
+  async function verifyTicket(ref) {
+    try {
+      var res = await fetch('https://novalink-api-8vfg.onrender.com/api/verify-stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketRef: ref })
+      });
+      return await res.json();
+    } catch(e) {
+      return { valid: false, error: 'Could not connect to Novalink servers.' };
+    }
+  }
+
+  async function loadVideo(guestName) {
+    try {
+      var doc = await db.collection('streams').doc(streamId).get();
+      if (!doc.exists) throw new Error('Event not found');
+
+      var data = doc.data();
+      var videoUrl = data.streamUrl || (data.segments && data.segments[0] ? data.segments[0].url : '');
+
+      if (!videoUrl) throw new Error('No video URL configured');
+
+      showScreen('player');
+      
+      if (guestName) {
+        var badge = document.getElementById('welcome-badge');
+        document.getElementById('guest-name').textContent = guestName;
+        badge.classList.remove('hidden');
+        setTimeout(function(){ badge.classList.add('hidden'); }, 6000);
+      }
+
+      var video = document.getElementById('video');
+      if (videoUrl.includes('.m3u8') && Hls.isSupported()) {
+        var hls = new Hls();
+        hls.loadSource(videoUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, function() { video.play(); });
+      } else {
+        video.src = videoUrl;
+        video.play();
+      }
+    } catch(err) {
+      showScreen('paywall');
+      document.getElementById('paywall-title').textContent = "Playback Error";
+      document.getElementById('paywall-msg').textContent = err.message;
+      if (window.lucide) lucide.createIcons();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.lucide) lucide.createIcons();
+    
+    verifyTicket(ticketRef).then(function(res) {
+      if (res.valid) {
+        loadVideo(res.guestName || 'Verified Ticket');
+      } else {
+        showScreen('paywall');
+        document.getElementById('paywall-title').textContent = "Ticket Invalid";
+        document.getElementById('paywall-msg').textContent = res.error || "This ticket is not valid or has already been used.";
+        if (window.lucide) lucide.createIcons();
+      }
+    });
+  });
+})();
+</script>
+</body>
+  </html>
