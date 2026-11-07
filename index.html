@@ -11,6 +11,7 @@
 <style>
   :root { 
     --red: #E50914; 
+    --red-hover: #FF3B4E;
     --bg: #ffffff; 
     --surface: #f9fafb; 
     --text: #111827; 
@@ -24,46 +25,96 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    position: relative;
   }
   a { text-decoration: none; color: inherit; }
   
+  /* ── FLASHY WHITE STARFIELD BACKGROUND ── */
+  .starfield {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 0%, rgba(229,9,20,.04) 0%, transparent 60%), #ffffff;
+    overflow: hidden;
+  }
+  /* The Stars */
+  .starfield::before {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1.5px 1.5px at 10% 20%, rgba(229,9,20,.4), transparent 100%),
+      radial-gradient(1px 1px at 85% 15%, rgba(0,0,0,.15), transparent 100%),
+      radial-gradient(2px 2px at 45% 35%, rgba(229,9,20,.2), transparent 100%),
+      radial-gradient(1.5px 1.5px at 75% 75%, rgba(229,9,20,.3), transparent 100%),
+      radial-gradient(1px 1px at 25% 85%, rgba(0,0,0,.1), transparent 100%),
+      radial-gradient(1.5px 1.5px at 90% 60%, rgba(229,9,20,.25), transparent 100%);
+    animation: twinkle 6s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle {
+    0% { opacity: 0.6; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.05); }
+  }
+
+  /* The Comet */
+  .comet {
+    position: absolute; top: -10%; left: -10%;
+    width: 150px; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(229,9,20,0.6), #E50914);
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(229,9,20,0.5);
+    animation: cometFly 12s linear infinite;
+    opacity: 0;
+  }
+  .comet::after {
+    content: ''; position: absolute; right: -2px; top: -2px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #fff; box-shadow: 0 0 10px #E50914;
+  }
+  @keyframes cometFly {
+    0% { top: 0%; left: -20%; opacity: 0; transform: rotate(25deg); }
+    10% { opacity: 1; }
+    40% { opacity: 1; }
+    50% { top: 80%; left: 120%; opacity: 0; transform: rotate(25deg); }
+    100% { top: 80%; left: 120%; opacity: 0; }
+  }
+
   /* Navbar */
   .nav { 
     border-bottom: 1px solid var(--border); 
     padding: 16px 0; 
-    position: sticky; top: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); z-index: 50;
+    position: sticky; top: 0; background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); z-index: 50;
   }
   .nav-inner { 
     max-width: 1200px; margin: 0 auto; padding: 0 24px; 
-    display: flex; justify-content: space-between; align-items: center; 
+    display: flex; justify-content: center; /* Centered because links are gone */
+    align-items: center; 
   }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo svg { width: 28px; height: 34px; display: block; }
-  .logo b { font-weight: 900; font-size: 20px; letter-spacing: -0.5px; color: #111827; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo svg { width: 32px; height: 38px; display: block; filter: drop-shadow(0 4px 6px rgba(229,9,20,0.2)); }
+  .logo b { font-weight: 900; font-size: 22px; letter-spacing: -0.5px; color: #111827; }
   .logo b span { color: var(--red); }
-  
-  .nav-links { display: flex; gap: 24px; align-items: center; }
-  .nav-links a { font-weight: 600; font-size: 14px; color: var(--text-muted); transition: color 0.2s; }
-  .nav-links a:hover { color: var(--text); }
-  .btn-nav { background: var(--text); color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: 600; transition: background 0.2s; }
-  .btn-nav:hover { background: #000; }
 
   /* Hero */
-  .hero { max-width: 1200px; margin: 0 auto; padding: 80px 24px 60px; text-align: center; }
-  .hero h1 { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 900; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 20px; color: #111827; }
-  .hero p { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto; font-weight: 500; }
+  .hero { max-width: 1200px; margin: 0 auto; padding: 90px 24px 70px; text-align: center; }
+  .hero h1 { font-size: clamp(2.8rem, 6vw, 4.5rem); font-weight: 900; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 24px; color: #111827; }
+  .hero h1 .accent {
+    background: linear-gradient(135deg, var(--red) 0%, #FF5566 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 4px 12px rgba(229,9,20,0.2));
+  }
+  .hero p { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto; font-weight: 500; line-height: 1.6; }
 
   /* Event Grid */
   .events-section { max-width: 1200px; margin: 0 auto; padding: 20px 24px 100px; }
   .section-title { font-size: 24px; font-weight: 800; margin-bottom: 32px; display: flex; align-items: center; gap: 10px; color: #111827; }
+  .section-title i { color: var(--red); }
   
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 32px; }
   
   .card { 
     background: var(--bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s; display: flex; flex-direction: column;
   }
-  .card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
+  .card:hover { transform: translateY(-6px); box-shadow: 0 24px 48px -12px rgba(229,9,20,0.15); border-color: rgba(229,9,20,0.2); }
   
   .card-img { width: 100%; aspect-ratio: 16/9; background: var(--surface); object-fit: cover; border-bottom: 1px solid var(--border); }
   .card-content { padding: 24px; flex: 1; display: flex; flex-direction: column; }
@@ -87,8 +138,8 @@
     transition: all 0.2s;
   }
   .btn-watch:hover { background: var(--text); color: #fff; border-color: var(--text); }
-  .btn-buy { background: var(--red); color: #fff; border-color: var(--red); }
-  .btn-buy:hover { background: #cc0812; border-color: #cc0812; color: #fff; }
+  .btn-buy { background: var(--red); color: #fff; border-color: var(--red); box-shadow: 0 4px 12px rgba(229,9,20,0.2); }
+  .btn-buy:hover { background: var(--red-hover); border-color: var(--red-hover); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(229,9,20,0.3); }
 
   /* Spinner */
   .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: spin .8s linear infinite; margin: 40px auto; }
@@ -99,16 +150,19 @@
 
   @media (max-width: 768px) {
     .hero { padding: 60px 24px 40px; }
-    .nav-links { display: none; }
   }
 </style>
 </head>
 <body>
 
+<!-- The Flashy Background -->
+<div class="starfield">
+  <div class="comet"></div>
+</div>
+
 <nav class="nav">
   <div class="nav-inner">
     <a href="index.html" class="logo">
-      <!-- THE STARLANE LOGO -->
       <svg viewBox="0 0 60 74" aria-hidden="true">
         <defs>
           <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
@@ -127,16 +181,11 @@
       </svg>
       <b>STAR<span>LANE</span></b>
     </a>
-    <div class="nav-links">
-      <a href="index.html">Events</a>
-      <a href="admin.html">Admin Login</a>
-      <a href="https://novalink-tickets.onrender.com" class="btn-nav">Buy Tickets</a>
-    </div>
   </div>
 </nav>
 
 <header class="hero">
-  <h1>Experience the event,<br>from anywhere.</h1>
+  <h1>Experience the event,<br>from <span class="accent">anywhere.</span></h1>
   <p>Watch live events in crystal clear HD. If you have a ticket, you're already in.</p>
 </header>
 
