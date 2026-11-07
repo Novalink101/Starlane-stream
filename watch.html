@@ -54,11 +54,16 @@
   .btn-ghost:hover { background: var(--surface); }
 
   /* ══════════════════════════════════════════════════════════════
-     VIDEO PLAYER & ADS CSS
+     VIDEO PLAYER & MULTI-CAM CSS
      ══════════════════════════════════════════════════════════════ */
   .player-container { position: relative; width: 100%; max-width: 1100px; aspect-ratio: 16/9; background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.2); border: 1px solid var(--border); margin-top: 60px; z-index: 1; user-select: none; }
   .player-container video { width: 100%; height: 100%; display: block; object-fit: contain; }
   
+  /* Multi-Cam Split Screen */
+  .split-screen { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; width: 100%; height: 100%; gap: 2px; background: #000; }
+  .split-screen video { width: 100%; height: 100%; object-fit: cover; }
+  .split-screen video:first-child { grid-column: 1 / -1; /* Top video is full width */ }
+
   /* Watermark */
   .player-watermark { position: absolute; top: 20px; left: 20px; z-index: 25; display: flex; align-items: center; gap: 8px; opacity: 0.85; transition: opacity 0.3s; pointer-events: none; }
   .player-watermark svg { width: 24px; height: 30px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
@@ -71,70 +76,37 @@
   
   /* Controls */
   .controls-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 40%, transparent 100%); transition: opacity 0.3s ease; z-index: 10; }
-  .center-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; background: rgba(229,9,20,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: 0.2s; z-index: 5; box-shadow: 0 4px 20px rgba(0,0,0,0.4); border: none; }
-  .center-play-btn:hover { background: var(--red); transform: translate(-50%, -50%) scale(1.1); }
-  .center-play-btn svg { width: 36px; height: 36px; margin-left: 4px; }
-
+  
   /* Timeline */
   .timeline-container { position: absolute; bottom: 70px; left: 24px; right: 24px; height: 20px; display: flex; align-items: center; cursor: pointer; z-index: 20; }
   .timeline-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.3); border-radius: 4px; position: relative; transition: height 0.1s; }
   .timeline-container:hover .timeline-bg { height: 8px; }
   .timeline-buffer { position: absolute; top: 0; left: 0; height: 100%; background: rgba(255,255,255,0.4); border-radius: 4px; pointer-events: none; }
   .timeline-progress { position: absolute; top: 0; left: 0; height: 100%; background: var(--red); border-radius: 4px; pointer-events: none; }
-  .timeline-tooltip { position: absolute; bottom: 30px; background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; pointer-events: none; transform: translateX(-50%); opacity: 0; transition: opacity 0.1s; white-space: nowrap; }
-  .timeline-container:hover .timeline-tooltip { opacity: 1; }
-
+  
   /* Bottom Bar */
   .bottom-bar { display: flex; align-items: center; justify-content: space-between; padding: 0 24px 20px 24px; color: white; z-index: 20; }
   .left-controls, .right-controls { display: flex; align-items: center; gap: 16px; }
   .ctrl-btn { background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; padding: 4px; }
   .ctrl-btn:hover { transform: scale(1.1); }
   .ctrl-btn svg { width: 22px; height: 22px; fill: white; }
-  .volume-container { display: flex; align-items: center; gap: 8px; }
-  .volume-slider { width: 0; overflow: hidden; transition: width 0.2s; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; cursor: pointer; position: relative; }
-  .volume-container:hover .volume-slider { width: 60px; }
-  .volume-slider-fill { height: 100%; background: white; border-radius: 2px; width: 100%; }
-  .time-display { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .live-badge { background: var(--red); color: white; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px; display: none; align-items: center; gap: 4px; cursor: pointer; }
+  .time-display { font-size: 13px; font-weight: 600; }
+  .live-badge { background: var(--red); color: white; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px; display: none; align-items: center; gap: 4px; }
   .live-badge .dot { width: 6px; height: 6px; background: white; border-radius: 50%; animation: pulse 1.5s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-  /* Settings */
-  .settings-menu { position: absolute; bottom: 80px; right: 24px; background: rgba(20,20,20,0.95); backdrop-filter: blur(10px); border-radius: 12px; padding: 8px 0; width: 200px; display: none; flex-direction: column; z-index: 30; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-  .settings-menu.show { display: flex; }
-  .settings-item { padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; color: white; font-size: 14px; font-weight: 600; }
-  .settings-item:hover { background: rgba(255,255,255,0.1); }
-  .settings-item .val { color: var(--text-muted); font-size: 12px; }
-  .settings-back { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 8px; font-size: 12px; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
-
-  /* ══════════════════════════════════════════════════════════════
-     AD & PRE-STREAM OVERLAYS
-     ══════════════════════════════════════════════════════════════ */
+  /* Waiting Overlay */
   .fullscreen-overlay { position: absolute; inset: 0; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; background: #0a0a0f; transition: opacity 0.5s; }
   .fullscreen-overlay.hidden { opacity: 0; pointer-events: none; }
   .fullscreen-overlay .logos { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 24px; }
   .fullscreen-overlay .logos .plus { font-size: 24px; color: rgba(255,255,255,0.3); font-weight: 300; }
   .fullscreen-overlay h2 { font-size: 24px; font-weight: 900; color: #fff; letter-spacing: -0.5px; margin-bottom: 8px; }
   .fullscreen-overlay p { font-size: 15px; color: rgba(255,255,255,0.6); font-weight: 500; }
-  .prestream-spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--red); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 24px; }
-
-  /* Ad UI */
-  .ad-container { position: absolute; inset: 0; z-index: 45; background: #000; display: flex; flex-direction: column; cursor: pointer; }
-  .ad-container.hidden { display: none; }
-  .ad-media { flex: 1; width: 100%; height: 100%; object-fit: contain; background: #000; }
-  .ad-topbar { position: absolute; top: 0; left: 0; right: 0; padding: 16px; display: flex; justify-content: space-between; align-items: flex-start; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); z-index: 46; }
-  .ad-label { background: #F59E0B; color: #000; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
-  .ad-timer-box { background: rgba(0,0,0,0.7); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-  .ad-skip { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 800; cursor: pointer; }
-  .ad-skip:hover { background: #fff; color: #000; }
-  .ad-bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: rgba(255,255,255,0.2); z-index: 46; }
-  .ad-progress { height: 100%; background: #F59E0B; width: 0%; transition: width 0.1s linear; }
-
+  
   @media (max-width: 768px) {
     .bottom-bar { padding: 0 12px 12px 12px; gap: 8px; }
     .left-controls, .right-controls { gap: 12px; }
     .time-display { font-size: 11px; }
-    .volume-container { display: none; }
   }
 </style>
 </head>
@@ -182,45 +154,32 @@
   
   <div class="player-container" id="player-container">
     
+    <!-- MAIN PLAYER (Single Cam) -->
+    <video id="video" playsinline></video>
+
+    <!-- SPLIT SCREEN (3 Cams) -->
+    <div class="split-screen hidden" id="split-screen">
+      <video id="video-cam1" playsinline muted></video>
+      <video id="video-cam2" playsinline muted></video>
+      <video id="video-cam3" playsinline muted></video>
+    </div>
+
     <!-- WATERMARK -->
     <div class="player-watermark">
       <svg viewBox="0 0 60 74"><path d="M10 60 Q 22 32 44 20" stroke="#E50914" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="18" r="5" fill="#fff"/></svg>
       <b>STAR<span>LANE</span></b>
     </div>
 
-    <!-- VIDEO -->
-    <video id="video" playsinline></video>
-
     <!-- WAITING / POST-STREAM OVERLAY -->
     <div class="fullscreen-overlay" id="waiting-overlay">
-      <div class="prestream-spinner"></div>
+      <div class="prestream-spinner" style="width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--red); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 24px;"></div>
       <div class="logos">
         <b style="color:#00E5E5; font-size:20px; font-weight:900;">NOVALINK</b>
         <span class="plus">×</span>
         <b style="color:#fff; font-size:20px; font-weight:900;">STAR<span style="color:var(--red)">LANE</span></b>
       </div>
-      <h2 id="waiting-title">Getting ready...</h2>
+      <h2 id="waiting-title">Connecting to live feed...</h2>
       <p id="waiting-sub">More than just ticketing.</p>
-    </div>
-
-    <!-- AD OVERLAY -->
-    <div class="ad-container hidden" id="ad-overlay">
-      <div class="ad-topbar">
-        <div class="ad-label">Sponsored</div>
-        <div style="display:flex; gap:12px; align-items:center;">
-          <div class="ad-timer-box">
-            <span id="ad-timer-text">Ad ends in 15s</span>
-          </div>
-          <button class="ad-skip hidden" id="ad-skip-btn">Skip Ad</button>
-        </div>
-      </div>
-      
-      <!-- Ad Media gets injected here -->
-      <div id="ad-media-container" style="flex:1; display:flex; align-items:center; justify-content:center;"></div>
-
-      <div class="ad-bottom-bar">
-        <div class="ad-progress" id="ad-progress"></div>
-      </div>
     </div>
 
     <!-- CONTROLS -->
@@ -230,35 +189,16 @@
           <div class="timeline-buffer" id="timeline-buffer"></div>
           <div class="timeline-progress" id="timeline-progress"></div>
         </div>
-        <div class="timeline-tooltip" id="timeline-tooltip">00:00</div>
       </div>
 
       <div class="bottom-bar">
         <div class="left-controls">
           <button class="ctrl-btn" id="btn-play"><i data-lucide="pause"></i></button>
-          <div class="volume-container">
-            <button class="ctrl-btn" id="btn-mute"><i data-lucide="volume-2"></i></button>
-            <div class="volume-slider" id="volume-slider"><div class="volume-slider-fill" id="volume-fill"></div></div>
-          </div>
           <div class="live-badge" id="live-badge"><span class="dot"></span> LIVE</div>
-          <span class="time-display" id="time-display">0:00 / 0:00</span>
+          <span class="time-display" id="time-display">LIVE</span>
         </div>
         <div class="right-controls">
-          <button class="ctrl-btn" id="btn-settings"><i data-lucide="settings"></i></button>
           <button class="ctrl-btn" id="btn-fullscreen"><i data-lucide="maximize"></i></button>
-        </div>
-      </div>
-
-      <div class="settings-menu" id="settings-menu">
-        <div id="settings-main">
-          <div class="settings-item" data-action="quality">Quality <span class="val" id="val-quality">Auto</span></div>
-          <div class="settings-item" data-action="speed">Speed <span class="val" id="val-speed">1x</span></div>
-        </div>
-        <div id="settings-quality-list" class="hidden">
-          <div class="settings-back" id="back-quality"><i data-lucide="chevron-left" size="12"></i> Quality</div>
-        </div>
-        <div id="settings-speed-list" class="hidden">
-          <div class="settings-back" id="back-speed"><i data-lucide="chevron-left" size="12"></i> Speed</div>
         </div>
       </div>
     </div>
@@ -302,7 +242,7 @@
   
   var streamData = null;
   var currentUser = null;
-  var hls = null;
+  var hlsInstances = {}; // Store HLS instances for multi-cam
 
   if (!streamId) {
     showScreen('paywall');
@@ -364,14 +304,10 @@
 
   function showStarlaneCheckout(price) {
     showScreen('paywall');
-    document.getElementById('paywall-msg').textContent = "You don't have a Novalink ticket. You can pay a discounted rate to watch this stream directly on Starlane, or buy a full ticket on Novalink.";
+    document.getElementById('paywall-msg').textContent = "You don't have a Novalink ticket. You can pay a discounted rate to watch this stream directly on Starlane.";
     document.getElementById('paywall-actions').innerHTML = `
-      <a href="checkout.html?streamId=${streamId}&price=${price}" class="btn btn-primary" style="margin-bottom: 12px;">
-        <i data-lucide="credit-card" size="18"></i> Pay R${price} (65% PPV)
-      </a>
-      <a href="https://novalink-tickets.onrender.com" class="btn btn-ghost">
-        <i data-lucide="ticket" size="18"></i> Buy Full Ticket on Novalink
-      </a>
+      <a href="checkout.html?streamId=${streamId}&price=${price}" class="btn btn-primary" style="margin-bottom: 12px;">Pay R${price} (65% PPV)</a>
+      <a href="https://novalink-tickets.onrender.com" class="btn btn-ghost">Buy Full Ticket on Novalink</a>
     `;
     if (window.lucide) lucide.createIcons();
   }
@@ -379,9 +315,7 @@
   async function verifyNovalinkTicket(ref) {
     try {
       var res = await fetch('https://novalink-api-8vfg.onrender.com/api/verify-stream', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ticketRef: ref })
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticketRef: ref })
       });
       var data = await res.json();
 
@@ -408,93 +342,94 @@
   }
 
   /* ══════════════════════════════════════════════════════════════
-     PLAYER & ADS LOGIC
+     PLAYER LOGIC (SINGLE CAM & MULTI-CAM)
      ══════════════════════════════════════════════════════════════ */
-  var playerContainer = document.getElementById('player-container');
-  var video = document.getElementById('video');
-  var controlsOverlay = document.getElementById('controls-overlay');
+  var mainVideo = document.getElementById('video');
+  var splitScreen = document.getElementById('split-screen');
+  var cam1Video = document.getElementById('video-cam1');
+  var cam2Video = document.getElementById('video-cam2');
+  var cam3Video = document.getElementById('video-cam3');
   var waitingOverlay = document.getElementById('waiting-overlay');
-  var adOverlay = document.getElementById('ad-overlay');
-  var adMediaContainer = document.getElementById('ad-media-container');
-  var adProgress = document.getElementById('ad-progress');
-  var adTimerText = document.getElementById('ad-timer-text');
-  var adSkipBtn = document.getElementById('ad-skip-btn');
-  
-  var btnPlay = document.getElementById('btn-play');
-  var btnMute = document.getElementById('btn-mute');
-  var btnFullscreen = document.getElementById('btn-fullscreen');
-  var centerPlayBtn = document.getElementById('center-play-btn');
-  var timelineContainer = document.getElementById('timeline-container');
-  var timelineProgress = document.getElementById('timeline-progress');
-  var timelineBuffer = document.getElementById('timeline-buffer');
-  var timelineTooltip = document.getElementById('timeline-tooltip');
-  var timeDisplay = document.getElementById('time-display');
-  var liveBadge = document.getElementById('live-badge');
-  var volumeSlider = document.getElementById('volume-slider');
-  var volumeFill = document.getElementById('volume-fill');
-  var settingsBtn = document.getElementById('btn-settings');
-  var settingsMenu = document.getElementById('settings-menu');
-  
-  var isLive = false;
-  var hideControlsTimeout;
-  var currentAds = [];
-  var adTimeout = null;
-  var streamStartTime = null;
+  var playerContainer = document.getElementById('player-container');
 
-  function formatTime(seconds) {
-    if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
-    var h = Math.floor(seconds / 3600);
-    var m = Math.floor((seconds % 3600) / 60);
-    var s = Math.floor(seconds % 60);
-    if (h > 0) return h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
-    return m + ":" + (s < 10 ? "0" : "") + s;
+  function startPlayer() {
+    showScreen('player');
+    checkCameraUpdates();
+    
+    // Check for camera changes every 3 seconds
+    setInterval(checkCameraUpdates, 3000);
   }
 
-  function showControls() {
-    playerContainer.classList.remove('inactive');
-    clearTimeout(hideControlsTimeout);
-    if (!video.paused) {
-      hideControlsTimeout = setTimeout(function() {
-        playerContainer.classList.add('inactive');
-        settingsMenu.classList.remove('show');
-      }, 3000);
+  function checkCameraUpdates() {
+    if (!streamId) return;
+    
+    db.collection('streams').doc(streamId).get().then(function(doc) {
+      if (!doc.exists) return;
+      var data = doc.data();
+      
+      // If the database has a cams object, we are in multi-cam mode
+      if (data.cams) {
+        var activeCam = data.activeCamera || 'cam1';
+        
+        if (activeCam === 'split') {
+          // SHOW SPLIT SCREEN
+          mainVideo.classList.add('hidden');
+          splitScreen.classList.remove('hidden');
+          waitingOverlay.classList.add('hidden');
+          loadSplitStreams(data.cams);
+        } else {
+          // SHOW SINGLE CAM
+          splitScreen.classList.add('hidden');
+          mainVideo.classList.remove('hidden');
+          
+          var camUrl = data.cams[activeCam];
+          if (!camUrl) {
+            waitingOverlay.classList.remove('hidden');
+            document.getElementById('waiting-title').textContent = "Camera Offline";
+            document.getElementById('waiting-sub').textContent = "Waiting for feed...";
+          } else {
+            waitingOverlay.classList.add('hidden');
+            if (mainVideo.src !== camUrl) {
+              mainVideo.src = camUrl;
+              mainVideo.play().catch(function(){});
+            }
+          }
+        }
+      } else {
+        // Fallback for single standard HLS link
+        var videoUrl = data.streamUrl;
+        if (videoUrl && mainVideo.src !== videoUrl) {
+          waitingOverlay.classList.add('hidden');
+          loadHLS(mainVideo, videoUrl, 'main');
+        }
+      }
+    });
+  }
+
+  function loadHLS(videoElement, url, id) {
+    if (hlsInstances[id]) {
+      hlsInstances[id].destroy();
+    }
+    
+    if (url.includes('.m3u8') && Hls.isSupported()) {
+      hlsInstances[id] = new Hls();
+      hlsInstances[id].loadSource(url);
+      hlsInstances[id].attachMedia(videoElement);
+      hlsInstances[id].on(Hls.Events.MANIFEST_PARSED, function() { videoElement.play().catch(function(){}); });
+    } else {
+      videoElement.src = url;
+      videoElement.play().catch(function(){});
     }
   }
 
-  function togglePlay() {
-    if (video.paused) { video.play(); } else { video.pause(); }
+  function loadSplitStreams(cams) {
+    if (cams.cam1) loadHLS(cam1Video, cams.cam1, 'cam1');
+    if (cams.cam2) loadHLS(cam2Video, cams.cam2, 'cam2');
+    if (cams.cam3) loadHLS(cam3Video, cams.cam3, 'cam3');
   }
-  centerPlayBtn.addEventListener('click', togglePlay);
-  btnPlay.addEventListener('click', togglePlay);
-  video.addEventListener('click', togglePlay);
 
-  video.addEventListener('play', function() {
-    btnPlay.innerHTML = '<i data-lucide="pause"></i>';
-    centerPlayBtn.style.display = 'none';
-    if (window.lucide) lucide.createIcons();
-    showControls();
-  });
-
-  video.addEventListener('pause', function() {
-    btnPlay.innerHTML = '<i data-lucide="play"></i>';
-    centerPlayBtn.style.display = 'flex';
-    if (window.lucide) lucide.createIcons();
-    playerContainer.classList.remove('inactive');
-    clearTimeout(hideControlsTimeout);
-  });
-
-  video.addEventListener('waiting', function() { 
-    waitingOverlay.classList.remove('hidden');
-    document.getElementById('waiting-title').textContent = "Buffering...";
-    document.getElementById('waiting-sub').textContent = "Reconnecting to live stream.";
-  });
-  
-  video.addEventListener('playing', function() { 
-    waitingOverlay.classList.add('hidden');
-    adOverlay.classList.add('hidden');
-  });
-
-  btnFullscreen.addEventListener('click', function() {
+  // Fullscreen & Controls
+  document.getElementById('btn-fullscreen').addEventListener('click', function() {
     if (!document.fullscreenElement) {
       if (playerContainer.requestFullscreen) playerContainer.requestFullscreen().catch(function(){});
       else if (playerContainer.webkitRequestFullscreen) playerContainer.webkitRequestFullscreen();
@@ -503,315 +438,14 @@
     }
   });
 
-  function updateVolume() {
-    if (video.muted || video.volume === 0) {
-      btnMute.innerHTML = '<i data-lucide="volume-x"></i>';
-      volumeFill.style.width = '0%';
-    } else {
-      btnMute.innerHTML = '<i data-lucide="volume-2"></i>';
-      volumeFill.style.width = (video.volume * 100) + '%';
-    }
+  document.getElementById('btn-play').addEventListener('click', function() {
+    if (mainVideo.paused) { mainVideo.play(); this.innerHTML = '<i data-lucide="pause"></i>'; }
+    else { mainVideo.pause(); this.innerHTML = '<i data-lucide="play"></i>'; }
     if (window.lucide) lucide.createIcons();
-  }
-  btnMute.addEventListener('click', function() {
-    video.muted = !video.muted;
-    updateVolume();
   });
-  volumeSlider.addEventListener('click', function(e) {
-    var rect = volumeSlider.getBoundingClientRect();
-    var pos = (e.clientX - rect.left) / rect.width;
-    video.volume = Math.max(0, Math.min(1, pos));
-    video.muted = false;
-    updateVolume();
-  });
-
-  video.addEventListener('timeupdate', function() {
-    if (video.duration && isFinite(video.duration)) {
-      var percent = (video.currentTime / video.duration) * 100;
-      timelineProgress.style.width = percent + '%';
-      timeDisplay.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video.duration);
-    } else {
-      var seekableEnd = video.seekable.length > 0 ? video.seekable.end(video.seekable.length - 1) : 0;
-      var seekableStart = video.seekable.length > 0 ? video.seekable.start(0) : 0;
-      var current = video.currentTime;
-      var behindLive = seekableEnd - current;
-      
-      if (behindLive > 15) {
-        liveBadge.style.display = 'flex';
-        liveBadge.style.background = 'rgba(255,255,255,0.2)';
-        liveBadge.innerHTML = 'GO LIVE';
-      } else {
-        liveBadge.style.display = 'flex';
-        liveBadge.style.background = 'var(--red)';
-        liveBadge.innerHTML = '<span class="dot"></span> LIVE';
-      }
-      var percent = ((current - seekableStart) / (seekableEnd - seekableStart)) * 100;
-      timelineProgress.style.width = Math.max(0, Math.min(100, percent)) + '%';
-      timeDisplay.textContent = 'LIVE';
-    }
-  });
-
-  video.addEventListener('progress', function() {
-    if (video.buffered.length > 0 && video.duration) {
-      var bufferedEnd = video.buffered.end(video.buffered.length - 1);
-      timelineBuffer.style.width = (bufferedEnd / video.duration) * 100 + '%';
-    }
-  });
-
-  document.addEventListener('keydown', function(e) {
-    if (e.target.tagName === 'INPUT') return;
-    if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
-    if (e.code === 'KeyF') { btnFullscreen.click(); }
-    if (e.code === 'KeyM') { btnMute.click(); }
-  });
-  playerContainer.addEventListener('mousemove', showControls);
-
-  settingsBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    settingsMenu.classList.toggle('show');
-    document.getElementById('settings-main').classList.remove('hidden');
-    document.getElementById('settings-quality-list').classList.add('hidden');
-    document.getElementById('settings-speed-list').classList.add('hidden');
-  });
-  document.addEventListener('click', function(e) {
-    if (!settingsMenu.contains(e.target) && e.target !== settingsBtn) settingsMenu.classList.remove('show');
-  });
-  document.querySelectorAll('.settings-item').forEach(function(item) {
-    item.addEventListener('click', function() {
-      var action = this.dataset.action;
-      if (!action) return; 
-      document.getElementById('settings-main').classList.add('hidden');
-      if (action === 'quality') document.getElementById('settings-quality-list').classList.remove('hidden');
-      if (action === 'speed') document.getElementById('settings-speed-list').classList.remove('hidden');
-    });
-  });
-  document.getElementById('back-quality').addEventListener('click', function() { document.getElementById('settings-quality-list').classList.add('hidden'); document.getElementById('settings-main').classList.remove('hidden'); });
-  document.getElementById('back-speed').addEventListener('click', function() { document.getElementById('settings-speed-list').classList.add('hidden'); document.getElementById('settings-main').classList.remove('hidden'); });
-
-  var speeds = [0.5, 1, 1.5, 2];
-  var speedList = document.getElementById('settings-speed-list');
-  speeds.forEach(function(speed) {
-    var div = document.createElement('div');
-    div.className = 'settings-item';
-    div.innerHTML = speed + 'x';
-    div.onclick = function() {
-      video.playbackRate = speed;
-      document.getElementById('val-speed').textContent = speed + 'x';
-      settingsMenu.classList.remove('show');
-    };
-    speedList.appendChild(div);
-  });
-
-  // ══════════════════════════════════════════════════════════════
-  // THE MASTER PLAYER START
-  // ══════════════════════════════════════════════════════════════
-  function startPlayer() {
-    showScreen('player');
-    
-    // 1. Calculate Stream Start Time
-    if (streamData.startDate && streamData.startTime) {
-      streamStartTime = new Date(streamData.startDate + 'T' + streamData.startTime).getTime();
-    } else {
-      streamStartTime = Date.now() - 1000; // Start immediately if no date set
-    }
-
-    // 2. Load Ads in the background
-    db.collection('ads').get().then(function(snap) {
-      currentAds = [];
-      snap.forEach(function(doc) { currentAds.push(doc.data()); });
-      checkCountdown();
-    }).catch(function() {
-      checkCountdown(); // Proceed without ads if DB fails
-    });
-  }
-
-  function checkCountdown() {
-    var now = Date.now();
-    var timeUntilStart = streamStartTime - now;
-
-    if (timeUntilStart > 5000) {
-      // Stream hasn't started yet (More than 5 seconds away)
-      var mins = Math.floor(timeUntilStart / 60000);
-      var secs = Math.floor((timeUntilStart % 60000) / 1000);
-      
-      document.getElementById('waiting-title').textContent = "Event Starts Soon";
-      document.getElementById('waiting-sub').textContent = "Starting in " + mins + "m " + secs + "s";
-      waitingOverlay.classList.remove('hidden');
-      
-      // Play ads while we wait
-      playNextAd();
-      
-      // Check again in 1 second
-      setTimeout(checkCountdown, 1000);
-    } else {
-      // Stream is ready to start!
-      waitingOverlay.classList.add('hidden');
-      adOverlay.classList.add('hidden');
-      connectHLS();
-    }
-  }
-
-  function playNextAd() {
-    if (currentAds.length === 0) {
-      // No ads, just wait
-      setTimeout(playNextAd, 3000); 
-      return;
-    }
-
-    // Pick random ad
-    var ad = currentAds[Math.floor(Math.random() * currentAds.length)];
-    
-    // Track View in Firebase
-    if (ad.title) {
-      db.collection('ads').where('title', '==', ad.title).get().then(function(snap) {
-        snap.forEach(function(doc) {
-          doc.ref.update({ views: firebase.firestore.FieldValue.increment(1) });
-        });
-      });
-    }
-
-    // Show Ad Overlay
-    adOverlay.classList.remove('hidden');
-    waitingOverlay.classList.add('hidden');
-    adMediaContainer.innerHTML = '';
-    
-    var timeLeft = ad.duration;
-    var timeElapsed = 0;
-    
-    // Setup UI
-    adTimerText.textContent = "Ad ends in " + timeLeft + "s";
-    adProgress.style.width = '0%';
-    adSkipBtn.classList.add('hidden'); // Hide skip initially
-
-    // Create Media Element
-    var mediaEl;
-    if (ad.type === 'video') {
-      mediaEl = document.createElement('video');
-      mediaEl.src = ad.mediaUrl;
-      mediaEl.className = 'ad-media';
-      mediaEl.autoplay = true;
-      mediaEl.muted = false; // Try to play with sound
-      mediaEl.playsInline = true;
-    } else {
-      mediaEl = document.createElement('img');
-      mediaEl.src = ad.mediaUrl;
-      mediaEl.className = 'ad-media';
-      mediaEl.style.cursor = 'pointer';
-      mediaEl.onclick = function() {
-        if (ad.clickUrl) {
-          window.open(ad.clickUrl, '_blank');
-          // Track Click
-          db.collection('ads').where('title', '==', ad.title).get().then(function(snap) {
-            snap.forEach(function(doc) { doc.ref.update({ clicks: firebase.firestore.FieldValue.increment(1) }); });
-          });
-        }
-      };
-    }
-    adMediaContainer.appendChild(mediaEl);
-
-    // Ad Timer Loop
-    clearInterval(adTimeout);
-    adTimeout = setInterval(function() {
-      timeElapsed++;
-      var remaining = timeLeft - timeElapsed;
-      var percent = (timeElapsed / timeLeft) * 100;
-      
-      adTimerText.textContent = "Ad ends in " + remaining + "s";
-      adProgress.style.width = percent + '%';
-
-      // Show skip button after 5 seconds
-      if (timeElapsed >= 5) {
-        adSkipBtn.classList.remove('hidden');
-      }
-
-      // Ad Finished
-      if (remaining <= 0) {
-        clearInterval(adTimeout);
-        adOverlay.classList.add('hidden');
-        
-        // Check if stream is ready, otherwise play another ad
-        var now = Date.now();
-        if (now >= streamStartTime - 5000) {
-          checkCountdown(); // Connect to stream
-        } else {
-          setTimeout(playNextAd, 500); // Play next ad
-        }
-      }
-    }, 1000);
-
-    // Skip Button Logic
-    adSkipBtn.onclick = function() {
-      clearInterval(adTimeout);
-      adOverlay.classList.add('hidden');
-      var now = Date.now();
-      if (now >= streamStartTime - 5000) {
-        checkCountdown();
-      } else {
-        setTimeout(playNextAd, 500);
-      }
-    };
-  }
-
-  function connectHLS() {
-    if (video.src || hls) return; // Already loaded
-
-    var videoUrl = streamData.streamUrl || (streamData.segments && streamData.segments[0] ? streamData.segments[0].url : '');
-    if (!videoUrl) return;
-
-    if (videoUrl.includes('.m3u8') && Hls.isSupported()) {
-      hls = new Hls();
-      hls.loadSource(videoUrl);
-      hls.attachMedia(video);
-      
-      hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
-        var qualityList = document.getElementById('settings-quality-list');
-        var qualityOptions = document.createElement('div');
-        qualityOptions.className = 'settings-item';
-        qualityOptions.innerHTML = 'Auto';
-        qualityOptions.onclick = function() { hls.currentLevel = -1; document.getElementById('val-quality').textContent = 'Auto'; settingsMenu.classList.remove('show'); };
-        qualityList.appendChild(qualityOptions);
-
-        hls.levels.forEach(function(level, index) {
-          var div = document.createElement('div');
-          div.className = 'settings-item';
-          div.innerHTML = level.height + 'p';
-          div.onclick = function() { hls.currentLevel = index; document.getElementById('val-quality').textContent = level.height + 'p'; settingsMenu.classList.remove('show'); };
-          qualityList.appendChild(div);
-        });
-        
-        isLive = hls.levels[0].details.live;
-        video.play().catch(function(){});
-        updateVolume();
-      });
-      
-      hls.on(Hls.Events.ERROR, function (event, data) {
-        if (data.fatal) {
-          switch (data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR: hls.startLoad(); break;
-            case Hls.ErrorTypes.MEDIA_ERROR: hls.recoverMediaError(); break;
-            default: 
-              hls.destroy();
-              // Stream Died / Ended -> Show Post-Stream Ads
-              video.src = "";
-              document.getElementById('waiting-title').textContent = "Stream Ended";
-              document.getElementById('waiting-sub').textContent = "Thank you for watching.";
-              waitingOverlay.classList.remove('hidden');
-              
-              // Play Post-Roll ads (Ad system loops indefinitely)
-              streamStartTime = Date.now() + 600000; // Set stream "start" 10 mins from now to force ad loop
-              playNextAd();
-              break;
-          }
-        }
-      });
-    } else {
-      video.src = videoUrl;
-      video.play().catch(function(){});
-    }
-  }
 
   if (window.lucide) lucide.createIcons();
 })();
 </script>
 </body>
-  </html>
+</html>
