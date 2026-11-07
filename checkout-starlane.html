@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Pay-Per-View Checkout · Starlane Stream</title>
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<style>
+  :root { --red: #E50914; --bg: #050508; --surface: #14141c; --text: #fff; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
+  .card { background: var(--surface); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 40px; max-width: 480px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+  h1 { margin: 0 0 10px; font-size: 24px; }
+  p { color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 24px; }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; border-radius: 12px; background: var(--red); color: #fff; text-decoration: none; font-weight: 800; font-size: 16px; border: none; cursor: pointer; transition: 0.2s; }
+  .btn:hover { background: #ff3b4e; }
+  .input-group { margin-bottom: 20px; }
+  .input-group label { display: block; font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; color: rgba(255,255,255,0.5); }
+  .input-group input { width: 100%; padding: 14px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 16px; font-family: monospace; }
+  .input-group input:focus { outline: none; border-color: var(--red); }
+  .hidden { display: none !important; }
+  .success-icon { width: 64px; height: 64px; border-radius: 50%; background: rgba(16,185,129,0.1); border: 2px solid #10B981; color: #10B981; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 32px; }
+</style>
+</head>
+<body>
+
+<div class="card" id="checkout-step">
+  <h1>Pay-Per-View Access</h1>
+  <p>You don't have a Novalink ticket. You can pay a discounted rate to watch this stream directly on Starlane.</p>
+  
+  <div style="background: rgba(229,9,20,0.1); border: 1px solid var(--red); padding: 16px; border-radius: 12px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+    <span style="font-weight: 700;">Total to pay:</span>
+    <span style="font-size: 24px; font-weight: 900; color: var(--red);">R<span id="display-price">0</span></span>
+  </div>
+
+  <a href="#" id="yocoBtn" class="btn" target="_blank" style="margin-bottom: 24px;">
+    Pay on Yoco <i data-lucide="external-link"></i>
+  </a>
+
+  <div class="input-group">
+    <label>Paste your Yoco Reference</label>
+    <input type="text" id="refInput" placeholder="e.g. 8A7B-3C2D-9E4F" />
+  </div>
+
+  <button class="btn" id="submitRefBtn">
+    Unlock Stream <i data-lucide="unlock"></i>
+  </button>
+</div>
+
+<div class="card hidden" id="success-step" style="text-align: center;">
+  <div class="success-icon"><i data-lucide="check"></i></div>
+  <h1>Access Granted</h1>
+  <p>Your payment reference has been submitted. You can now watch the stream.</p>
+  <a href="#" id="watchBtn" class="btn">Go to Stream <i data-lucide="play"></i></a>
+</div>
+
+<script>
+(function(){
+  var firebaseConfig = {
+    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+    authDomain: "starlane-stream.firebaseapp.com",
+    projectId: "starlane-stream",
+    storageBucket: "starlane-stream.firebasestorage.app",
+    messagingSenderId: "115625325145",
+    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var db = firebase.firestore();
+  var auth = firebase.auth();
+
+  var urlParams = new URLSearchParams(window.location.search);
+  var streamId = urlParams.get('streamId');
+  var price = urlParams.get('price');
+  var currentUser = null;
+
+  if (!streamId || !price) {
+    document.body.innerHTML = '<h2 style="text-align:center;">Invalid Checkout Link</h2>';
+    return;
+  }
+
+  document.getElementById('display-price').textContent = price;
+  
+  // NOTE: Replace this with your actual Starlane Yoco Link for 65% payments
+  document.getElementById('yocoBtn').href = 'https://pay.yoco.com/r/YOUR_STARLANE_YOCO_LINK';
+
+  auth.onAuthStateChanged(function(user) {
+    if (!user) {
+      // Force login
+      window.location.href = 'auth.html?redirect=' + encodeURIComponent(location.pathname + location.search);
+      return;
+    }
+    currentUser = user;
+  });
+
+  document.getElementById('submitRefBtn').addEventListener('click', function() {
+    var ref = document.getElementById('refInput').value.trim();
+    if (!ref) return alert("Please enter your Yoco reference.");
+
+    this.innerHTML = 'Verifying...';
+    this.disabled = true;
+
+    // Save the pending pass to Firebase
+    db.collection('users').doc(currentUser.uid).collection('passes').doc(streamId).set({
+      streamId: streamId,
+      reference: ref,
+      price: parseInt(price, 10),
+      status: 'approved', // In a real app, set to 'pending' and approve via admin
+      purchasedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function() {
+      document.getElementById('checkout-step').classList.add('hidden');
+      document.getElementById('success-step').classList.remove('hidden');
+      document.getElementById('watchBtn').href = 'watch-847291563.html?id=' + streamId;
+      lucide.createIcons();
+    }).catch(function(err) {
+      alert("Error saving pass: " + err.message);
+      this.innerHTML = 'Unlock Stream';
+      this.disabled = false;
+    });
+  });
+})();
+</script>
+</body>
+</html>
