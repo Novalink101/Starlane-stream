@@ -7,7 +7,6 @@
 <meta name="description" content="FORESTBASE — The future of e-commerce. Deep in the forest there's always a mystery." />
 <title>FORESTBASE — Deep in the forest there's always a mystery</title>
 
-<!-- GOOGLE FONTS -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -17,19 +16,15 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
-<!-- FIREBASE SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <style>
 :root{
-  /* PALETTE */
   --ink-black: #030407;
   --silver-glass: #AAB0C4;
   --bright-lime: #A3FF12;
   
-  /* MAPPED */
   --brand: var(--bright-lime);
   --brand-ink: var(--ink-black);
   --ink: var(--ink-black);
@@ -38,7 +33,6 @@
   --surface-2: #F1F3F7;
   --line: #E2E5EB;
   
-  /* FONTS */
   --font-display: 'Space Grotesk', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -58,7 +52,6 @@ button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:none}
 a{color:inherit;text-decoration:none}
 
-/* TYPOGRAPHY */
 h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
   font-family:var(--font-display);
   letter-spacing:-0.02em;
@@ -71,7 +64,6 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
    ═══════════════════════════════════════════════ */
 #appShell{display:block;animation:fadeIn .6s ease-out;}
 
-/* Header Layout */
 .header-wrapper{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--line);}
 .nav-top{max-width:var(--container);margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
 .nav-brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--ink);letter-spacing:-0.03em;}
@@ -116,6 +108,8 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:var(--r-md);font-weight:600;font-size:14px;transition:all .2s var(--ease);white-space:nowrap;}
 .btn-accent{background:var(--bright-lime);color:var(--ink-black);box-shadow:0 4px 14px rgba(0,0,0,0.2);font-weight:700;}
 .btn-accent:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.4), 0 0 15px rgba(163,255,18,0.4);}
+.btn-ghost{background:var(--surface-2);color:var(--ink-black);border:1px solid var(--line);}
+.btn-ghost:hover{background:var(--line);}
 
 .cart-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--ink-black);color:#fff;transition:all .2s;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
 .cart-btn:hover{background:var(--ink-2);transform:scale(1.05);}
@@ -158,7 +152,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:24px}
 
 /* Product Card */
-.card-item{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;transition:transform .3s var(--ease),box-shadow .3s;display:flex;flex-direction:column;}
+.card-item{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;transition:transform .3s var(--ease),box-shadow .3s;display:flex;flex-direction:column;cursor:pointer;}
 .card-item:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:var(--bright-lime);}
 .card-img{aspect-ratio:1/1;background:var(--surface-2);background-size:cover;background-position:center;position:relative;}
 .card-badge{position:absolute;top:14px;left:14px;background:var(--ink-black);color:#fff;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
@@ -198,7 +192,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 
 <header class="header-wrapper">
   <div class="nav-top">
-    <a href="#" class="nav-brand">
+    <a href="index.html" class="nav-brand">
       <svg viewBox="0 0 60 74">
         <path d="M30 4 L54 46 H6 Z" fill="#030407" />
         <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
@@ -214,24 +208,27 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
     </div>
 
     <div class="nav-actions">
-      <!-- This links to your login.html. It updates dynamically based on Auth state. -->
-      <a href="login.html" class="btn" id="user-btn" style="padding:0; width:44px; height:44px; border-radius:50%; background:var(--surface-2);">
-        <i data-lucide="user" id="user-icon" style="width:20px; height:20px; color:var(--ink-black);"></i>
+      <!-- Explicit Sign In / Account Button -->
+      <a href="login.html" class="btn btn-ghost" id="user-btn">
+        <i data-lucide="user" id="user-icon" style="width:18px; height:18px;"></i> 
+        <span id="user-text">Sign In</span>
       </a>
-      <button class="cart-btn">
+      
+      <a href="checkout.html" class="cart-btn">
         <i data-lucide="shopping-bag" style="width:20px; height:20px;"></i>
         <span class="cart-badge">3</span>
-      </button>
+      </a>
     </div>
   </div>
 
   <div class="nav-tabs-wrapper">
-    <a href="#" class="nav-tab active">All</a>
-    <a href="#" class="nav-tab">Electronics</a>
-    <a href="#" class="nav-tab">Future Tech</a>
-    <a href="#" class="nav-tab">Mystery Drops</a>
-    <a href="#" class="nav-tab">Today's Deals</a>
-    <a href="#" class="nav-tab sell-tab"><i data-lucide="store"></i> Sell on Forestbase</a>
+    <a href="index.html" class="nav-tab active">All</a>
+    <a href="browse.html" class="nav-tab">Electronics</a>
+    <a href="browse.html" class="nav-tab">Future Tech</a>
+    <a href="browse.html" class="nav-tab">Mystery Drops</a>
+    <a href="browse.html" class="nav-tab">Today's Deals</a>
+    <a href="seller-studio.html" class="nav-tab sell-tab"><i data-lucide="store"></i> Seller Studio</a>
+    <a href="admin.html" class="nav-tab" style="color: #DC2626;"><i data-lucide="shield"></i> Admin</a>
   </div>
 </header>
 
@@ -245,17 +242,17 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
     <p>Shop exclusive future-tech, limited edition gadgets, and mystery drops. Premium sellers, lightning-fast delivery, and secure checkout.</p>
 
     <div class="hero-ctas">
-      <a href="#shop" class="hero-card">
+      <a href="browse.html" class="hero-card">
         <span class="hc-icon"><i data-lucide="shopping-bag"></i></span>
         <span class="hc-t">Shop the Market</span>
         <span class="hc-s">Explore trending products and premium brands.</span>
       </a>
-      <a href="#deals" class="hero-card">
+      <a href="browse.html" class="hero-card">
         <span class="hc-icon"><i data-lucide="zap"></i></span>
         <span class="hc-t">Today's Deals</span>
         <span class="hc-s">Limited-time price drops. Grab them before they vanish.</span>
       </a>
-      <a href="#sell" class="hero-card">
+      <a href="seller-studio.html" class="hero-card">
         <span class="hc-icon"><i data-lucide="store"></i></span>
         <span class="hc-t">Start Selling</span>
         <span class="hc-s">Join FORESTBASE and reach thousands of buyers.</span>
@@ -268,7 +265,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
   <div class="container">
     <div class="section-head">
       <h2><i data-lucide="flame"></i> Trending Mysteries</h2>
-      <a href="#" class="see-all">See all <i data-lucide="arrow-right" style="width:16px;"></i></a>
+      <a href="browse.html" class="see-all">See all <i data-lucide="arrow-right" style="width:16px;"></i></a>
     </div>
     <div class="grid" id="productsGrid">
       <!-- Products injected here by JS -->
@@ -281,7 +278,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
     <div class="feature-banner">
       <h2>Become a Seller on FORESTBASE</h2>
       <p>We handle payments, security, and logistics—so you can focus on finding the world's best future-tech products.</p>
-      <a href="#" class="btn btn-accent" style="padding:16px 40px; font-size:16px;">Open Your Store <i data-lucide="arrow-right"></i></a>
+      <a href="seller-studio.html" class="btn btn-accent" style="padding:16px 40px; font-size:16px;">Open Your Store <i data-lucide="arrow-right"></i></a>
     </div>
   </div>
 </section>
@@ -303,21 +300,21 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
       </div>
       <div class="footer-col">
         <h4>Shop</h4>
-        <a href="#">New Arrivals</a>
-        <a href="#">Best Sellers</a>
-        <a href="#">Mystery Drops</a>
+        <a href="browse.html">New Arrivals</a>
+        <a href="browse.html">Best Sellers</a>
+        <a href="browse.html">Mystery Drops</a>
       </div>
       <div class="footer-col">
         <h4>Sell</h4>
-        <a href="#">Start Selling</a>
-        <a href="#">Seller Portal</a>
-        <a href="#">Fees</a>
+        <a href="seller-studio.html">Start Selling</a>
+        <a href="seller-studio.html">Seller Portal</a>
+        <a href="legal.html">Fees</a>
       </div>
       <div class="footer-col">
         <h4>Support</h4>
-        <a href="#">Help Center</a>
-        <a href="#">Track Order</a>
-        <a href="#">Returns</a>
+        <a href="legal.html">Help Center</a>
+        <a href="account.html">Track Order</a>
+        <a href="legal.html">Returns</a>
       </div>
     </div>
   </div>
@@ -329,9 +326,6 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 (function(){
 'use strict';
 
-// ═══════════════════════════════════════════════
-// 1. FIREBASE CONFIG (From your Starlane API)
-// ═══════════════════════════════════════════════
 var firebaseConfig = {
   apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
   authDomain: "starlane-stream.firebaseapp.com",
@@ -343,37 +337,35 @@ var firebaseConfig = {
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
-// var db = firebase.firestore(); // Uncomment when you have products in Firestore
 
 function $(id){return document.getElementById(id);}
 function refreshIcons(){if(window.lucide)lucide.createIcons();}
 function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
 // ═══════════════════════════════════════════════
-// 2. AUTHENTICATION & USER UI
+// 1. AUTHENTICATION UI LOGIC
 // ═══════════════════════════════════════════════
 auth.onAuthStateChanged(function(user) {
   var userBtn = $('user-btn');
   var userIcon = $('user-icon');
+  var userText = $('user-text');
   
   if (user) {
-    // User is logged in
-    userBtn.href = "#"; // Change this to account.html when you build it
+    userBtn.href = "account.html";
     userIcon.setAttribute('data-lucide', 'user-check');
-    userIcon.style.color = 'var(--bright-lime)'; // Highlight icon
-    userBtn.title = user.displayName || user.email;
+    userIcon.style.color = 'var(--bright-lime)';
+    userText.textContent = 'My Account';
   } else {
-    // User is logged out
     userBtn.href = "login.html";
     userIcon.setAttribute('data-lucide', 'user');
     userIcon.style.color = 'var(--ink-black)';
-    userBtn.title = "Sign In";
+    userText.textContent = 'Sign In';
   }
   refreshIcons();
 });
 
 // ═══════════════════════════════════════════════
-// 3. HERO CAROUSEL
+// 2. HERO CAROUSEL
 // ═══════════════════════════════════════════════
 var HERO_IMAGES = [
   'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1600&q=80&auto=format&fit=crop', 
@@ -404,18 +396,13 @@ function initCarousel(){
 }
 
 // ═══════════════════════════════════════════════
-// 4. PRODUCT FETCHING & RENDERING
+// 3. MOCK PRODUCTS & RENDERING
 // ═══════════════════════════════════════════════
-
-// Currently using mock data. 
-// To use Firestore: Replace this array with db.collection('products').get() inside loadProducts()
 var MOCK_PRODUCTS = [
   { id: 'p1', name: 'Aether Noise-Canceling Headphones', price: 3499, oldPrice: 4200, rating: 4.8, reviews: 124, img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600&auto=format&fit=crop', badge: 'Mystery Drop' },
   { id: 'p2', name: 'Obsidian Smart Watch Series X', price: 2899, oldPrice: null, rating: 4.6, reviews: 89, img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop', badge: null },
   { id: 'p3', name: 'Neon Runner Sneakers V2', price: 1599, oldPrice: 2100, rating: 4.9, reviews: 312, img: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?q=80&w=600&auto=format&fit=crop', badge: 'Sale' },
-  { id: 'p4', name: 'Lumina VR Headset Pro', price: 8500, oldPrice: null, rating: 5.0, reviews: 42, img: 'https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?q=80&w=600&auto=format&fit=crop', badge: 'New' },
-  { id: 'p5', name: 'Titanium Everyday Carry Kit', price: 899, oldPrice: 1100, rating: 4.7, reviews: 205, img: 'https://images.unsplash.com/photo-1581605405669-fcdf81165afa?q=80&w=600&auto=format&fit=crop', badge: null },
-  { id: 'p6', name: 'The Forest Mystery Box', price: 499, oldPrice: null, rating: 4.9, reviews: 999, img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop', badge: 'Trending' }
+  { id: 'p4', name: 'Lumina VR Headset Pro', price: 8500, oldPrice: null, rating: 5.0, reviews: 42, img: 'https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?q=80&w=600&auto=format&fit=crop', badge: 'New' }
 ];
 
 function loadProducts() {
@@ -446,28 +433,26 @@ function loadProducts() {
         </div>
       </div>
     `;
+
+    // Make card clickable to product page
+    card.addEventListener('click', function(e) {
+      if(e.target.tagName !== 'BUTTON') {
+        window.location.href = 'product.html';
+      }
+    });
+
     grid.appendChild(card);
   });
   refreshIcons();
 }
 
 // ═══════════════════════════════════════════════
-// 5. INITIALIZATION
+// 4. INITIALIZATION
 // ═══════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function(){
   refreshIcons();
   initCarousel();
   loadProducts();
-
-  // Tab Fluid Logic
-  var tabs = document.querySelectorAll('.nav-tab');
-  tabs.forEach(function(tab) {
-    tab.addEventListener('click', function(e) {
-      e.preventDefault();
-      tabs.forEach(t => t.classList.remove('active'));
-      this.classList.add('active');
-    });
-  });
 });
 })();
 </script>
