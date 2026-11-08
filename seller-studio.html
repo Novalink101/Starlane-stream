@@ -12,6 +12,7 @@
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <style>
   :root { 
@@ -40,6 +41,11 @@
     min-height: 100vh;
   }
   a { text-decoration: none; color: inherit; }
+
+  /* Loader (Prevents flashing before Auth resolves) */
+  #loader { position: fixed; inset: 0; background: var(--ink-black); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.4s; color: var(--bright-lime); font-family: var(--font-display); font-size: 20px; gap: 16px; }
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(163,255,18,0.2); border-top-color: var(--bright-lime); border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ── DASHBOARD LAYOUT ── */
   .dashboard-wrapper { display: flex; width: 100%; }
@@ -80,8 +86,6 @@
   .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
   .stat-title { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
   .stat-value { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--ink-black); }
-  .stat-trend { font-size: 13px; color: #059669; font-weight: 600; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
-  .stat-trend svg { width: 14px; height: 14px; }
 
   /* Form Section */
   .panel { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 40px; }
@@ -106,7 +110,8 @@
     font-family: var(--font-display); font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s;
     display: inline-flex; align-items: center; gap: 8px;
   }
-  .btn-submit:hover { background: var(--bright-lime); color: var(--ink-black); transform: translateY(-2px); }
+  .btn-submit:hover:not(:disabled) { background: var(--bright-lime); color: var(--ink-black); transform: translateY(-2px); }
+  .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
 
   /* Inventory Table */
   .table-wrapper { overflow-x: auto; }
@@ -122,11 +127,19 @@
   .btn-icon-sm { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: var(--surface-2); border: none; cursor: pointer; transition: 0.2s; color: var(--text-muted); }
   .btn-icon-sm:hover { background: var(--border); color: var(--ink-black); }
   .btn-icon-sm.delete:hover { background: #FEF2F2; color: var(--danger); }
+
+  .empty-row { text-align: center; padding: 40px; color: var(--text-muted); font-size: 15px; }
 </style>
 </head>
 <body>
 
-<div class="dashboard-wrapper">
+<!-- LOADER -->
+<div id="loader">
+  <div class="spinner"></div>
+  Connecting to Seller Database...
+</div>
+
+<div class="dashboard-wrapper" id="dashboard" style="display: none;">
   
   <!-- SIDEBAR -->
   <aside class="sidebar">
@@ -150,9 +163,6 @@
       <div class="nav-item">
         <i data-lucide="shopping-bag"></i> Orders
       </div>
-      <div class="nav-item">
-        <i data-lucide="settings"></i> Store Settings
-      </div>
     </div>
 
     <div class="sidebar-bottom">
@@ -168,32 +178,25 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Seller Studio</h1>
-        <p class="page-sub">Welcome back, Nathan. Here is what's happening in your store today.</p>
+        <p class="page-sub">Welcome back, <span id="seller-name" style="font-weight:600; color:var(--ink-black);">Loading...</span></p>
       </div>
     </div>
 
     <!-- STATS ROW -->
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-title">Total Revenue</div>
-        <div class="stat-value">R 14,250</div>
-        <div class="stat-trend"><i data-lucide="trending-up"></i> +12% this week</div>
+        <div class="stat-title">Live Products</div>
+        <div class="stat-value" id="stat-products">0</div>
       </div>
       <div class="stat-card">
-        <div class="stat-title">Active Products</div>
-        <div class="stat-value">8</div>
-        <div class="stat-trend" style="color: var(--text-muted);">In inventory</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">Pending Orders</div>
-        <div class="stat-value">3</div>
-        <div class="stat-trend" style="color: #D97706;">Needs attention</div>
+        <div class="stat-title">Total Inventory Value</div>
+        <div class="stat-value" id="stat-value">R 0.00</div>
       </div>
     </div>
 
     <!-- ADD PRODUCT FORM -->
     <div class="panel">
-      <h2 class="panel-title"><i data-lucide="plus-circle"></i> Add New Product</h2>
+      <h2 class="panel-title"><i data-lucide="plus-circle"></i> Publish New Product</h2>
       
       <form id="add-product-form">
         <div class="form-grid">
@@ -213,8 +216,24 @@
           </div>
 
           <div class="form-group">
-            <label>Price (ZAR)</label>
+            <label>Badge (Optional)</label>
+            <select id="p-badge">
+              <option value="">None</option>
+              <option value="Sale">Sale</option>
+              <option value="New">New</option>
+              <option value="Mystery Drop">Mystery Drop</option>
+              <option value="Trending">Trending</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Current Price (ZAR)</label>
             <input type="number" id="p-price" placeholder="R 0.00" required min="1" step="0.01" />
+          </div>
+
+          <div class="form-group">
+            <label>Old Price (Optional)</label>
+            <input type="number" id="p-old-price" placeholder="R 0.00" min="1" step="0.01" />
           </div>
 
           <div class="form-group full-width">
@@ -228,7 +247,7 @@
           </div>
         </div>
 
-        <button type="submit" class="btn-submit">
+        <button type="submit" class="btn-submit" id="submit-btn">
           <i data-lucide="upload-cloud"></i> Publish Product
         </button>
       </form>
@@ -250,7 +269,7 @@
             </tr>
           </thead>
           <tbody id="inventory-body">
-            <!-- Products injected here by JS -->
+            <!-- Real products will be injected here -->
           </tbody>
         </table>
       </div>
@@ -262,7 +281,7 @@
 <script>
 (function(){
   // ═══════════════════════════════════════════════
-  // 1. FIREBASE AUTH GUARD
+  // 1. FIREBASE INITIALIZATION
   // ═══════════════════════════════════════════════
   var firebaseConfig = {
     apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
@@ -274,112 +293,181 @@
   };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var auth = firebase.auth();
+  var db = firebase.firestore();
 
+  var currentUser = null;
+  var unsubscribeInventory = null; // To stop listening when leaving page
+
+  function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function refreshIcons(){if(window.lucide)lucide.createIcons();}
+
+  // ═══════════════════════════════════════════════
+  // 2. AUTH GUARD & INIT
+  // ═══════════════════════════════════════════════
   auth.onAuthStateChanged(function(user) {
-    // If not logged in, kick them to login page
     if (!user) {
       window.location.href = 'login.html?redirect=seller-studio.html';
+    } else {
+      currentUser = user;
+      
+      // Update UI with name
+      var name = user.displayName || user.email.split('@')[0];
+      document.getElementById('seller-name').textContent = name;
+      
+      // Show dashboard, hide loader
+      document.getElementById('loader').style.opacity = '0';
+      setTimeout(function() {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'flex';
+        refreshIcons();
+      }, 400);
+
+      // Start listening to this seller's products
+      listenToInventory();
     }
   });
 
   // ═══════════════════════════════════════════════
-  // 2. MOCK INVENTORY DATA
+  // 3. FETCH REAL INVENTORY (Live Listener)
   // ═══════════════════════════════════════════════
-  var inventory = [
-    { id: 1, name: 'Aether Headphones', category: 'Electronics', price: 3499, img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=150&auto=format&fit=crop' },
-    { id: 2, name: 'Obsidian Smart Watch', category: 'Future Tech', price: 2899, img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=150&auto=format&fit=crop' }
-  ];
+  function listenToInventory() {
+    if (unsubscribeInventory) unsubscribeInventory();
 
-  function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+    unsubscribeInventory = db.collection('products')
+      .where('sellerId', '==', currentUser.uid)
+      .orderBy('createdAt', 'desc')
+      .onSnapshot(function(snapshot) {
+        var tbody = document.getElementById('inventory-body');
+        tbody.innerHTML = '';
 
-  function renderInventory() {
-    var tbody = document.getElementById('inventory-body');
-    tbody.innerHTML = '';
+        var totalValue = 0;
 
-    inventory.forEach(function(item) {
-      var tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>
-          <div class="product-cell">
-            <div class="product-img" style="background-image:url('${item.img}')"></div>
-            <div class="product-info">
-              <h4>${item.name}</h4>
-              <p>SKU-${item.id}00${item.id}</p>
-            </div>
-          </div>
-        </td>
-        <td style="font-size: 14px; color: var(--text-muted);">${item.category}</td>
-        <td style="font-family: var(--mono); font-weight: 600;">${money(item.price)}</td>
-        <td><span class="status-badge">Active</span></td>
-        <td>
-          <div class="actions-cell">
-            <button class="btn-icon-sm" title="Edit"><i data-lucide="edit-2" style="width:14px;"></i></button>
-            <button class="btn-icon-sm delete" title="Delete" onclick="deleteProduct(${item.id})"><i data-lucide="trash-2" style="width:14px;"></i></button>
-          </div>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-    
-    if (window.lucide) lucide.createIcons();
+        if (snapshot.empty) {
+          tbody.innerHTML = '<tr><td colspan="5" class="empty-row">You have no products yet. Publish one above!</td></tr>';
+          document.getElementById('stat-products').textContent = '0';
+          document.getElementById('stat-value').textContent = 'R 0.00';
+          return;
+        }
+
+        snapshot.forEach(function(doc) {
+          var item = doc.data();
+          var id = doc.id;
+          totalValue += parseFloat(item.price || 0);
+
+          var tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>
+              <div class="product-cell">
+                <div class="product-img" style="background-image:url('${item.imageUrl}')"></div>
+                <div class="product-info">
+                  <h4>${item.name}</h4>
+                  <p>SKU-${id.slice(0, 6).toUpperCase()}</p>
+                </div>
+              </div>
+            </td>
+            <td style="font-size: 14px; color: var(--text-muted);">${item.category}</td>
+            <td style="font-family: var(--mono); font-weight: 600;">
+              ${money(item.price)}
+              ${item.oldPrice ? `<br><span style="font-size:12px; color:var(--text-muted); text-decoration:line-through;">${money(item.oldPrice)}</span>` : ''}
+            </td>
+            <td><span class="status-badge">Active</span></td>
+            <td>
+              <div class="actions-cell">
+                <button class="btn-icon-sm delete" title="Delete" onclick="deleteProduct('${id}')">
+                  <i data-lucide="trash-2" style="width:14px;"></i>
+                </button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        // Update Stats
+        document.getElementById('stat-products').textContent = snapshot.size;
+        document.getElementById('stat-value').textContent = money(totalValue);
+
+        refreshIcons();
+      }, function(error) {
+        console.error("Error fetching inventory: ", error);
+        document.getElementById('inventory-body').innerHTML = '<tr><td colspan="5" class="empty-row" style="color:red;">Failed to load inventory. Check console.</td></tr>';
+      });
   }
 
   // ═══════════════════════════════════════════════
-  // 3. ADD PRODUCT LOGIC
+  // 4. ADD PRODUCT (Write to Firestore)
   // ═══════════════════════════════════════════════
   document.getElementById('add-product-form').addEventListener('submit', function(e) {
     e.preventDefault();
 
-    var btn = this.querySelector('button[type="submit"]');
+    var btn = document.getElementById('submit-btn');
     var originalText = btn.innerHTML;
-    
-    // Simulate loading
-    btn.innerHTML = 'Publishing...';
+    btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Publishing...';
     btn.disabled = true;
 
-    // Get form values
+    var oldPriceVal = document.getElementById('p-old-price').value;
+    var badgeVal = document.getElementById('p-badge').value;
+
+    // Create the product object
     var newProduct = {
-      id: Date.now(), // Generate unique ID
+      sellerId: currentUser.uid,
+      sellerEmail: currentUser.email,
       name: document.getElementById('p-name').value,
       category: document.getElementById('p-category').value,
       price: parseFloat(document.getElementById('p-price').value),
-      img: document.getElementById('p-image').value
+      oldPrice: oldPriceVal ? parseFloat(oldPriceVal) : null,
+      imageUrl: document.getElementById('p-image').value,
+      description: document.getElementById('p-desc').value,
+      badge: badgeVal ? badgeVal : null,
+      rating: 5.0, // Default for new products
+      reviews: 0,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    setTimeout(function() {
-      // Add to array
-      inventory.unshift(newProduct); // Add to top of list
-      
-      // Re-render
-      renderInventory();
-      
-      // Reset form
-      document.getElementById('add-product-form').reset();
-      btn.innerHTML = '<i data-lucide="check"></i> Published!';
-      btn.style.background = 'var(--bright-lime)';
-      
-      setTimeout(function() {
+    // Push to Firestore
+    db.collection('products').add(newProduct)
+      .then(function(docRef) {
+        // Reset form
+        document.getElementById('add-product-form').reset();
+        
+        // Show success state
+        btn.innerHTML = '<i data-lucide="check"></i> Published Successfully!';
+        btn.style.background = 'var(--bright-lime)';
+        btn.style.color = 'var(--ink-black)';
+        refreshIcons();
+        
+        setTimeout(function() {
+          btn.innerHTML = originalText;
+          btn.style.background = 'var(--ink-black)';
+          btn.style.color = '#fff';
+          btn.disabled = false;
+          refreshIcons();
+        }, 2500);
+      })
+      .catch(function(error) {
+        console.error("Error adding document: ", error);
+        alert("Failed to publish: " + error.message);
         btn.innerHTML = originalText;
-        btn.style.background = 'var(--ink-black)';
         btn.disabled = false;
-        if (window.lucide) lucide.createIcons();
-      }, 2000);
-
-    }, 1000);
+      });
   });
 
-  // Global delete function
+  // ═══════════════════════════════════════════════
+  // 5. DELETE PRODUCT
+  // ═══════════════════════════════════════════════
   window.deleteProduct = function(id) {
-    if(confirm('Are you sure you want to delete this product?')) {
-      inventory = inventory.filter(function(item) { return item.id !== id; });
-      renderInventory();
+    if(confirm('Are you sure you want to permanently delete this product from the forest?')) {
+      db.collection('products').doc(id).delete()
+        .then(function() {
+          console.log("Product deleted successfully.");
+          // The onSnapshot listener will automatically update the table!
+        })
+        .catch(function(error) {
+          console.error("Error deleting product: ", error);
+          alert("Failed to delete: " + error.message);
+        });
     }
   };
 
-  // ═══════════════════════════════════════════════
-  // 4. INITIALIZE
-  // ═══════════════════════════════════════════════
-  renderInventory();
 })();
 </script>
 </body>
