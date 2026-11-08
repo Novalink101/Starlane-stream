@@ -2,229 +2,284 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#ffffff" />
-<meta name="color-scheme" content="light" />
-<title>Admin Command Center · Starlane Stream</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#030407" />
+<title>Admin Command Center · FORESTBASE</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
 <style>
   :root { 
-    --red: #E50914; --red-hover: #FF3B4E;
-    --bg: #ffffff; --surface: #f9fafb; 
-    --text: #111827; --text-muted: #6b7280; --border: #e5e7eb;
-    --shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+    --ink-black: #030407;
+    --silver-glass: #AAB0C4;
+    --bright-lime: #A3FF12;
+    
+    --surface: #FFFFFF;
+    --surface-2: #F1F3F7;
+    --border: #E2E5EB;
+    --text: #111827;
+    --text-muted: #6B7280;
+    --danger: #DC2626;
+    
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { 
-    background: var(--bg); color: var(--text); 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-    min-height: 100vh; display: flex; flex-direction: column; 
+    background: #FAFBFC; 
+    color: var(--text); 
+    font-family: var(--font-body); 
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    min-height: 100vh;
   }
   a { text-decoration: none; color: inherit; }
-  .hidden { display: none !important; }
 
-  /* Navbar */
-  .nav { border-bottom: 1px solid var(--border); padding: 16px 0; background: #fff; position: sticky; top: 0; z-index: 50; }
-  .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
-  .logo { display: flex; align-items: center; gap: 12px; }
-  .logo svg { width: 28px; height: 34px; }
-  .logo b { font-weight: 900; font-size: 20px; color: #111827; }
-  .logo b span { color: var(--red); }
-  .badge-admin { background: #fee2e2; color: var(--red); font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; margin-left: 10px; letter-spacing: 0.5px; }
-  .btn-nav { font-weight: 700; font-size: 14px; color: var(--text-muted); transition: 0.2s; }
-  .btn-nav:hover { color: var(--text); }
+  /* ── DASHBOARD LAYOUT ── */
+  .dashboard-wrapper { display: flex; width: 100%; }
 
-  /* Container */
-  .container { max-width: 1200px; margin: 40px auto; padding: 0 24px; flex: 1; }
-  .page-title { font-size: 32px; font-weight: 900; letter-spacing: -1px; margin-bottom: 8px; }
-  .page-sub { font-size: 16px; color: var(--text-muted); margin-bottom: 32px; }
+  /* Sidebar */
+  .sidebar { width: 260px; background: var(--ink-black); color: #fff; padding: 24px; display: flex; flex-direction: column; position: fixed; height: 100vh; border-right: 1px solid rgba(255,255,255,0.1); }
+  .nav-brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: #fff; margin-bottom: 40px; }
+  .nav-brand svg { width: 28px; height: 34px; }
+  .nav-brand span { color: var(--bright-lime); }
+  
+  .nav-menu { display: flex; flex-direction: column; gap: 8px; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--silver-glass); transition: 0.2s; cursor: pointer; }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+  .nav-item.active { background: var(--bright-lime); color: var(--ink-black); }
+  .nav-item svg { width: 18px; height: 18px; }
 
-  /* Event Selector Banner */
-  .selector-banner { 
-    background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 24px 32px; 
-    display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 32px; 
+  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 24px; }
+
+  /* Main Content */
+  .main-content { margin-left: 260px; flex: 1; padding: 40px; width: calc(100% - 260px); }
+  @media (max-width: 900px) { 
+    .dashboard-wrapper { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: relative; padding: 16px; flex-direction: row; align-items: center; justify-content: space-between; border-right: none; border-bottom: 1px solid var(--border); }
+    .nav-brand { margin-bottom: 0; }
+    .nav-menu { flex-direction: row; overflow-x: auto; }
+    .nav-item { white-space: nowrap; padding: 10px 14px; }
+    .sidebar-bottom { display: none; }
+    .main-content { margin-left: 0; width: 100%; padding: 20px; }
   }
-  .selector-banner h3 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
-  .selector-banner p { font-size: 14px; color: var(--text-muted); }
-  .event-select { 
-    padding: 14px 20px; border-radius: 12px; border: 1px solid var(--border); 
-    font-size: 15px; font-weight: 800; font-family: inherit; background: var(--surface); 
-    min-width: 300px; cursor: pointer; outline: none; transition: 0.2s;
-  }
-  .event-select:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(229,9,20,0.1); }
 
-  /* Active Event Control Panel */
-  .control-panel { 
-    background: linear-gradient(135deg, #111827, #1f2937); color: #fff; 
-    border-radius: 24px; padding: 40px; margin-bottom: 32px; display: none; 
-    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3); position: relative; overflow: hidden;
-  }
-  .control-panel.active { display: block; }
-  .control-panel::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--red); }
-  
-  .panel-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
-  .panel-header h2 { font-size: 28px; font-weight: 900; letter-spacing: -0.5px; color: #fff; }
-  .panel-header p { font-size: 15px; color: rgba(255,255,255,0.6); margin-top: 4px; }
-  .live-indicator { display: flex; align-items: center; gap: 8px; background: rgba(229,9,20,0.2); border: 1px solid rgba(229,9,20,0.4); padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #FF5566; }
-  .live-dot { width: 8px; height: 8px; background: var(--red); border-radius: 50%; animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  /* Page Header */
+  .page-header { margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; }
+  .page-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--ink-black); }
+  .page-sub { font-size: 15px; color: var(--text-muted); margin-top: 4px; }
 
-  .panel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-  @media (max-width: 900px) { .panel-grid { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 600px) { .panel-grid { grid-template-columns: 1fr; } }
+  /* Stats Grid */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px; }
+  .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+  .stat-title { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .stat-value { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--ink-black); }
+  .stat-trend { font-size: 13px; color: #059669; font-weight: 600; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+  .stat-trend svg { width: 14px; height: 14px; }
 
-  .launch-btn { 
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
-    padding: 24px; border-radius: 16px; cursor: pointer; transition: 0.2s; 
-    display: flex; flex-direction: column; align-items: flex-start; gap: 12px; color: #fff; text-align: left;
-  }
-  .launch-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); transform: translateY(-2px); }
-  .launch-btn.primary { background: var(--red); border-color: var(--red); }
-  .launch-btn.primary:hover { background: var(--red-hover); border-color: var(--red-hover); box-shadow: 0 10px 20px rgba(229,9,20,0.4); }
-  
-  .launch-btn svg { width: 24px; height: 24px; opacity: 0.9; }
-  .launch-btn h4 { font-size: 16px; font-weight: 800; margin-bottom: 2px; }
-  .launch-btn p { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.4; }
-  .launch-btn.primary p { color: rgba(255,255,255,0.9); }
+  /* Panels */
+  .panel { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 40px; }
+  .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .panel-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .panel-title svg { color: var(--bright-lime); }
 
-  /* Tools Grid */
-  .grid-title { font-size: 18px; font-weight: 900; margin-bottom: 20px; color: var(--text); letter-spacing: -0.5px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+  /* Tables */
+  .table-wrapper { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; text-align: left; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); padding: 16px; border-bottom: 1px solid var(--border); }
+  td { padding: 16px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 14px; }
   
-  .card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; transition: 0.3s; display: flex; flex-direction: column; gap: 16px; position: relative; overflow: hidden; }
-  .card:hover { border-color: var(--red); box-shadow: 0 10px 30px -10px rgba(229,9,20,0.15); transform: translateY(-4px); }
-  .card-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .card-icon svg { width: 28px; height: 28px; }
-  
-  .icon-red { background: #fee2e2; color: var(--red); }
-  .icon-blue { background: #e0f2fe; color: #0284c7; }
-  .icon-purple { background: #f3e8ff; color: #9333ea; }
-  
-  .card h3 { font-size: 20px; font-weight: 800; }
-  .card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
-  .card-link { margin-top: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; cursor: pointer; background: none; border: none; padding: 0; text-align: left; color: var(--red); }
-  .card-link:hover { text-decoration: underline; }
-  
+  .user-cell { display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--ink-black); color: var(--bright-lime); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+  .user-info h4 { font-weight: 600; color: var(--ink-black); }
+  .user-info p { font-size: 12px; color: var(--text-muted); }
+
+  .role-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .role-admin { background: #FEF2F2; color: #DC2626; }
+  .role-seller { background: rgba(163,255,18,0.15); color: #5c9e00; }
+  .role-buyer { background: var(--surface-2); color: var(--text-muted); }
+
+  .actions-cell { display: flex; gap: 8px; }
+  .btn-action { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; }
+  .btn-approve { background: rgba(163,255,18,0.2); color: #5c9e00; }
+  .btn-approve:hover { background: var(--bright-lime); color: var(--ink-black); }
+  .btn-reject { background: #FEF2F2; color: var(--danger); }
+  .btn-reject:hover { background: var(--danger); color: #fff; }
+
   /* Toast */
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #111827; color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 14px; opacity: 0; transition: 0.3s; z-index: 100; pointer-events: none; }
-  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  #toast { position: fixed; bottom: 24px; right: 24px; background: var(--ink-black); color: #fff; padding: 16px 24px; border-radius: 12px; font-weight: 600; font-size: 14px; opacity: 0; transition: 0.3s; z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-left: 4px solid var(--bright-lime); transform: translateY(20px); pointer-events: none; }
+  #toast.show { opacity: 1; transform: translateY(0); }
 </style>
 </head>
 <body>
 
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="index.html" class="logo">
-      <svg viewBox="0 0 60 74" aria-hidden="true">
-        <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#E50914"/><stop offset="100%" stop-color="#FF5566"/></linearGradient></defs>
-        <path d="M10 60 Q 22 32 44 20" stroke="url(#sg)" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <circle cx="46" cy="18" r="5" fill="#fff"/><circle cx="46" cy="18" r="2.5" fill="#E50914"/>
+<div class="dashboard-wrapper">
+  
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="index.html" class="nav-brand">
+      <svg viewBox="0 0 60 74">
+        <path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" />
+        <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
+        <path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" />
+        <path d="M20 56 H40 V60 H20 Z" fill="#030407" />
       </svg>
-      <b>STAR<span>LANE</span></b>
-      <span class="badge-admin">Admin</span>
+      FOREST<span>BASE</span>
     </a>
-    <a href="index.html" class="btn-nav">Exit to Site</a>
-  </div>
-</nav>
 
-<main class="container">
-  <h1 class="page-title">Command Center</h1>
-  <p class="page-sub">Select your live event below, then launch your broadcast tools.</p>
-
-  <!-- Event Selector -->
-  <div class="selector-banner">
-    <div>
-      <h3>Select an Event to Manage</h3>
-      <p>This selection will be remembered across the dashboard.</p>
-    </div>
-    <select id="active-event-select" class="event-select">
-      <option value="">Loading events...</option>
-    </select>
-  </div>
-
-  <!-- Active Event Control Panel -->
-  <div class="control-panel" id="control-panel">
-    <div class="panel-header">
-      <div>
-        <h2 id="panel-event-title">Event Title</h2>
-        <p id="panel-event-date">Loading date...</p>
+    <div class="nav-menu">
+      <div class="nav-item active">
+        <i data-lucide="shield-check"></i> Command Center
       </div>
-      <div class="live-indicator">
-        <div class="live-dot"></div> Ready to Broadcast
+      <div class="nav-item">
+        <i data-lucide="users"></i> Manage Users
+      </div>
+      <div class="nav-item">
+        <i data-lucide="store"></i> Manage Sellers
+      </div>
+      <div class="nav-item">
+        <i data-lucide="shopping-cart"></i> Global Orders
+      </div>
+      <div class="nav-item">
+        <i data-lucide="settings"></i> Platform Settings
       </div>
     </div>
 
-    <div class="panel-grid">
-      <button class="launch-btn primary" onclick="launchTool('broadcast')">
-        <i data-lucide="camera"></i>
-        <div>
-          <h4>Camera App</h4>
-          <p>Open on your phones to start the video feed.</p>
-        </div>
-      </button>
-
-      <button class="launch-btn" onclick="launchTool('director')">
-        <i data-lucide="sliders"></i>
-        <div>
-          <h4>Director Studio</h4>
-          <p>Switch cameras, fire ads, and control the feed.</p>
-        </div>
-      </button>
-
-      <button class="launch-btn" onclick="launchTool('watch')">
-        <i data-lucide="play"></i>
-        <div>
-          <h4>Watch Stream</h4>
-          <p>Open the viewer player to monitor what fans see.</p>
-        </div>
-      </button>
-
-      <button class="launch-btn" onclick="launchTool('receiver')">
-        <i data-lucide="monitor-play"></i>
-        <div>
-          <h4>TV Receiver</h4>
-          <p>Open on the venue laptop connected to the projector.</p>
-        </div>
-      </button>
+    <div class="sidebar-bottom">
+      <a href="index.html" class="nav-item" style="color: #F87171;">
+        <i data-lucide="log-out"></i> Secure Sign Out
+      </a>
     </div>
-  </div>
+  </aside>
 
-  <!-- Admin Tools -->
-  <h2 class="grid-title" style="margin-top: 48px;">Platform Tools</h2>
-  <div class="grid">
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
     
-    <a href="event-studio.html" class="card">
-      <div class="card-icon icon-red"><i data-lucide="video"></i></div>
-      <h3>Event Studio</h3>
-      <p>Create new live events, upload posters, set prices, and configure private PINs.</p>
-      <span class="card-link">Open Studio <i data-lucide="arrow-right" size="16"></i></span>
-    </a>
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Admin Command Center</h1>
+        <p class="page-sub">System Overview · <span style="color: #059669; font-weight: 600;">All systems operational</span></p>
+      </div>
+    </div>
 
-    <a href="admin-ads.html" class="card">
-      <div class="card-icon icon-blue"><i data-lucide="megaphone"></i></div>
-      <h3>Ads Manager</h3>
-      <p>Upload video and image ads. Track clicks and views across all streams.</p>
-      <span class="card-link" style="color:#0284c7;">Manage Ads <i data-lucide="arrow-right" size="16"></i></span>
-    </a>
+    <!-- STATS ROW -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-title">Platform Revenue</div>
+        <div class="stat-value">R 145,200</div>
+        <div class="stat-trend"><i data-lucide="trending-up"></i> +24% this month</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Total Buyers</div>
+        <div class="stat-value">1,248</div>
+        <div class="stat-trend" style="color: #059669;"><i data-lucide="user-plus"></i> +12 today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Active Sellers</div>
+        <div class="stat-value">34</div>
+        <div class="stat-trend" style="color: var(--text-muted);">Across 3 regions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Pending Approvals</div>
+        <div class="stat-value" style="color: var(--danger);" id="pending-count">2</div>
+        <div class="stat-trend" style="color: var(--danger);">Requires action</div>
+      </div>
+    </div>
 
-    <a href="stream-test.html" class="card">
-      <div class="card-icon icon-purple"><i data-lucide="activity"></i></div>
-      <h3>Stream Diagnostics</h3>
-      <p>Test the Cloudinary pipeline. See exactly if the camera is uploading and if the buffer is working.</p>
-      <span class="card-link" style="color:#9333ea;">Run Test <i data-lucide="arrow-right" size="16"></i></span>
-    </a>
+    <!-- PENDING SELLER APPROVALS -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title"><i data-lucide="alert-circle"></i> Action Required: Seller Applications</h2>
+      </div>
+      
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Applicant</th>
+              <th>Store Name</th>
+              <th>Date Applied</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="approvals-body">
+            <!-- Rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-  </div>
-</main>
+    <!-- RECENT PLATFORM ACTIVITY -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title"><i data-lucide="activity"></i> System Activity</h2>
+      </div>
+      
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Role</th>
+              <th>Activity</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="avatar">N</div>
+                  <div class="user-info"><h4>Nathan Nyl</h4><p>nyl@example.com</p></div>
+                </div>
+              </td>
+              <td><span class="role-badge role-seller">Seller</span></td>
+              <td>Uploaded new product: "Aether Headphones"</td>
+              <td style="color: var(--text-muted); font-size: 13px;">2 mins ago</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="avatar" style="background: var(--surface-2); color: var(--text-muted);">S</div>
+                  <div class="user-info"><h4>Sarah M.</h4><p>sarah@example.com</p></div>
+                </div>
+              </td>
+              <td><span class="role-badge role-buyer">Buyer</span></td>
+              <td>Purchased 1 item (Order #FB-992)</td>
+              <td style="color: var(--text-muted); font-size: 13px;">15 mins ago</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="avatar" style="background: var(--danger); color: #fff;">!</div>
+                  <div class="user-info"><h4>System</h4><p>Automated Task</p></div>
+                </div>
+              </td>
+              <td><span class="role-badge role-admin">Admin</span></td>
+              <td>Flagged product for review due to low stock</td>
+              <td style="color: var(--text-muted); font-size: 13px;">1 hour ago</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-<div id="toast" class="toast"></div>
+  </main>
+</div>
+
+<div id="toast">Action completed successfully.</div>
 
 <script>
 (function(){
+  // ═══════════════════════════════════════════════
+  // 1. FIREBASE AUTH GUARD (Strict Admin Check)
+  // ═══════════════════════════════════════════════
   var firebaseConfig = {
     apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
     authDomain: "starlane-stream.firebaseapp.com",
@@ -234,97 +289,89 @@
     appId: "1:115625325145:web:b14025df503bbe2b7d7748"
   };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-  var db = firebase.firestore();
   var auth = firebase.auth();
-  var ADMIN_EMAILS = ['nylnathan340@gmail.com','customerservicesnovalink@gmail.com'];
 
-  function showToast(msg) {
-    var t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(function(){ t.classList.remove('show'); }, 3000);
-  }
+  // Set your actual admin email here
+  var ADMIN_EMAIL = "nylnathan340@gmail.com"; 
 
   auth.onAuthStateChanged(function(user) {
-    if (!user || !ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+    if (!user) {
+      window.location.href = 'login.html?redirect=admin.html';
+    } else if (user.email !== ADMIN_EMAIL) {
+      // If logged in but NOT the admin, kick them to the homepage
+      alert("Access Denied. You are not an administrator.");
       window.location.href = 'index.html';
-    } else {
-      loadEvents();
     }
   });
 
-  function loadEvents() {
-    var select = document.getElementById('active-event-select');
-    db.collection('streams').orderBy('createdAt', 'desc').get().then(function(snap) {
-      select.innerHTML = '<option value="">-- Select an Event --</option>';
-      
-      if (snap.empty) {
-        select.innerHTML = '<option value="">No events found. Create one in Event Studio.</option>';
-        return;
-      }
+  // ═══════════════════════════════════════════════
+  // 2. MOCK PENDING APPROVALS DATA
+  // ═══════════════════════════════════════════════
+  var pendingSellers = [
+    { id: 1, name: 'John Doe', store: 'FutureTech ZA', date: 'Oct 24, 2026', initial: 'J' },
+    { id: 2, name: 'Jane Smith', store: 'Mystery Boxes Co.', date: 'Oct 25, 2026', initial: 'J' }
+  ];
 
-      snap.forEach(function(doc) {
-        var data = doc.data();
-        var opt = document.createElement('option');
-        opt.value = doc.id;
-        opt.textContent = (data.title || 'Untitled') + ' — ' + (data.startDate || '');
-        
-        // Store extra data in attributes for quick access
-        opt.dataset.title = data.title || 'Untitled';
-        opt.dataset.date = data.startDate || 'No Date';
-        
-        select.appendChild(opt);
-      });
-
-      // Restore last used event
-      var lastId = localStorage.getItem('starlane_activeEvent');
-      if (lastId && Array.from(select.options).some(o => o.value === lastId)) {
-        select.value = lastId;
-      } else if (select.options.length > 1) {
-        select.selectedIndex = 1; // Select the first event by default
-      }
-      
-      updatePanel();
-
-      select.addEventListener('change', function() {
-        localStorage.setItem('starlane_activeEvent', select.value);
-        updatePanel();
-      });
-    });
-  }
-
-  function updatePanel() {
-    var select = document.getElementById('active-event-select');
-    var eventId = select.value;
-    var panel = document.getElementById('control-panel');
+  function renderApprovals() {
+    var tbody = document.getElementById('approvals-body');
+    var countEl = document.getElementById('pending-count');
     
-    if (!eventId) {
-      panel.classList.remove('active');
+    tbody.innerHTML = '';
+    countEl.textContent = pendingSellers.length;
+
+    if (pendingSellers.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 30px;">All caught up! No pending applications.</td></tr>';
       return;
     }
 
-    panel.classList.add('active');
-    var selectedOpt = select.options[select.selectedIndex];
-    document.getElementById('panel-event-title').textContent = selectedOpt.dataset.title;
-    document.getElementById('panel-event-date').textContent = "Scheduled: " + selectedOpt.dataset.date;
+    pendingSellers.forEach(function(seller) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div class="user-cell">
+            <div class="avatar">${seller.initial}</div>
+            <div class="user-info"><h4>${seller.name}</h4><p>Applicant</p></div>
+          </div>
+        </td>
+        <td style="font-weight: 600;">${seller.store}</td>
+        <td style="color: var(--text-muted);">${seller.date}</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn-action btn-approve" onclick="handleApproval(${seller.id}, 'approve')">Approve</button>
+            <button class="btn-action btn-reject" onclick="handleApproval(${seller.id}, 'reject')">Reject</button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
   }
 
-  window.launchTool = function(tool) {
-    var eventId = localStorage.getItem('starlane_activeEvent');
-    if (!eventId) return showToast("Please select an event first.");
+  // ═══════════════════════════════════════════════
+  // 3. APPROVAL LOGIC
+  // ═══════════════════════════════════════════════
+  window.handleApproval = function(id, action) {
+    // Filter out the approved/rejected seller
+    pendingSellers = pendingSellers.filter(function(s) { return s.id !== id; });
     
-    var base = window.location.origin;
-    var url = '';
+    // Re-render table
+    renderApprovals();
 
-    if (tool === 'broadcast') url = base + '/broadcast.html';
-    if (tool === 'director') url = base + '/director.html?event=' + eventId;
-    if (tool === 'watch') url = base + '/watch.html?id=' + eventId;
-    if (tool === 'receiver') url = base + '/receiver.html?id=' + eventId;
-    if (tool === 'test') url = base + '/stream-test.html?event=' + eventId;
-
-    window.open(url, '_blank');
+    // Show Toast
+    var toast = document.getElementById('toast');
+    if (action === 'approve') {
+      toast.textContent = '✅ Seller approved. Store is now live.';
+      toast.style.borderLeftColor = 'var(--bright-lime)';
+    } else {
+      toast.textContent = '❌ Seller application rejected.';
+      toast.style.borderLeftColor = 'var(--danger)';
+    }
+    
+    toast.classList.add('show');
+    setTimeout(function() { toast.classList.remove('show'); }, 3000);
   };
 
+  // Initialize
+  renderApprovals();
   if (window.lucide) lucide.createIcons();
 })();
 </script>
