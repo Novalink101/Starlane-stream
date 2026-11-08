@@ -10,7 +10,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
-  /* Same CSS as before... */
   :root { --red: #E50914; --bg: #0a0a0f; --surface: rgba(26, 26, 36, 0.85); --text: #ffffff; --border: rgba(255,255,255,0.1); --success: #10B981; }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { background: #000; color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; height: 100vh; width: 100vw; overflow: hidden; position: relative; }
@@ -44,6 +43,7 @@
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
   .cloud-status { font-size: 10px; font-weight: 800; color: var(--success); background: rgba(16, 185, 129, 0.15); padding: 6px 12px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: 0.3s; }
   .cloud-status.uploading { color: #F59E0B; background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); }
+  .cloud-status.error { color: var(--red); background: rgba(229,9,20,0.15); border-color: rgba(229,9,20,0.3); }
   .bottom-controls { padding: 20px 20px 40px 20px; display: flex; flex-direction: column; gap: 16px; }
   .audio-meter { display: flex; gap: 3px; height: 20px; align-items: flex-end; justify-content: center; margin-bottom: 8px; }
   .audio-bar { width: 6px; background: rgba(255,255,255,0.2); border-radius: 2px; transition: height 0.05s ease; }
@@ -121,8 +121,10 @@
   var db = firebase.firestore();
   var auth = firebase.auth();
 
-  var CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME_HERE"; // ⚠️ CHANGE THIS
+  // ⚠️ ENTER YOUR CLOUDINARY CLOUD NAME HERE
+  var CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME_HERE"; 
   var CLOUDINARY_UPLOAD_PRESET = "starlane_chunks";
+
   var deviceId = localStorage.getItem('starlane_device_id');
   if (!deviceId) {
     deviceId = 'dev_' + Math.random().toString(36).substr(2, 9);
@@ -143,6 +145,7 @@
   var torchOn = false;
   var wakeLock = null;
   var heartbeatInterval = null;
+  var chunkCounter = 0;
 
   auth.onAuthStateChanged(function(user) {
     if (user) {
@@ -196,7 +199,7 @@
     eventWatcher = db.collection('streams').doc(selectedEventId).onSnapshot(function(doc) {
       if (!doc.exists) return;
       var data = doc.data();
-      var camStatus = data.camStatus || {}; // Format: { cam1: { deviceId, lastSeen } }
+      var camStatus = data.camStatus || {}; 
       var camNames = data.camNames || { cam1: 'CAM 1', cam2: 'CAM 2', cam3: 'CAM 3', cam4: 'CAM 4' };
       
       var grid = document.getElementById('cam-select-grid');
@@ -204,7 +207,8 @@
       
       ['cam1','cam2','cam3','cam4'].forEach(function(cam) {
         var status = camStatus[cam];
-        var isInUse = status && status.deviceId !== deviceId && (Date.now() - status.lastSeen < 30000); // 30s timeout
+        // 30 second timeout for dead phones
+        var isInUse = status && status.deviceId !== deviceId && (Date.now() - status.lastSeen < 30000); 
         
         var btn = document.createElement('button');
         btn.className = 'select-btn';
@@ -268,6 +272,7 @@
     }
   });
 
+  // ── RECORDING & UPLOADING (THE FIX) ──
   function startRecording() {
     isStreaming = true;
     var options = { mimeType: 'video/webm;codecs=vp8,opus', videoBitsPerSecond: 4000000, audioBitsPerSecond: 128000 };
@@ -278,6 +283,7 @@
     mediaRecorder.ondataavailable = async function(e) {
       if (e.data.size > 0 && isStreaming) {
         var cloudStatus = document.getElementById('cloud-status');
+        cloudStatus.classList.remove('error');
         cloudStatus.classList.add('uploading');
         cloudStatus.innerHTML = '<i data-lucide="loader" size="12"></i> Sending...';
         if (window.lucide) lucide.createIcons();
@@ -294,13 +300,17 @@
           var data = await res.json();
           
           if (data.secure_url) {
+            chunkCounter++;
             var streamRef = db.collection('streams').doc(selectedEventId);
             var doc = await streamRef.get();
-            var currentHistory = doc.data().camHistory || {};
+            
+            // FIX: Safely handle undefined camHistory
+            var docData = doc.data();
+            var currentHistory = docData.camHistory || {};
             var camArray = currentHistory[selectedCamId] || [];
             
             camArray.push({ url: data.secure_url, time: Date.now() });
-            if (camArray.length > 50) camArray.shift();
+            if (camArray.length > 50) camArray.shift(); 
             
             var update = {};
             update['camHistory.' + selectedCamId] = camArray;
@@ -310,11 +320,18 @@
             await streamRef.update(update);
             
             cloudStatus.classList.remove('uploading');
-            cloudStatus.innerHTML = '<i data-lucide="check" size="12"></i> Synced';
+            cloudStatus.classList.add('synced');
+            cloudStatus.innerHTML = '<i data-lucide="check" size="12"></i> Synced (' + chunkCounter + ')';
             if (window.lucide) lucide.createIcons();
+          } else {
+            throw new Error(data.error ? data.error.message : "Cloudinary Rejected");
           }
         } catch (err) {
-          cloudStatus.innerHTML = '<i data-lucide="alert-circle" size="12"></i> Retrying...';
+          console.error("Chunk upload failed", err);
+          cloudStatus.classList.remove('uploading');
+          cloudStatus.classList.add('error');
+          cloudStatus.innerHTML = '<i data-lucide="alert-triangle" size="12"></i> Error';
+          if (window.lucide) lucide.createIcons();
         }
       }
     };
@@ -323,7 +340,6 @@
     mediaRecorder.start();
     setTimeout(function(){ if (mediaRecorder.state === 'recording') mediaRecorder.stop(); }, 2000);
 
-    // Heartbeat to keep the lock alive
     if (heartbeatInterval) clearInterval(heartbeatInterval);
     heartbeatInterval = setInterval(async function() {
       if (!isStreaming) return;
@@ -365,7 +381,6 @@
     await stopBroadcastLocally();
   });
 
-  // UI Controls (Tap, Zoom, Flip, Torch, Audio)
   var lastTap = 0;
   document.body.addEventListener('click', function(e) {
     var now = Date.now();
