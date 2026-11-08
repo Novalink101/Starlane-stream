@@ -11,6 +11,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.0/dist/confetti.browser.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 
 <style>
   :root { 
@@ -41,7 +43,7 @@
   }
   a { text-decoration: none; color: inherit; }
 
-  /* ── HEADER (Simplified) ── */
+  /* ── HEADER ── */
   .header-wrapper{background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
   .nav-top{max-width:1200px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;}
   .nav-brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--ink-black);letter-spacing:-0.03em;}
@@ -81,14 +83,20 @@
 
   /* ── RIGHT: SUMMARY ── */
   .summary-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; position: sticky; top: 100px; box-shadow: 0 12px 30px rgba(0,0,0,0.04); }
-  
   .summary-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
   
-  .order-item { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px dashed var(--border); }
-  .order-img { width: 64px; height: 64px; border-radius: 10px; background: var(--surface-2) center/cover; }
-  .order-info h4 { font-size: 14px; font-weight: 600; color: var(--ink-black); margin-bottom: 4px; }
+  /* Dynamic Cart Items */
+  #order-items-container { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; max-height: 300px; overflow-y: auto; padding-right: 8px; }
+  #order-items-container::-webkit-scrollbar { width: 6px; }
+  #order-items-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+  
+  .order-item { display: flex; align-items: center; gap: 16px; padding-bottom: 16px; border-bottom: 1px dashed var(--border); }
+  .order-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .order-img { width: 64px; height: 64px; border-radius: 10px; background: var(--surface-2) center/cover; flex-shrink: 0; }
+  .order-info { flex: 1; }
+  .order-info h4 { font-size: 14px; font-weight: 600; color: var(--ink-black); margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
   .order-info p { font-size: 13px; color: var(--text-muted); }
-  .order-price { margin-left: auto; font-family: var(--mono); font-size: 14px; font-weight: 700; }
+  .order-price { font-family: var(--mono); font-size: 14px; font-weight: 700; white-space: nowrap; }
 
   .totals { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
   .total-row { display: flex; justify-content: space-between; font-size: 14px; color: var(--text-muted); }
@@ -105,10 +113,7 @@
   .btn-pay:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
   /* ── SUCCESS OVERLAY ── */
-  #success-screen { 
-    position: fixed; inset: 0; background: var(--ink-black); z-index: 9999; 
-    display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px;
-  }
+  #success-screen { position: fixed; inset: 0; background: var(--ink-black); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; }
   #success-screen.show { display: flex; animation: fadeIn 0.4s ease-out; }
   .success-icon { width: 80px; height: 80px; background: rgba(163,255,18,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--bright-lime); margin-bottom: 24px; border: 2px solid var(--bright-lime); }
   .success-icon svg { width: 40px; height: 40px; }
@@ -117,7 +122,14 @@
   .btn-success { background: #fff; color: var(--ink-black); padding: 14px 32px; border-radius: 8px; font-weight: 700; text-decoration: none; transition: 0.2s; }
   .btn-success:hover { background: var(--silver-glass); }
 
+  /* Empty State */
+  #empty-cart-state { display: none; text-align: center; padding: 60px 20px; }
+  #empty-cart-state svg { width: 64px; height: 64px; color: var(--silver-glass); margin: 0 auto 16px; }
+  #empty-cart-state h2 { font-family: var(--font-display); font-size: 24px; margin-bottom: 8px; }
+  #empty-cart-state p { color: var(--text-muted); margin-bottom: 24px; }
+
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -141,21 +153,28 @@
 </header>
 
 <div class="container">
-  <div class="checkout-layout">
+  
+  <!-- EMPTY CART STATE -->
+  <div id="empty-cart-state">
+    <i data-lucide="shopping-bag"></i>
+    <h2>Your cart is empty</h2>
+    <p>Looks like you haven't uncovered any mysteries yet.</p>
+    <a href="browse.html" class="btn-pay" style="display:inline-flex; width:auto; padding:14px 32px;">Explore the Forest</a>
+  </div>
+
+  <div class="checkout-layout" id="checkout-layout" style="display: none;">
     
     <!-- LEFT: SHIPPING & PAYMENT -->
     <div class="checkout-forms">
       
-      <!-- Contact Info -->
       <div class="checkout-section">
         <h2 class="section-title"><i data-lucide="mail"></i> Contact Information</h2>
         <div class="form-group">
           <label>Email Address</label>
-          <input type="email" placeholder="you@example.com" required />
+          <input type="email" id="checkout-email" placeholder="you@example.com" required />
         </div>
       </div>
 
-      <!-- Shipping Address -->
       <div class="checkout-section">
         <h2 class="section-title"><i data-lucide="map-pin"></i> Shipping Address</h2>
         <div class="form-row">
@@ -184,25 +203,14 @@
         </div>
       </div>
 
-      <!-- Payment Method (Yoco Placeholder) -->
       <div class="checkout-section">
         <h2 class="section-title"><i data-lucide="credit-card"></i> Payment Method</h2>
         <div class="payment-methods">
-          
           <label class="payment-option active">
             <input type="radio" name="payment" checked />
             <span style="font-weight: 600;">Pay securely with Yoco</span>
             <svg class="pay-icon" viewBox="0 0 100 30" fill="none"><text x="0" y="22" fill="#111827" font-weight="900" font-family="Arial" font-size="22">yoco</text></svg>
           </label>
-
-          <label class="payment-option">
-            <input type="radio" name="payment" />
-            <span style="font-weight: 600;">Credit / Debit Card</span>
-            <div style="margin-left: auto; display: flex; gap: 4px;">
-              <i data-lucide="credit-card" style="width:20px; color:#AAB0C4;"></i>
-            </div>
-          </label>
-
         </div>
         <p style="font-size: 13px; color: var(--text-muted); margin-top: 16px; display: flex; align-items: center; gap: 6px;">
           <i data-lucide="shield-check" style="width:16px;"></i> You will be redirected to Yoco to complete your payment securely.
@@ -215,19 +223,15 @@
     <div class="summary-card">
       <h2 class="summary-title">Order Summary</h2>
       
-      <div class="order-item">
-        <div class="order-img" style="background-image: url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=200&auto=format&fit=crop')"></div>
-        <div class="order-info">
-          <h4>Aether Headphones</h4>
-          <p>Qty: 1</p>
-        </div>
-        <div class="order-price">R 3,499.00</div>
+      <!-- DYNAMIC CART ITEMS -->
+      <div id="order-items-container">
+        <!-- Injected by JS -->
       </div>
 
       <div class="totals">
         <div class="total-row">
           <span>Subtotal</span>
-          <span>R 3,499.00</span>
+          <span id="summary-subtotal">R 0.00</span>
         </div>
         <div class="total-row">
           <span>Shipping</span>
@@ -239,12 +243,12 @@
         </div>
         <div class="total-row grand-total">
           <span>Total</span>
-          <span>R 3,499.00</span>
+          <span id="summary-total">R 0.00</span>
         </div>
       </div>
 
       <button class="btn-pay" id="pay-btn" onclick="processPayment()">
-        <i data-lucide="lock" style="width:20px;"></i> Pay R 3,499.00
+        <i data-lucide="lock" style="width:20px;"></i> Pay R 0.00
       </button>
 
       <p style="text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 16px;">
@@ -266,24 +270,98 @@
 <script>
 (function(){
   // ═══════════════════════════════════════════════
-  // 1. SIMULATE PAYMENT (WILL BE REPLACED BY YOCO)
+  // 1. FIREBASE AUTH (Pre-fill email if logged in)
+  // ═══════════════════════════════════════════════
+  var firebaseConfig = {
+    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+    authDomain: "starlane-stream.firebaseapp.com",
+    projectId: "starlane-stream",
+    storageBucket: "starlane-stream.firebasestorage.app",
+    messagingSenderId: "115625325145",
+    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var auth = firebase.auth();
+
+  auth.onAuthStateChanged(function(user) {
+    if (user && user.email) {
+      document.getElementById('checkout-email').value = user.email;
+    }
+  });
+
+  // ═══════════════════════════════════════════════
+  // 2. LOAD & RENDER CART
+  // ═══════════════════════════════════════════════
+  var globalTotal = 0;
+
+  function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  function loadCart() {
+    var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
+    
+    if (cart.length === 0) {
+      document.getElementById('checkout-layout').style.display = 'none';
+      document.getElementById('empty-cart-state').style.display = 'block';
+      return;
+    }
+
+    document.getElementById('checkout-layout').style.display = 'grid';
+    
+    var container = document.getElementById('order-items-container');
+    container.innerHTML = '';
+    globalTotal = 0;
+
+    cart.forEach(function(item) {
+      var itemTotal = item.price * item.quantity;
+      globalTotal += itemTotal;
+
+      var itemEl = document.createElement('div');
+      itemEl.className = 'order-item';
+      itemEl.innerHTML = `
+        <div class="order-img" style="background-image:url('${item.imageUrl}')"></div>
+        <div class="order-info">
+          <h4>${item.name}</h4>
+          <p>Qty: ${item.quantity}</p>
+        </div>
+        <div class="order-price">${money(itemTotal)}</div>
+      `;
+      container.appendChild(itemEl);
+    });
+
+    // Update Totals
+    document.getElementById('summary-subtotal').textContent = money(globalTotal);
+    document.getElementById('summary-total').textContent = money(globalTotal);
+    document.getElementById('pay-btn').innerHTML = `<i data-lucide="lock" style="width:20px;"></i> Pay ${money(globalTotal)}`;
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // ═══════════════════════════════════════════════
+  // 3. PROCESS PAYMENT (Yoco Integration Point)
   // ═══════════════════════════════════════════════
   window.processPayment = function() {
     var btn = document.getElementById('pay-btn');
     
-    // 1. Change button to loading state
+    // 1. Loading State
     btn.disabled = true;
     btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border:2px solid rgba(3,4,7,0.3);border-top-color:var(--ink-black);border-radius:50%;animation:spin 0.8s linear infinite;"></div> Processing...';
     
-    // Add tiny CSS for the spinner animation inside the button
-    var style = document.createElement('style');
-    style.innerHTML = '@keyframes spin { to { transform: rotate(360deg); } }';
-    document.head.appendChild(style);
+    // 2. SIMULATE YOCO API CALL
+    // When you move to Render, you will replace this setTimeout with:
+    // fetch('/api/create-yoco-checkout', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ amount: globalTotal, cart: cart, userEmail: user.email })
+    // })
+    // .then(res => res.json())
+    // .then(data => window.location.href = data.redirectUrl);
 
-    // 2. Simulate network request to your Render backend / Yoco
     setTimeout(function() {
       // Trigger Confetti Explosion
       triggerConfetti();
+      
+      // Clear the cart!
+      localStorage.removeItem('forestbase_cart');
       
       // Show Success Screen
       document.getElementById('success-screen').classList.add('show');
@@ -292,27 +370,15 @@
   };
 
   // ═══════════════════════════════════════════════
-  // 2. CONFETTI CELEBRATION
+  // 4. CONFETTI CELEBRATION
   // ═══════════════════════════════════════════════
   function triggerConfetti() {
     var duration = 3000;
     var end = Date.now() + duration;
 
     (function frame() {
-      confetti({
-        particleCount: 5,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: ['#A3FF12', '#030407', '#AAB0C4']
-      });
-      confetti({
-        particleCount: 5,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: ['#A3FF12', '#030407', '#AAB0C4']
-      });
+      confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#A3FF12', '#030407', '#AAB0C4'] });
+      confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#A3FF12', '#030407', '#AAB0C4'] });
 
       if (Date.now() < end) {
         requestAnimationFrame(frame);
@@ -321,19 +387,13 @@
   }
 
   // ═══════════════════════════════════════════════
-  // 3. UI LOGIC (Radio Buttons)
+  // 5. INIT
   // ═══════════════════════════════════════════════
-  var options = document.querySelectorAll('.payment-option');
-  options.forEach(function(opt) {
-    opt.addEventListener('click', function() {
-      options.forEach(function(o) { o.classList.remove('active'); });
-      this.classList.add('active');
-      this.querySelector('input[type="radio"]').checked = true;
-    });
+  document.addEventListener('DOMContentLoaded', function() {
+    loadCart();
+    if (window.lucide) lucide.createIcons();
   });
-
-  if (window.lucide) lucide.createIcons();
 })();
 </script>
 </body>
-                                                                    </html>
+</html>
