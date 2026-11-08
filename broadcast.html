@@ -23,7 +23,12 @@
   body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; height: 100vh; width: 100vw; overflow: hidden; position: relative; }
   .hidden { display: none !important; }
   
-  /* ── SETUP SCREENS (LIGHT THEME) ── */
+  /* Loading Screen */
+  #loading-screen { position: absolute; inset: 0; background: var(--bg); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Setup Screens */
   .setup-screen { position: absolute; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; overflow-y: auto; }
   .setup-screen h2 { font-size: 26px; font-weight: 900; margin-bottom: 8px; color: var(--text); }
   .setup-screen p { font-size: 15px; color: var(--text-muted); margin-bottom: 24px; }
@@ -45,60 +50,54 @@
   .ads-row input { width: 100%; padding: 14px; border-radius: 10px; background: #fff; border: 1px solid var(--border); color: var(--text); font-size: 15px; outline: none; transition: 0.2s; }
   .ads-row input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(229,9,20,0.1); }
 
-  /* ── BUTTONS ── */
   .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 300px; padding: 18px; border-radius: 12px; font-size: 16px; font-weight: 900; border: none; cursor: pointer; transition: 0.2s; text-decoration: none; }
   .btn-primary { background: var(--red); color: #fff; box-shadow: 0 8px 20px rgba(229,9,20,0.3); }
   .btn-primary:active { transform: scale(0.98); }
   .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); box-shadow: none; }
   .btn-ghost:active { background: var(--surface); }
 
-  /* ── LIVE CAMERA VIEW (DARK OVERLAY) ── */
+  /* Live Camera View */
   #preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-  
   .overlay-wrapper { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 20%, transparent 60%, rgba(0,0,0,0.95) 100%); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
   .overlay-wrapper.show { opacity: 1; pointer-events: auto; }
-
-  /* Top Bar */
   .top-bar { padding: 30px 20px; display: flex; justify-content: space-between; align-items: flex-start; }
   .status-badge { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.6); padding: 8px 14px; border-radius: 20px; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); color: #fff; }
   .status-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #555; }
   .status-badge.live .dot { background: var(--red); box-shadow: 0 0 10px var(--red); animation: pulse 1.5s infinite; }
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-  
   .cloud-status { font-size: 10px; font-weight: 800; color: var(--success); background: rgba(16, 185, 129, 0.15); padding: 6px 12px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: 0.3s; }
   .cloud-status.uploading { color: #F59E0B; background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); }
   .cloud-status.error { color: var(--red); background: rgba(229,9,20,0.15); border-color: rgba(229,9,20,0.3); }
-
-  /* Bottom Controls */
   .bottom-controls { padding: 20px 20px 40px 20px; display: flex; flex-direction: column; gap: 16px; }
   .audio-meter { display: flex; gap: 3px; height: 20px; align-items: flex-end; justify-content: center; margin-bottom: 8px; }
   .audio-bar { width: 6px; background: rgba(255,255,255,0.2); border-radius: 2px; transition: height 0.05s ease; }
   .audio-bar.active { background: var(--success); }
   .audio-bar.hot { background: #F59E0B; }
   .audio-bar.clipping { background: var(--red); }
-
   .control-panel { background: rgba(26, 26, 36, 0.85); backdrop-filter: blur(16px); padding: 20px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 20px; }
   .slider-container { display: flex; flex-direction: column; gap: 8px; width: 100%; }
   .slider-header { display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; }
   input[type=range] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.15); outline: none; }
   input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
-  
   .icon-btn-row { display: flex; gap: 12px; }
   .icon-btn { flex: 1; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 13px; font-weight: 800; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s; }
   .icon-btn:active { background: rgba(255,255,255,0.15); transform: scale(0.96); }
   .icon-btn.active { background: rgba(229,9,20,0.2); border-color: var(--red); color: var(--red); }
-  
   .btn-stop { background: #fff; color: #000; border-radius: 16px; padding: 18px; font-size: 16px; font-weight: 900; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(255,255,255,0.1); }
 </style>
 </head>
 <body>
 
-<!-- 🟢 LIGHT THEME SETUP SCREENS -->
+<!-- ⏳ LOADING SCREEN (Hides flash of login screen) -->
+<div id="loading-screen">
+  <div class="spinner"></div>
+  <p style="font-weight: 800; color: var(--text-muted);">Authenticating...</p>
+</div>
 
-<div class="setup-screen" id="login-screen">
+<!-- 🟢 LIGHT THEME SETUP SCREENS -->
+<div class="setup-screen hidden" id="login-screen">
   <h2>Camera App</h2>
   <p>Sign in to access your broadcast slots.</p>
-  <!-- 🟢 BULLETPROOF LINK: Using an <a> tag instead of a button -->
   <a href="auth.html?redirect=broadcast.html" class="btn btn-primary">Sign In</a>
 </div>
 
@@ -125,7 +124,7 @@
   <button class="btn btn-primary" id="btn-start-stream">Go Live in HD</button>
 </div>
 
-<!-- 🔴 LIVE CAMERA VIEW (Dark) -->
+<!-- 🔴 LIVE CAMERA VIEW -->
 <video id="preview" autoplay playsinline muted class="hidden"></video>
 
 <div class="overlay-wrapper hidden" id="overlay">
@@ -150,9 +149,6 @@
 </div>
 
 <script>
-  // ═══════════════════════════════════════════════════════════
-  // 1. CONFIGURATION & SETUP
-  // ═══════════════════════════════════════════════════════════
   var firebaseConfig = { apiKey:"AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk", authDomain:"starlane-stream.firebaseapp.com", projectId:"starlane-stream", storageBucket:"starlane-stream.firebasestorage.app", messagingSenderId:"115625325145", appId:"1:115625325145:web:b14025df503bbe2b7d7748" };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var db = firebase.firestore();
@@ -185,13 +181,15 @@
   var chunkCounter = 0;
 
   // ═══════════════════════════════════════════════════════════
-  // 2. AUTH & NAVIGATION
+  // 2. AUTH & NAVIGATION (The Fix is here)
   // ═══════════════════════════════════════════════════════════
   auth.onAuthStateChanged(function(user) {
+    // Hide loading screen ONLY after Firebase responds
+    document.getElementById('loading-screen').classList.add('hidden');
+    
     if (user) {
       document.getElementById('login-screen').classList.add('hidden');
       
-      // Check if admin already selected an event in the dashboard or URL
       var urlEventId = new URLSearchParams(location.search).get('event');
       var storedEventId = urlEventId || localStorage.getItem('starlane_activeEvent');
       
@@ -204,6 +202,7 @@
         loadEvents();
       }
     } else {
+      // Only show login if Firebase explicitly says user is null
       document.getElementById('login-screen').classList.remove('hidden');
       document.getElementById('event-screen').classList.add('hidden');
       document.getElementById('camera-screen').classList.add('hidden');
@@ -225,6 +224,9 @@
         btn.onclick = function() {
           selectedEventId = doc.id;
           selectedEventName = data.title;
+          // Save to local storage so it survives page reloads
+          localStorage.setItem('starlane_activeEvent', selectedEventId);
+          
           document.getElementById('event-screen').classList.add('hidden');
           document.getElementById('camera-screen').classList.remove('hidden');
           listenToCameras();
@@ -236,13 +238,11 @@
 
   document.getElementById('btn-back-event').addEventListener('click', function() {
     if (eventWatcher) eventWatcher();
+    localStorage.removeItem('starlane_activeEvent'); // Clear saved event
     document.getElementById('camera-screen').classList.add('hidden');
     document.getElementById('event-screen').classList.remove('hidden');
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // 3. CAMERA LOCKING LOGIC
-  // ═══════════════════════════════════════════════════════════
   function listenToCameras() {
     if (eventWatcher) eventWatcher();
     
@@ -260,7 +260,6 @@
       
       ['cam1','cam2','cam3','cam4'].forEach(function(cam) {
         var status = camStatus[cam];
-        // 30 second timeout for dead phones
         var isInUse = status && status.deviceId !== deviceId && (Date.now() - status.lastSeen < 30000); 
         
         var btn = document.createElement('button');
@@ -284,9 +283,6 @@
     });
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // 4. START BROADCAST
-  // ═══════════════════════════════════════════════════════════
   document.getElementById('btn-start-stream').addEventListener('click', async function() {
     var adsTime = parseInt(document.getElementById('ads-time').value) || 0;
     var adsDuration = parseInt(document.getElementById('ads-duration').value) || 0;
@@ -302,7 +298,6 @@
 
       try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
 
-      // Lock the camera in Firebase
       await db.collection('streams').doc(selectedEventId).update({
         ['camStatus.' + selectedCamId]: { deviceId: deviceId, lastSeen: Date.now() },
         activeCamera: selectedCamId,
@@ -327,9 +322,6 @@
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // 5. RECORDING & UPLOADING (DIRECT TO CLOUDINARY)
-  // ═══════════════════════════════════════════════════════════
   function startRecording() {
     isStreaming = true;
     var options = { mimeType: 'video/webm;codecs=vp8,opus', videoBitsPerSecond: 4000000, audioBitsPerSecond: 128000 };
@@ -404,9 +396,6 @@
     }, 10000);
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // 6. KILL SWITCH WATCHER
-  // ═══════════════════════════════════════════════════════════
   function startKillWatcher() {
     if (killWatcher) killWatcher();
     killWatcher = db.collection('streams').doc(selectedEventId).onSnapshot(function(doc) {
@@ -439,9 +428,6 @@
     await stopBroadcastLocally();
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // 7. UI CONTROLS
-  // ═══════════════════════════════════════════════════════════
   var lastTap = 0;
   document.body.addEventListener('click', function(e) {
     var now = Date.now();
