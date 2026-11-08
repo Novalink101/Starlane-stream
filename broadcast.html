@@ -88,13 +88,11 @@
 </head>
 <body>
 
-<!-- ⏳ LOADING SCREEN (Hides flash of login screen) -->
 <div id="loading-screen">
   <div class="spinner"></div>
   <p style="font-weight: 800; color: var(--text-muted);">Authenticating...</p>
 </div>
 
-<!-- 🟢 LIGHT THEME SETUP SCREENS -->
 <div class="setup-screen hidden" id="login-screen">
   <h2>Camera App</h2>
   <p>Sign in to access your broadcast slots.</p>
@@ -124,7 +122,6 @@
   <button class="btn btn-primary" id="btn-start-stream">Go Live in HD</button>
 </div>
 
-<!-- 🔴 LIVE CAMERA VIEW -->
 <video id="preview" autoplay playsinline muted class="hidden"></video>
 
 <div class="overlay-wrapper hidden" id="overlay">
@@ -154,14 +151,24 @@
   var db = firebase.firestore();
   var auth = firebase.auth();
 
-  // ✅ YOUR CLOUDINARY CREDENTIALS
   var CLOUDINARY_CLOUD_NAME = "s5iwi88d"; 
   var CLOUDINARY_UPLOAD_PRESET = "starlane_unsigned";
 
-  var deviceId = localStorage.getItem('starlane_device_id');
+  // 🛡️ SAFE STORAGE WRAPPERS (Fixes the infinite spinner on phones that block localStorage)
+  function getStorage(key) {
+    try { return localStorage.getItem(key); } catch(e) { return null; }
+  }
+  function setStorage(key, val) {
+    try { localStorage.setItem(key, val); } catch(e) {}
+  }
+  function removeStorage(key) {
+    try { localStorage.removeItem(key); } catch(e) {}
+  }
+
+  var deviceId = getStorage('starlane_device_id');
   if (!deviceId) {
     deviceId = 'dev_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('starlane_device_id', deviceId);
+    setStorage('starlane_device_id', deviceId);
   }
 
   var video = document.getElementById('preview');
@@ -180,18 +187,24 @@
   var heartbeatInterval = null;
   var chunkCounter = 0;
 
-  // ═══════════════════════════════════════════════════════════
-  // 2. AUTH & NAVIGATION (The Fix is here)
-  // ═══════════════════════════════════════════════════════════
+  // 🛡️ FAILSAFE: If Firebase is blocked by the network, show login screen after 3 seconds
+  var authResolved = false;
+  setTimeout(function() {
+    if (!authResolved) {
+      document.getElementById('loading-screen').classList.add('hidden');
+      document.getElementById('login-screen').classList.remove('hidden');
+    }
+  }, 3000);
+
   auth.onAuthStateChanged(function(user) {
-    // Hide loading screen ONLY after Firebase responds
+    authResolved = true;
     document.getElementById('loading-screen').classList.add('hidden');
     
     if (user) {
       document.getElementById('login-screen').classList.add('hidden');
       
       var urlEventId = new URLSearchParams(location.search).get('event');
-      var storedEventId = urlEventId || localStorage.getItem('starlane_activeEvent');
+      var storedEventId = urlEventId || getStorage('starlane_activeEvent');
       
       if (storedEventId) {
         selectedEventId = storedEventId;
@@ -202,7 +215,6 @@
         loadEvents();
       }
     } else {
-      // Only show login if Firebase explicitly says user is null
       document.getElementById('login-screen').classList.remove('hidden');
       document.getElementById('event-screen').classList.add('hidden');
       document.getElementById('camera-screen').classList.add('hidden');
@@ -224,8 +236,7 @@
         btn.onclick = function() {
           selectedEventId = doc.id;
           selectedEventName = data.title;
-          // Save to local storage so it survives page reloads
-          localStorage.setItem('starlane_activeEvent', selectedEventId);
+          setStorage('starlane_activeEvent', selectedEventId);
           
           document.getElementById('event-screen').classList.add('hidden');
           document.getElementById('camera-screen').classList.remove('hidden');
@@ -238,7 +249,7 @@
 
   document.getElementById('btn-back-event').addEventListener('click', function() {
     if (eventWatcher) eventWatcher();
-    localStorage.removeItem('starlane_activeEvent'); // Clear saved event
+    removeStorage('starlane_activeEvent');
     document.getElementById('camera-screen').classList.add('hidden');
     document.getElementById('event-screen').classList.remove('hidden');
   });
