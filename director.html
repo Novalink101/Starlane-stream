@@ -72,7 +72,7 @@
   .status-label { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
   .status-val { font-size: 20px; font-weight: 900; color: var(--text); font-family: monospace; }
   .status-val.live { color: var(--red); }
-  .status-val.killed { color: #000; background: var(--red); color: #fff; padding: 4px 12px; border-radius: 8px; }
+  .status-val.killed { color: #fff; background: var(--red); padding: 4px 12px; border-radius: 8px; }
 
   /* Camera Grid */
   .grid-title { font-size: 14px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; width: 100%; max-width: 900px; margin-bottom: 16px; text-align: left; }
@@ -92,7 +92,7 @@
   @media (max-width: 600px) { .split-btn { grid-column: span 1; } }
 
   /* Notifications */
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #111827; color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 14px; opacity: 0; transition: 0.3s; z-index: 100; pointer-events: none; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #111827; color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 14px; opacity: 0; transition: 0.3s; z-index: 100; pointer-events: none; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
   .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 </style>
 </head>
@@ -117,7 +117,7 @@
 <div class="master-panel">
   <button class="master-btn ads" id="btn-ads">
     <i data-lucide="play-circle"></i>
-    Fire Ads
+    <span id="ads-btn-text">Fire Ads</span>
   </button>
   
   <button class="master-btn kill" id="btn-kill">
@@ -205,7 +205,10 @@
       });
 
       // Highlight Ads Button
-      document.getElementById('btn-ads').classList.toggle('active', data.forceAds === true);
+      var adsActive = data.forceAds === true;
+      var adsBtn = document.getElementById('btn-ads');
+      adsBtn.classList.toggle('active', adsActive);
+      document.getElementById('ads-btn-text').textContent = adsActive ? 'Stop Ads' : 'Fire Ads';
 
       // Update Status Text
       var statusDisplay = document.getElementById('status-display');
@@ -249,7 +252,8 @@
         // Clear kill flags when switching cams so the stream resumes
         db.collection('streams').doc(currentEventId).update({ 
           activeCamera: cam, 
-          forceAds: false
+          forceAds: false,
+          killedAt: firebase.firestore.FieldValue.delete()
         }).then(function() {
           showToast("Switched to " + cam.toUpperCase());
         }).catch(function(err) { 
@@ -258,7 +262,7 @@
       });
     });
 
-    // 4. Fire Ads Button
+    // 4. Fire Ads Button (Toggle)
     document.getElementById('btn-ads').addEventListener('click', function() {
       if (isKilled) return showToast("Stream is killed.");
       
@@ -275,7 +279,8 @@
       if (pin === "2138") {
         db.collection('streams').doc(currentEventId).update({
           killedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          forceAds: true
+          forceAds: true,
+          camStatus: firebase.firestore.FieldValue.delete() // Forcefully unlock the phones
         }).then(function() {
           showToast("STREAM KILLED. Cameras will disconnect.");
         });
