@@ -40,32 +40,27 @@
   .stars-2 { position: absolute; inset: -50%; background-image: radial-gradient(1px 1px at 20% 30%, rgba(229,9,20,.3), transparent 100%), radial-gradient(2px 2px at 60% 10%, rgba(0,0,0,.15), transparent 100%); background-size: 300px 300px; animation: drift 20s linear infinite reverse; }
   @keyframes drift { 0% { transform: translateY(0) translateX(0); } 100% { transform: translateY(-200px) translateX(-100px); } }
 
-  /* Navbar back button */
   .nav-back { position: absolute; top: 24px; left: 24px; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-muted); transition: 0.2s; z-index: 10; }
   .nav-back:hover { color: var(--text); transform: translateX(-4px); }
 
-  /* Auth Card */
   .auth-card { 
     background: #ffffff; border: 1px solid var(--border); border-radius: 24px; 
-    padding: 48px 40px; width: 100%; max-width: 440px; 
+    padding: 40px 32px; width: 100%; max-width: 440px; 
     box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08);
     position: relative;
     z-index: 1;
   }
-  @media (max-width: 480px) { .auth-card { padding: 32px 24px; } }
 
   .logo-wrap { display: flex; justify-content: center; margin-bottom: 24px; }
   .logo-wrap svg { width: 48px; height: 58px; filter: drop-shadow(0 8px 16px rgba(229,9,20,0.2)); }
 
   .auth-title { font-size: 24px; font-weight: 900; text-align: center; letter-spacing: -0.5px; margin-bottom: 8px; color: #111827; }
-  .auth-sub { font-size: 14px; color: var(--text-muted); text-align: center; margin-bottom: 32px; font-weight: 500; }
+  .auth-sub { font-size: 14px; color: var(--text-muted); text-align: center; margin-bottom: 24px; font-weight: 500; }
 
-  /* Tabs */
   .tabs { display: flex; background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin-bottom: 24px; }
   .tabs button { flex: 1; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 800; color: var(--text-muted); background: transparent; border: none; cursor: pointer; transition: 0.2s; font-family: inherit; }
   .tabs button.active { background: #f3f4f6; color: #111827; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 
-  /* Form */
   .form-group { margin-bottom: 16px; }
   .form-group label { display: block; font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
   .form-group input { 
@@ -79,7 +74,7 @@
 
   .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; transition: 0.2s; border: none; font-family: inherit; }
   .btn-primary { background: var(--red); color: #fff; box-shadow: 0 8px 20px rgba(229,9,20,0.3); }
-  .btn-primary:hover { background: var(--red-hover); transform: translateY(-2px); }
+  .btn-primary:hover:not(:disabled) { background: var(--red-hover); transform: translateY(-2px); }
   .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
   
   .btn-google { background: #ffffff; color: #111827; border: 1px solid var(--border); margin-top: 12px; }
@@ -94,8 +89,7 @@
   .forgot-link { display: block; text-align: right; font-size: 13px; font-weight: 700; color: var(--text-muted); margin-top: -8px; margin-bottom: 16px; cursor: pointer; }
   .forgot-link:hover { color: var(--red); }
   
-  /* Toast */
-  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #ffffff; color: #111827; padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 14px; opacity: 0; transition: 0.3s; z-index: 100; pointer-events: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 1px solid var(--border); }
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #111827; color: #fff; padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 14px; opacity: 0; transition: 0.3s; z-index: 100; pointer-events: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 90%; max-width: 400px; }
   #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 </style>
 </head>
@@ -176,6 +170,7 @@
 
   var isSignup = false;
   var redirectUrl = new URLSearchParams(window.location.search).get('redirect') || 'index.html';
+  var isProcessing = false; // Prevents redirect loops
 
   var titleEl = document.getElementById('auth-title');
   var subEl = document.getElementById('auth-sub');
@@ -190,7 +185,7 @@
   function showToast(msg) {
     toastEl.textContent = msg;
     toastEl.classList.add('show');
-    setTimeout(function(){ toastEl.classList.remove('show'); }, 4000);
+    setTimeout(function(){ toastEl.classList.remove('show'); }, 5000);
   }
 
   function setMode(signup) {
@@ -219,6 +214,7 @@
   tabLogin.addEventListener('click', function() { setMode(false); });
   tabSignup.addEventListener('click', function() { setMode(true); });
 
+  // 1. EMAIL / PASSWORD LOGIN
   form.addEventListener('submit', function(e) {
     e.preventDefault();
     var email = document.getElementById('email-input').value;
@@ -231,12 +227,10 @@
     if (isSignup) {
       auth.createUserWithEmailAndPassword(email, pw)
         .then(function(cred) {
-          // Save the name FIRST, then redirect
           return cred.user.updateProfile({ displayName: name });
         })
         .then(function() {
           showToast('Account created successfully!');
-          // Give Firebase a second to sync the profile before redirecting
           setTimeout(function() { window.location.href = redirectUrl; }, 1000);
         })
         .catch(function(err) {
@@ -258,18 +252,30 @@
     }
   });
 
+  // 2. GOOGLE LOGIN (Mobile Safe)
   document.getElementById('google-btn').addEventListener('click', function() {
     var provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider)
-      .then(function() {
-        showToast('Signed in with Google!');
-        setTimeout(function() { window.location.href = redirectUrl; }, 1000);
-      })
-      .catch(function(err) {
-        showToast(err.message);
+    var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // Mobile browsers BLOCK popups. We must use redirect.
+      auth.signInWithRedirect(provider).catch(function(err) {
+        showToast("Google Login Error: " + err.message);
       });
+    } else {
+      // Desktop can use popup
+      auth.signInWithPopup(provider)
+        .then(function() {
+          showToast('Signed in with Google!');
+          setTimeout(function() { window.location.href = redirectUrl; }, 1000);
+        })
+        .catch(function(err) {
+          showToast(err.message);
+        });
+    }
   });
 
+  // 3. FORGOT PASSWORD
   forgotLink.addEventListener('click', function() {
     var email = document.getElementById('email-input').value;
     if (!email) return showToast('Please enter your email address first.');
@@ -287,13 +293,30 @@
     setMode(true);
   }
 
-  // If they are already logged in when they hit this page, send them to the redirect URL immediately
-  var initialAuthCheck = true;
-  auth.onAuthStateChanged(function(user) {
-    if (initialAuthCheck && user) {
+  // 4. SMART REDIRECT & GOOGLE REDIRECT HANDLER
+  // This checks if you just came back from Google's redirect page
+  auth.getRedirectResult().then(function(result) {
+    if (result.user) {
+      showToast('Signed in with Google!');
       window.location.href = redirectUrl;
     }
-    initialAuthCheck = false;
+  }).catch(function(error) {
+    if (error.code === 'auth/unauthorized-domain') {
+      showToast("Firebase Error: You must add " + window.location.hostname + " to Firebase Authorized Domains.");
+    } else if (error.code !== 'auth/no-auth-event') {
+      showToast(error.message);
+    }
+  });
+
+  // 5. CHECK CURRENT LOGIN STATE
+  auth.onAuthStateChanged(function(user) {
+    // If we are already processing a login, don't redirect again
+    if (isProcessing) return;
+    
+    if (user) {
+      isProcessing = true;
+      window.location.href = redirectUrl;
+    }
   });
 
   if (window.lucide) lucide.createIcons();
