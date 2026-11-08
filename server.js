@@ -10,20 +10,22 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// 2. Firebase Admin Initialization
+// 2. Firebase Admin Initialization (Safely wrapped)
 let db = null;
 try {
   const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  // Fix newlines in private key for Render
   if (serviceAccount.private_key) {
     serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
   }
+  
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
   db = admin.firestore();
   console.log("✅ Firebase Admin Initialized");
 } catch (error) {
-  console.error("❌ Firebase Admin Error:", error.message);
+  console.error("❌ Firebase Admin Error (Server will still run):", error.message);
 }
 
 // ==========================================
@@ -34,6 +36,7 @@ try {
 app.post('/api/create-yoco-checkout', async (req, res) => {
   try {
     const { checkoutId, userId, userEmail, streamId, price, returnUrl } = req.body;
+
     if (!checkoutId || !userId || !streamId || !price) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -55,9 +58,13 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
     });
 
     const yocoData = await yocoRes.json();
-    if (!yocoRes.ok) throw new Error(yocoData.message || 'Yoco rejected the request');
+
+    if (!yocoRes.ok) {
+      throw new Error(yocoData.message || 'Yoco rejected the request');
+    }
 
     res.json({ redirectUrl: yocoData.redirectUrl });
+
   } catch (err) {
     console.error('[Yoco Checkout Error]', err);
     res.status(500).json({ error: err.message });
@@ -65,38 +72,45 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
 });
 
 // --- [ YOCO PAYMENT: WEBHOOK ] ---
-// IMPORTANT: Add this URL to your Yoco Dashboard: https://starlane-stream-api.onrender.com/api/yoco-webhook
+// ⚠️ IMPORTANT: Add this URL to your Yoco Dashboard: https://starlane-stream-api.onrender.com/api/yoco-webhook
 app.post('/api/yoco-webhook', async (req, res) => {
   try {
     if (!db) return res.status(500).json({ error: 'Database not initialized' });
     
     const event = req.body;
-    if (event.type !== 'payment.succeeded') return res.status(200).json({ received: true });
+
+    // Ignore failed payments
+    if (event.type !== 'payment.succeeded') {
+      return res.status(200).json({ received: true, ignored: true });
+    }
 
     const meta = event.payload.metadata || {};
     const { checkoutId, userId, streamId } = meta;
 
-    if (userId && streamId) {
-      // 1. Mark purchase as paid
-      if (checkoutId) {
-        await db.collection('purchases').doc(checkoutId).update({
-          status: 'paid',
-          paidAt: admin.firestore.FieldValue.serverTimestamp(),
-          yocoPaymentId: event.payload.id
-        }).catch(e => console.log('Purchase doc not found'));
-      }
-
-      // 2. Grant the pass
-      await db.collection('users').doc(userId).collection('passes').doc(streamId).set({
-        streamId: streamId,
-        status: 'approved',
-        purchasedAt: admin.firestore.FieldValue.serverTimestamp(),
-        checkoutId: checkoutId
-      }, { merge: true });
-
-      console.log(`✅ [Webhook] Pass granted for User ${userId} to Stream ${streamId}`);
+    if (!userId || !streamId) {
+      return res.status(400).json({ error: 'Missing metadata' });
     }
+
+    // 1. Mark purchase as paid
+    if (checkoutId) {
+      await db.collection('purchases').doc(checkoutId).update({
+        status: 'paid',
+        paidAt: admin.firestore.FieldValue.serverTimestamp(),
+        yocoPaymentId: event.payload.id
+      }).catch(e => console.log('Purchase doc not found'));
+    }
+
+    // 2. GRANT THE PASS (The secure way!)
+    await db.collection('users').doc(userId).collection('passes').doc(streamId).set({
+      streamId: streamId,
+      status: 'approved',
+      purchasedAt: admin.firestore.FieldValue.serverTimestamp(),
+      checkoutId: checkoutId
+    }, { merge: true });
+
+    console.log(`✅ [Webhook] Pass granted for User ${userId} to Stream ${streamId}`);
     res.status(200).json({ success: true });
+
   } catch (err) {
     console.error('[Webhook Error]', err);
     res.status(500).json({ error: err.message });
@@ -106,8 +120,8 @@ app.post('/api/yoco-webhook', async (req, res) => {
 // ==========================================
 // STATIC FRONTEND HOSTING (WITH CACHING)
 // ==========================================
-// Serves HTML files from the current folder and caches them in the browser for 1 day.
-// This completely fixes the "hell slow" loading issue.
+// Serves HTML files from the current folder and caches them in the browser.
+// This stops the "hell slow" loading issue on Render's free tier.
 app.use(express.static(__dirname, {
   maxAge: '1d',
   etag: true
