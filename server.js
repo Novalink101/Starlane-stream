@@ -31,13 +31,14 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Increase limits for high-quality video chunks
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static HTML files
 app.use(express.static(path.join(__dirname, './')));
 
-// Setup Multer for handling video chunk uploads in memory
+// Setup Multer for handling video chunk uploads
 const upload = multer({ storage: multer.memoryStorage() });
 
 
@@ -88,7 +89,7 @@ try {
 }
 
 /* ───────────────────────────────────────────────────────────
-   4. BROADCAST: UPLOAD VIDEO CHUNKS
+   4. BROADCAST: UPLOAD VIDEO CHUNKS (HIGH QUALITY)
    ─────────────────────────────────────────────────────────── */
 app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
     if (!req.file) {
@@ -102,10 +103,16 @@ app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
     }
 
     try {
-        // STRIPPED DOWN: No folders, no complex params. Just raw upload.
         const uploadResult = await new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
-                { resource_type: 'video' },
+                { 
+                    resource_type: 'video',
+                    // Force highest quality and best codecs
+                    quality: 'auto:best', 
+                    video_codec: 'h264',
+                    audio_codec: 'aac',
+                    bit_rate: '5m'
+                },
                 (error, result) => {
                     if (error) reject(error);
                     else resolve(result);
