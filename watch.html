@@ -17,13 +17,9 @@
   body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; position: relative; text-align: center; overflow-x: hidden; }
   a { text-decoration: none; color: inherit; }
   .hidden { display: none !important; }
-
-  /* Starfield */
   .starfield { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: #ffffff; overflow: hidden; }
   .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(229,9,20,.15), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
   @keyframes drift { 0% { transform: translateY(0) translateX(0); } 100% { transform: translateY(-200px) translateX(-100px); } }
-
-  /* Navbar */
   .nav { position: absolute; top: 0; left: 0; right: 0; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; z-index: 50; }
   .logo { display: flex; align-items: center; gap: 12px; }
   .logo svg { width: 28px; height: 34px; }
@@ -31,8 +27,6 @@
   .logo b span { color: var(--red); }
   .btn-nav { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-muted); }
   .btn-nav:hover { color: var(--text); }
-
-  /* Auth Cards */
   .card { background: #ffffff; border: 1px solid var(--border); border-radius: 24px; padding: 48px 40px; max-width: 480px; margin: 0 auto; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08); z-index: 1; margin-top: 60px; }
   .icon-box { width: 72px; height: 72px; background: #fee2e2; color: var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 32px; }
   .card h1 { font-size: 26px; font-weight: 900; margin-bottom: 12px; }
@@ -40,27 +34,20 @@
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 16px 24px; border-radius: 12px; font-weight: 800; font-size: 16px; text-decoration: none; border: none; cursor: pointer; transition: 0.2s; width: 100%; margin-bottom: 12px; }
   .btn-primary { background: var(--red); color: #fff; }
   .btn-ghost { background: #ffffff; color: var(--text); border: 1px solid var(--border); }
-
-  /* Player & Grids */
   .player-container { position: relative; width: 100%; max-width: 1200px; aspect-ratio: 16/9; background: #000; border-radius: 20px; overflow: hidden; margin-top: 60px; z-index: 1; user-select: none; }
   .cam-grid { display: grid; width: 100%; height: 100%; gap: 4px; background: #000; }
   .grid-2 { grid-template-columns: 1fr 1fr; }
   .grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
   .cam-box { position: relative; width: 100%; height: 100%; background: #0a0a0f; display: flex; align-items: center; justify-content: center; overflow: hidden; }
   .cam-box video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  
   .cam-offline { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2; background: #0a0a0f; }
   .cam-offline svg { width: 40px; height: 48px; opacity: 0.5; margin-bottom: 8px; }
   .cam-offline p { font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; }
-
-  /* Ad Overlay */
   .ad-container { position: absolute; inset: 0; z-index: 45; background: #000; display: flex; flex-direction: column; }
   .ad-container.hidden { display: none; }
   .ad-media { flex: 1; width: 100%; height: 100%; object-fit: contain; background: #000; }
   .ad-topbar { position: absolute; top: 0; left: 0; right: 0; padding: 16px; display: flex; justify-content: space-between; align-items: flex-start; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); z-index: 46; }
   .ad-label { background: #F59E0B; color: #000; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
-
-  /* Waiting Overlay */
   .fullscreen-overlay { position: absolute; inset: 0; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0a0a0f; }
   .fullscreen-overlay.hidden { display: none; }
   .fullscreen-overlay .logos { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 24px; }
@@ -99,17 +86,14 @@
   <div class="player-container" id="player-container">
     
     <div id="view-single" class="cam-box">
-      <!-- We use two video tags here for the seamless buffer -->
       <video id="video-single-a" playsinline autoplay muted preload="auto"></video>
       <video id="video-single-b" playsinline autoplay muted preload="auto" style="display:none;"></video>
-      
       <div class="cam-offline" id="offline-single">
         <svg viewBox="0 0 60 74"><path d="M10 60 Q 22 32 44 20" stroke="#E50914" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="18" r="5" fill="#fff"/></svg>
         <p>Camera Offline</p>
       </div>
     </div>
 
-    <!-- 2-WAY AND 4-WAY SPLIT LOGIC REMAINS THE SAME -->
     <div id="view-2way" class="cam-grid grid-2 hidden">
       <div class="cam-box">
         <video id="video-cam1-2" playsinline autoplay muted preload="auto"></video>
@@ -140,13 +124,11 @@
       </div>
     </div>
 
-    <!-- AD OVERLAY -->
     <div class="ad-container hidden" id="ad-overlay">
       <div class="ad-topbar"><div class="ad-label">Sponsored</div></div>
       <div id="ad-media-container" style="flex:1; display:flex; align-items:center; justify-content:center;"></div>
     </div>
 
-    <!-- WAITING OVERLAY -->
     <div class="fullscreen-overlay" id="waiting-overlay">
       <div class="prestream-spinner"></div>
       <div class="logos">
@@ -162,35 +144,16 @@
 
 <script>
 (function(){
-  var firebaseConfig = {
-    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
-    authDomain: "starlane-stream.firebaseapp.com",
-    projectId: "starlane-stream",
-    storageBucket: "starlane-stream.firebasestorage.app",
-    messagingSenderId: "115625325145",
-    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
-  };
+  var firebaseConfig = { apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk", authDomain: "starlane-stream.firebaseapp.com", projectId: "starlane-stream", storageBucket: "starlane-stream.firebasestorage.app", messagingSenderId: "115625325145", appId: "1:115625325145:web:b14025df503bbe2b7d7748" };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var db = firebase.firestore();
   var auth = firebase.auth();
 
-  var views = {
-    single: document.getElementById('view-single'),
-    way2: document.getElementById('view-2way'),
-    way4: document.getElementById('view-4way')
-  };
-  
-  var screens = {
-    loading: document.getElementById('screen-loading'),
-    paywall: document.getElementById('screen-paywall'),
-    player: document.getElementById('screen-player')
-  };
+  var views = { single: document.getElementById('view-single'), way2: document.getElementById('view-2way'), way4: document.getElementById('view-4way') };
+  var screens = { loading: document.getElementById('screen-loading'), paywall: document.getElementById('screen-paywall'), player: document.getElementById('screen-player') };
 
   function showScreen(name) {
-    screens.loading.classList.add('hidden');
-    screens.paywall.classList.add('hidden');
-    screens.player.classList.add('hidden');
-    screens[name].classList.remove('hidden');
+    screens.loading.classList.add('hidden'); screens.paywall.classList.add('hidden'); screens.player.classList.add('hidden'); screens[name].classList.remove('hidden');
   }
 
   var streamId = new URLSearchParams(window.location.search).get('id');
@@ -211,14 +174,10 @@
 
   function showPaywall(price) {
     showScreen('paywall');
-    document.getElementById('paywall-actions').innerHTML = `
-      <a href="checkout.html?streamId=${streamId}&price=${price}" class="btn btn-primary">Pay R${price} Now</a>
-      <a href="https://novalink-tickets.onrender.com" class="btn btn-ghost">Buy on Novalink</a>
-    `;
+    document.getElementById('paywall-actions').innerHTML = `<a href="checkout.html?streamId=${streamId}&price=${price}" class="btn btn-primary">Pay R${price} Now</a><a href="https://novalink-tickets.onrender.com" class="btn btn-ghost">Buy on Novalink</a>`;
     if (window.lucide) lucide.createIcons();
   }
 
-  // Seamless Swapper for Camera 1
   var isPlayingA = true;
   var lastUrlSingle = null;
 
@@ -228,30 +187,19 @@
       document.getElementById('offline-single').querySelector('p').textContent = camName;
       return;
     }
-
     document.getElementById('offline-single').classList.add('hidden');
-
     if (url !== lastUrlSingle) {
       lastUrlSingle = url;
-      
       var activeVid = isPlayingA ? document.getElementById('video-single-a') : document.getElementById('video-single-b');
       var hiddenVid = isPlayingA ? document.getElementById('video-single-b') : document.getElementById('video-single-a');
-      
-      // Load the new chunk into the hidden video
       hiddenVid.src = url;
       hiddenVid.load();
-      
       hiddenVid.play().then(function() {
-        // Once it's playing, show it and hide the old one
         hiddenVid.style.display = 'block';
         activeVid.style.display = 'none';
         activeVid.pause();
-        
-        // Flip the switch
         isPlayingA = !isPlayingA;
-        
-        // Ensure we stay at the live edge
-        hiddenVid.currentTime = hiddenVid.duration;
+        hiddenVid.currentTime = hiddenVid.duration; 
       }).catch(function(){});
     }
   }
@@ -264,7 +212,7 @@
       if (vid.src !== url) {
         vid.src = url;
         vid.play().catch(()=>{});
-        vid.currentTime = vid.duration; // Stay live
+        vid.currentTime = vid.duration;
       }
     } else {
       offline.classList.remove('hidden');
@@ -275,59 +223,28 @@
 
   var currentAds = [];
   var adTimeout = null;
-
-  db.collection('ads').get().then(function(snap) {
-    snap.forEach(function(doc) { currentAds.push(doc.data()); });
-  });
+  db.collection('ads').get().then(function(snap) { snap.forEach(function(doc) { currentAds.push(doc.data()); }); });
 
   function playNextAd() {
     var adOverlay = document.getElementById('ad-overlay');
     var adMedia = document.getElementById('ad-media-container');
-    
-    if (currentAds.length === 0) {
-      adOverlay.classList.add('hidden');
-      document.getElementById('waiting-overlay').classList.remove('hidden');
-      return;
-    }
-
+    if (currentAds.length === 0) { adOverlay.classList.add('hidden'); document.getElementById('waiting-overlay').classList.remove('hidden'); return; }
     var ad = currentAds[Math.floor(Math.random() * currentAds.length)];
-    
     adOverlay.classList.remove('hidden');
     document.getElementById('waiting-overlay').classList.add('hidden');
     adMedia.innerHTML = '';
-    
     var timeLeft = ad.duration || 30;
     var timeElapsed = 0;
-
     var mediaEl;
-    if (ad.type === 'video') {
-      mediaEl = document.createElement('video');
-      mediaEl.src = ad.mediaUrl;
-      mediaEl.className = 'ad-media';
-      mediaEl.autoplay = true;
-      mediaEl.muted = true;
-      mediaEl.playsInline = true;
-    } else {
-      mediaEl = document.createElement('img');
-      mediaEl.src = ad.mediaUrl;
-      mediaEl.className = 'ad-media';
-      mediaEl.style.objectFit = 'contain';
-    }
+    if (ad.type === 'video') { mediaEl = document.createElement('video'); mediaEl.src = ad.mediaUrl; mediaEl.className = 'ad-media'; mediaEl.autoplay = true; mediaEl.muted = true; mediaEl.playsInline = true; }
+    else { mediaEl = document.createElement('img'); mediaEl.src = ad.mediaUrl; mediaEl.className = 'ad-media'; mediaEl.style.objectFit = 'contain'; }
     adMedia.appendChild(mediaEl);
-
     clearInterval(adTimeout);
-    adTimeout = setInterval(function() {
-      timeElapsed++;
-      if (timeElapsed >= timeLeft) {
-        clearInterval(adTimeout);
-        playNextAd();
-      }
-    }, 1000);
+    adTimeout = setInterval(function() { timeElapsed++; if (timeElapsed >= timeLeft) { clearInterval(adTimeout); playNextAd(); } }, 1000);
   }
 
   function startPlayer() {
     showScreen('player');
-    
     setInterval(function() {
       db.collection('streams').doc(streamId).get().then(function(doc) {
         if (!doc.exists) return;
@@ -336,14 +253,9 @@
         var activeCam = data.activeCamera || 'cam1';
         var camNames = data.camNames || { cam1: 'CAM 1', cam2: 'CAM 2', cam3: 'CAM 3', cam4: 'CAM 4' };
 
-        if (data.forceAds === true) {
-          playNextAd();
-          return;
-        }
-
+        if (data.forceAds === true) { playNextAd(); return; }
         document.getElementById('ad-overlay').classList.add('hidden');
         document.getElementById('waiting-overlay').classList.add('hidden');
-
         Object.values(views).forEach(v => v.classList.add('hidden'));
 
         if (activeCam === 'split4') {
@@ -361,7 +273,7 @@
           updateSingleCam(cams[activeCam], camNames[activeCam] || 'Camera Offline');
         }
       });
-    }, 1000); // Poll every 1 second now
+    }, 1000);
   }
 
   if (window.lucide) lucide.createIcons();
