@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
 <meta name="color-scheme" content="light">
@@ -10,79 +10,48 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
-  :root { 
-    --red: #E50914; --red-hover: #FF3B4E;
-    --bg: #ffffff; --surface: #f9fafb; 
-    --text: #111827; --text-muted: #6b7280; --border: #e5e7eb;
-  }
+  :root { --red: #E50914; --bg: #ffffff; --surface: #f9fafb; --text: #111827; --text-muted: #6b7280; --border: #e5e7eb; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { 
-    background: var(--bg); color: var(--text); 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-    display: flex; flex-direction: column; align-items: center; 
-    min-height: 100vh; margin: 0; padding: 24px; 
-  }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 24px; }
   
-  /* Navbar */
-  .nav { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+  .nav { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
   .logo { display: flex; align-items: center; gap: 12px; }
   .logo svg { width: 28px; height: 34px; }
   .logo b { font-weight: 900; font-size: 20px; color: #111827; }
   .logo b span { color: var(--red); }
   .badge-admin { background: #fee2e2; color: var(--red); font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; margin-left: 8px; }
 
-  /* Header */
-  .header { text-align: center; margin-bottom: 30px; }
+  .header { text-align: center; margin-bottom: 30px; width: 100%; max-width: 800px; }
   .header h1 { font-size: 32px; font-weight: 900; letter-spacing: -1px; margin-bottom: 8px; color: #111827; }
   .header p { font-size: 15px; color: var(--text-muted); }
+  .header .event-title { font-size: 20px; font-weight: 800; color: var(--text); margin-top: 8px; display: block; }
 
-  /* Master Controls (Ads & Kill Switch) */
-  .master-panel { 
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; 
-    width: 100%; max-width: 700px; margin-bottom: 32px; 
-  }
+  .master-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 800px; margin-bottom: 24px; }
   @media (max-width: 600px) { .master-panel { grid-template-columns: 1fr; } }
 
-  .master-btn { 
-    padding: 24px; border-radius: 16px; font-size: 18px; font-weight: 900; 
-    border: 2px solid var(--border); background: #fff; color: var(--text); 
-    cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px;
-  }
+  .master-btn { padding: 24px; border-radius: 16px; font-size: 18px; font-weight: 900; border: 2px solid var(--border); background: #fff; color: var(--text); cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .master-btn:hover { border-color: var(--text); }
   .master-btn svg { width: 28px; height: 28px; }
-  
   .master-btn.ads { border-color: #F59E0B; color: #F59E0B; background: #fffbeb; }
   .master-btn.ads:hover { background: #F59E0B; color: #fff; }
-  
   .master-btn.kill { border-color: var(--red); color: var(--red); background: #fee2e2; }
   .master-btn.kill:hover { background: var(--red); color: #fff; }
 
-  /* Timer Status */
-  .timer-box { 
-    background: var(--surface); border: 1px solid var(--border); 
-    padding: 16px 24px; border-radius: 16px; text-align: center; 
-    width: 100%; max-width: 700px; margin-bottom: 32px;
-  }
+  .timer-box { background: var(--surface); border: 1px solid var(--border); padding: 16px 24px; border-radius: 16px; text-align: center; width: 100%; max-width: 800px; margin-bottom: 32px; }
   .timer-box .status-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 4px; }
   .timer-box .status-val { font-size: 24px; font-weight: 900; color: var(--text); font-family: monospace; }
 
-  /* Camera Grid */
-  .camera-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 700px; }
+  .camera-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; width: 100%; max-width: 800px; }
   @media (max-width: 600px) { .camera-grid { grid-template-columns: 1fr; } }
-
-  .cam-btn { 
-    padding: 30px 20px; border-radius: 16px; font-size: 18px; font-weight: 900; 
-    border: 2px solid var(--border); background: #fff; color: var(--text); 
-    cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px;
-  }
+  
+  .cam-btn { padding: 30px 20px; border-radius: 16px; font-size: 18px; font-weight: 900; border: 2px solid var(--border); background: #fff; color: var(--text); cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .cam-btn:hover { border-color: var(--red); }
   .cam-btn.active { background: var(--red); border-color: var(--red); color: #fff; box-shadow: 0 8px 20px rgba(229,9,20,0.3); }
   .cam-btn svg { width: 24px; height: 24px; }
-
   .split-btn { grid-column: span 2; }
   @media (max-width: 600px) { .split-btn { grid-column: span 1; } }
 
-  .error-box { background: #fee2e2; color: var(--red); padding: 16px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; display: none; text-align: center; width: 100%; max-width: 700px; }
+  .error-box { background: #fee2e2; color: var(--red); padding: 16px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; display: none; text-align: center; width: 100%; max-width: 800px; }
 </style>
 </head>
 <body>
@@ -98,12 +67,12 @@
 
 <div class="header">
   <h1>Broadcast Control</h1>
-  <p id="event-name-label">Loading event details...</p>
+  <p>Loading...</p>
+  <span class="event-title" id="event-title">Waiting for event...</span>
 </div>
 
 <div id="error-box" class="error-box"></div>
 
-<!-- MASTER CONTROLS -->
 <div class="master-panel">
   <button class="master-btn ads" id="btn-ads">
     <i data-lucide="play-circle"></i>
@@ -115,13 +84,11 @@
   </button>
 </div>
 
-<!-- LIVE TIMER -->
 <div class="timer-box">
   <div class="status-label">Broadcast Status</div>
   <div class="status-val" id="timer-display">--:--</div>
 </div>
 
-<!-- CAMERA SWITCHER -->
 <div class="camera-grid" id="controls">
   <button class="cam-btn" data-cam="cam1"><i data-lucide="camera"></i> CAM 1</button>
   <button class="cam-btn" data-cam="cam2"><i data-lucide="camera"></i> CAM 2</button>
@@ -144,25 +111,25 @@
 
   var params = new URLSearchParams(window.location.search);
   var currentEventId = params.get('event');
-  
   var eventStartTime = null;
 
   if (!currentEventId) {
     document.getElementById('error-box').style.display = 'block';
-    document.getElementById('error-box').textContent = "⚠️ No Event ID found. Please use the link from the Admin Dashboard.";
+    document.getElementById('error-box').textContent = "⚠️ No Event ID found in URL. Please use the link from the Admin Dashboard.";
     document.getElementById('controls').style.display = 'none';
   } else {
     
-    // 1. Listen to Event Data (Names, Start Time, Active Cam)
+    // 1. Listen to Event Data
     db.collection('streams').doc(currentEventId).onSnapshot(function(doc) {
       if (!doc.exists) return;
       var data = doc.data();
       var activeCam = data.activeCamera || 'cam1';
       var camNames = data.camNames || { cam1: 'CAM 1', cam2: 'CAM 2', cam3: 'CAM 3', cam4: 'CAM 4' };
 
-      document.getElementById('event-name-label').textContent = data.title || 'Untitled Event';
+      // Set Title
+      document.getElementById('event-title').textContent = data.title || 'Untitled Event';
 
-      // Update Camera Names
+      // Set Camera Names
       document.querySelector('[data-cam="cam1"]').innerHTML = `<i data-lucide="camera"></i> ${camNames.cam1}`;
       document.querySelector('[data-cam="cam2"]').innerHTML = `<i data-lucide="camera"></i> ${camNames.cam2}`;
       document.querySelector('[data-cam="cam3"]').innerHTML = `<i data-lucide="camera"></i> ${camNames.cam3}`;
@@ -181,7 +148,7 @@
       if (window.lucide) lucide.createIcons();
     });
 
-    // 2. The Live Timer
+    // 2. Live Timer
     setInterval(function() {
       var display = document.getElementById('timer-display');
       if (!eventStartTime) { display.textContent = "WAITING FOR DATE"; return; }
@@ -190,17 +157,15 @@
       var diff = eventStartTime - now;
 
       if (diff > 0) {
-        // Countdown to start
         var mins = Math.floor(diff / 60000);
         var secs = Math.floor((diff % 60000) / 1000);
         display.textContent = "Starts in " + mins + "m " + secs + "s";
-        display.style.color = "#F59E0B"; // Yellow
+        display.style.color = "#F59E0B";
       } else {
-        // Stream is live
         var over = now - eventStartTime;
         var mins = Math.floor(over / 60000);
         display.textContent = "LIVE (Started " + mins + "m ago)";
-        display.style.color = "var(--red)"; // Red
+        display.style.color = "var(--red)";
       }
     }, 1000);
 
@@ -208,21 +173,15 @@
     document.querySelectorAll('.cam-btn').forEach(function(btn) {
       btn.addEventListener('click', function() {
         var cam = this.dataset.cam;
-        db.collection('streams').doc(currentEventId).update({ activeCamera: cam })
-          .catch(function(err) { alert("Error switching camera: " + err.message); });
+        db.collection('streams').doc(currentEventId).update({ activeCamera: cam, forceAds: false })
+          .catch(function(err) { alert("Error switching: " + err.message); });
       });
     });
 
     // 4. Fire Ads Button
     document.getElementById('btn-ads').addEventListener('click', function() {
-      // We set the start time to 5 minutes in the future to force the viewer page to play ads
-      var forceAdEnd = new Date(Date.now() + (5 * 60000)).toISOString(); 
-      db.collection('streams').doc(currentEventId).update({
-        startDate: forceAdEnd.split('T')[0],
-        startTime: forceAdEnd.split('T')[1].substring(0, 5)
-      }).then(function() {
-        alert("Ads fired! Viewers will now see the ad loop.");
-      });
+      db.collection('streams').doc(currentEventId).update({ forceAds: true })
+        .then(function() { alert("Ads fired! Viewers are now seeing the ad loop."); });
     });
 
     // 5. Kill Stream Button
@@ -232,9 +191,10 @@
         db.collection('streams').doc(currentEventId).update({
           activeCamera: null,
           cams: null,
-          streamUrl: null
+          streamUrl: null,
+          forceAds: true
         }).then(function() {
-          alert("STREAM KILLED.");
+          alert("STREAM KILLED. Viewers are now seeing the ad loop.");
         });
       } else if (pin !== null) {
         alert("Incorrect PIN.");
