@@ -10,38 +10,19 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
-  :root { 
-    --red: #E50914; 
-    --bg: #0a0a0f; 
-    --surface: rgba(26, 26, 36, 0.85); 
-    --text: #ffffff; 
-    --border: rgba(255,255,255,0.1);
-    --success: #10B981;
-  }
+  /* Same CSS as before... */
+  :root { --red: #E50914; --bg: #0a0a0f; --surface: rgba(26, 26, 36, 0.85); --text: #ffffff; --border: rgba(255,255,255,0.1); --success: #10B981; }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { 
-    background: #000; 
-    color: var(--text); 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-    height: 100vh; width: 100vw; overflow: hidden; position: relative; 
-  }
+  body { background: #000; color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; height: 100vh; width: 100vw; overflow: hidden; position: relative; }
   .hidden { display: none !important; }
-
-  /* ── SETUP SCREENS ── */
-  .setup-screen { 
-    position: absolute; inset: 0; background: var(--bg); z-index: 100; 
-    display: flex; flex-direction: column; align-items: center; justify-content: center; 
-    padding: 24px; text-align: center; overflow-y: auto;
-  }
+  .setup-screen { position: absolute; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; overflow-y: auto; }
   .setup-screen h2 { font-size: 24px; font-weight: 900; margin-bottom: 8px; color: #fff; }
   .setup-screen p { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 24px; }
   .select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 400px; margin-bottom: 24px; }
-  .select-btn { 
-    padding: 24px; border-radius: 16px; background: var(--surface); border: 2px solid var(--border); 
-    color: #fff; font-size: 18px; font-weight: 900; cursor: pointer; transition: 0.2s; 
-    backdrop-filter: blur(12px);
-  }
-  .select-btn:hover, .select-btn:active { border-color: var(--red); background: rgba(229,9,20,0.15); transform: scale(0.98); }
+  .select-btn { padding: 24px; border-radius: 16px; background: var(--surface); border: 2px solid var(--border); color: #fff; font-size: 18px; font-weight: 900; cursor: pointer; transition: 0.2s; backdrop-filter: blur(12px); display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; overflow: hidden; }
+  .select-btn:hover:not(:disabled), .select-btn:active:not(:disabled) { border-color: var(--red); background: rgba(229,9,20,0.15); transform: scale(0.98); }
+  .select-btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+  .select-btn .lock-badge { font-size: 10px; background: #F59E0B; color: #000; padding: 2px 6px; border-radius: 4px; position: absolute; top: 10px; right: 10px; font-weight: 900; }
   .event-list { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 12px; max-height: 50vh; overflow-y: auto; margin-bottom: 24px; }
   .event-btn { padding: 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: #fff; text-align: left; cursor: pointer; transition: 0.2s; }
   .event-btn:active { border-color: var(--red); transform: scale(0.98); }
@@ -50,261 +31,134 @@
   .ads-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; width: 100%; max-width: 300px; }
   .ads-row label { font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 4px; display: block; text-transform: uppercase; font-weight: 800; }
   .ads-row input { width: 100%; padding: 12px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); color: #fff; font-size: 14px; }
-  
   .btn { width: 100%; max-width: 300px; padding: 18px; border-radius: 16px; font-size: 16px; font-weight: 900; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
   .btn-primary { background: var(--red); color: #fff; box-shadow: 0 8px 20px rgba(229,9,20,0.3); }
   .btn-primary:active { transform: scale(0.98); }
-
-  /* ── LIVE CAMERA VIEW ── */
   #preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-  
-  .overlay-wrapper { 
-    position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; 
-    background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 20%, transparent 60%, rgba(0,0,0,0.95) 100%); 
-    opacity: 0; pointer-events: none; transition: opacity 0.3s ease; 
-  }
+  .overlay-wrapper { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 20%, transparent 60%, rgba(0,0,0,0.95) 100%); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
   .overlay-wrapper.show { opacity: 1; pointer-events: auto; }
-
-  /* Top Bar */
   .top-bar { padding: 30px 20px; display: flex; justify-content: space-between; align-items: flex-start; }
-  .status-badge { 
-    display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 900; text-transform: uppercase; 
-    letter-spacing: 1px; background: rgba(0,0,0,0.6); padding: 8px 14px; border-radius: 20px; 
-    backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1);
-  }
+  .status-badge { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.6); padding: 8px 14px; border-radius: 20px; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
   .status-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #555; }
   .status-badge.live .dot { background: var(--red); box-shadow: 0 0 10px var(--red); animation: pulse 1.5s infinite; }
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-  
-  .cloud-status { 
-    font-size: 10px; font-weight: 800; color: var(--success); background: rgba(16, 185, 129, 0.15); 
-    padding: 6px 12px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3); 
-    display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: 0.3s;
-  }
+  .cloud-status { font-size: 10px; font-weight: 800; color: var(--success); background: rgba(16, 185, 129, 0.15); padding: 6px 12px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); transition: 0.3s; }
   .cloud-status.uploading { color: #F59E0B; background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); }
-
-  /* Bottom Controls */
   .bottom-controls { padding: 20px 20px 40px 20px; display: flex; flex-direction: column; gap: 16px; }
-  
-  /* Audio Meter */
   .audio-meter { display: flex; gap: 3px; height: 20px; align-items: flex-end; justify-content: center; margin-bottom: 8px; }
   .audio-bar { width: 6px; background: rgba(255,255,255,0.2); border-radius: 2px; transition: height 0.05s ease; }
   .audio-bar.active { background: var(--success); }
   .audio-bar.hot { background: #F59E0B; }
   .audio-bar.clipping { background: var(--red); }
-
-  .control-panel { 
-    background: var(--surface); backdrop-filter: blur(16px); padding: 20px; border-radius: 24px; 
-    border: 1px solid var(--border); display: flex; flex-direction: column; gap: 20px;
-  }
-  
-  .control-row { display: flex; justify-content: space-between; align-items: center; }
-  
+  .control-panel { background: var(--surface); backdrop-filter: blur(16px); padding: 20px; border-radius: 24px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 20px; }
   .slider-container { display: flex; flex-direction: column; gap: 8px; width: 100%; }
   .slider-header { display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; }
-  
   input[type=range] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.15); outline: none; }
   input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
-
   .icon-btn-row { display: flex; gap: 12px; }
-  .icon-btn { 
-    flex: 1; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); 
-    color: #fff; font-size: 13px; font-weight: 800; display: flex; flex-direction: column; align-items: center; gap: 6px; 
-    cursor: pointer; transition: 0.2s;
-  }
+  .icon-btn { flex: 1; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; font-size: 13px; font-weight: 800; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s; }
   .icon-btn:active { background: rgba(255,255,255,0.15); transform: scale(0.96); }
   .icon-btn.active { background: rgba(229,9,20,0.2); border-color: var(--red); color: var(--red); }
-
   .btn-stop { background: #fff; color: #000; border-radius: 16px; padding: 18px; font-size: 16px; font-weight: 900; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(255,255,255,0.1); }
-  .btn-stop:active { transform: scale(0.98); }
 </style>
 </head>
 <body>
 
-<!-- ═══════════ SETUP SCREENS ═══════════ -->
 <div class="setup-screen" id="login-screen">
-  <div style="width:64px; height:64px; background:rgba(229,9,20,0.15); border-radius:20px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
-    <i data-lucide="lock" style="color:var(--red); width:32px; height:32px;"></i>
-  </div>
-  <h2>Camera App</h2>
-  <p>Sign in to access your broadcast slots.</p>
-  <button class="btn btn-primary" id="btn-login">
-    <i data-lucide="log-in" size="20"></i> Sign In
-  </button>
+  <h2>Camera App</h2><p>Sign in to access your broadcast slots.</p>
+  <button class="btn btn-primary" id="btn-login">Sign In</button>
 </div>
 
 <div class="setup-screen hidden" id="camera-screen">
   <h2>Select Camera Slot</h2>
-  <p>Which angle is this device covering?</p>
+  <p id="cam-select-sub">Which angle is this device covering?</p>
   <div class="select-grid" id="cam-select-grid"></div>
+  <button class="btn" id="btn-back-event" style="background:transparent; color:rgba(255,255,255,0.5); border:1px solid var(--border); margin-top: 10px;">Back to Events</button>
 </div>
 
 <div class="setup-screen hidden" id="event-screen">
   <h2>Select Event</h2>
   <p>Which stream are you broadcasting to?</p>
   <div class="event-list" id="event-select-list"></div>
-  <button class="btn" id="btn-back-cam" style="background:transparent; color:rgba(255,255,255,0.5); border:1px solid var(--border);">
-    Back to Cameras
-  </button>
 </div>
 
 <div class="setup-screen hidden" id="ad-screen">
-  <div style="width:64px; height:64px; background:rgba(229,9,20,0.15); border-radius:20px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
-    <i data-lucide="play-circle" style="color:var(--red); width:32px; height:32px;"></i>
-  </div>
   <h2>Pre-Show Ads</h2>
   <p>Set the timer for the pre-show loop.</p>
   <div class="ads-row">
     <div><label>Pre-Show (Mins)</label><input type="number" id="ads-time" value="5" /></div>
     <div><label>Ad Length (Secs)</label><input type="number" id="ads-duration" value="30" /></div>
   </div>
-  <button class="btn btn-primary" id="btn-start-stream">
-    <i data-lucide="video" size="20"></i> Go Live in HD
-  </button>
+  <button class="btn btn-primary" id="btn-start-stream">Go Live in HD</button>
 </div>
 
-<!-- ═══════════ LIVE VIEW ═══════════ -->
 <video id="preview" autoplay playsinline muted class="hidden"></video>
 
 <div class="overlay-wrapper hidden" id="overlay">
-  
-  <!-- Top Bar -->
   <div class="top-bar">
-    <div class="status-badge" id="status-indicator">
-      <div class="dot"></div> <span id="status-text">LIVE</span>
-    </div>
-    <div class="cloud-status" id="cloud-status">
-      <i data-lucide="cloud" size="12"></i> Ready
-    </div>
+    <div class="status-badge" id="status-indicator"><div class="dot"></div> <span id="status-text">LIVE</span></div>
+    <div class="cloud-status" id="cloud-status"><i data-lucide="cloud" size="12"></i> Ready</div>
   </div>
-
-  <!-- Bottom Controls -->
   <div class="bottom-controls">
-    
-    <!-- Audio Meter -->
     <div class="audio-meter" id="audio-meter">
-      <div class="audio-bar" style="height:2px"></div>
-      <div class="audio-bar" style="height:2px"></div>
-      <div class="audio-bar" style="height:2px"></div>
-      <div class="audio-bar" style="height:2px"></div>
-      <div class="audio-bar" style="height:2px"></div>
-      <div class="audio-bar" style="height:2px"></div>
-      <div class="audio-bar" style="height:2px"></div>
-      <div class="audio-bar" style="height:2px"></div>
-      <div class="audio-bar" style="height:2px"></div>
-      <div class="audio-bar" style="height:2px"></div>
-      <div class="audio-bar" style="height:2px"></div>
-      <div class="audio-bar" style="height:2px"></div>
+      <div class="audio-bar" style="height:2px"></div><div class="audio-bar" style="height:2px"></div><div class="audio-bar" style="height:2px"></div><div class="audio-bar" style="height:2px"></div><div class="audio-bar" style="height:2px"></div><div class="audio-bar" style="height:2px"></div><div class="audio-bar" style="height:2px"></div><div class="audio-bar" style="height:2px"></div><div class="audio-bar" style="height:2px"></div><div class="audio-bar" style="height:2px"></div><div class="audio-bar" style="height:2px"></div><div class="audio-bar" style="height:2px"></div>
     </div>
-
     <div class="control-panel">
-      
-      <!-- Sliders -->
-      <div class="slider-container">
-        <div class="slider-header">
-          <span>Zoom</span>
-          <span id="zoom-val">1.0x</span>
-        </div>
-        <input type="range" id="zoom-slider" min="1" max="5" step="0.1" value="1" />
-      </div>
-
-      <div class="slider-container">
-        <div class="slider-header">
-          <span>Brightness</span>
-          <span id="bright-val">100%</span>
-        </div>
-        <input type="range" id="bright-slider" min="0.5" max="1.5" step="0.1" value="1" />
-      </div>
-
-      <!-- Camera Tools -->
+      <div class="slider-container"><div class="slider-header"><span>Zoom</span><span id="zoom-val">1.0x</span></div><input type="range" id="zoom-slider" min="1" max="5" step="0.1" value="1" /></div>
+      <div class="slider-container"><div class="slider-header"><span>Brightness</span><span id="bright-val">100%</span></div><input type="range" id="bright-slider" min="0.5" max="1.5" step="0.1" value="1" /></div>
       <div class="icon-btn-row">
-        <button class="icon-btn" id="btn-flip">
-          <i data-lucide="refresh-cw" size="18"></i> Flip Cam
-        </button>
-        <button class="icon-btn" id="btn-torch">
-          <i data-lucide="flashlight" size="18"></i> Light
-        </button>
+        <button class="icon-btn" id="btn-flip"><i data-lucide="refresh-cw" size="18"></i> Flip Cam</button>
+        <button class="icon-btn" id="btn-torch"><i data-lucide="flashlight" size="18"></i> Light</button>
       </div>
-
-      <!-- Stop Button -->
-      <button class="btn-stop" id="btn-stop">
-        <i data-lucide="square" size="20"></i> STOP BROADCAST
-      </button>
+      <button class="btn-stop" id="btn-stop"><i data-lucide="square" size="20"></i> STOP BROADCAST</button>
     </div>
   </div>
 </div>
 
 <script>
-  // ═══════════════════════════════════════════════════════════
-  // 1. CONFIGURATION & SETUP
-  // ═══════════════════════════════════════════════════════════
   var firebaseConfig = { apiKey:"AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk", authDomain:"starlane-stream.firebaseapp.com", projectId:"starlane-stream", storageBucket:"starlane-stream.firebasestorage.app", messagingSenderId:"115625325145", appId:"1:115625325145:web:b14025df503bbe2b7d7748" };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var db = firebase.firestore();
   var auth = firebase.auth();
 
-  // ⚠️ REPLACE WITH YOUR CLOUDINARY CLOUD NAME
-  var CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME_HERE"; 
+  var CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME_HERE"; // ⚠️ CHANGE THIS
   var CLOUDINARY_UPLOAD_PRESET = "starlane_chunks";
+  var deviceId = localStorage.getItem('starlane_device_id');
+  if (!deviceId) {
+    deviceId = 'dev_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('starlane_device_id', deviceId);
+  }
 
-  // State
   var video = document.getElementById('preview');
   var overlay = document.getElementById('overlay');
   var stream = null;
   var mediaRecorder = null;
   var isStreaming = false;
   var killWatcher = null;
+  var eventWatcher = null;
   var selectedCamId = null;
   var selectedEventId = null;
   var selectedEventName = null;
-  var facingMode = "environment"; // back camera
+  var facingMode = "environment";
   var torchOn = false;
   var wakeLock = null;
+  var heartbeatInterval = null;
 
-  // Preselect camera from QR (?cam=cam1)
-  var presetCam = new URLSearchParams(location.search).get('cam');
-  if (presetCam && ['cam1','cam2','cam3','cam4'].includes(presetCam)) selectedCamId = presetCam;
-
-  // ═══════════════════════════════════════════════════════════
-  // 2. AUTH & NAVIGATION
-  // ═══════════════════════════════════════════════════════════
   auth.onAuthStateChanged(function(user) {
     if (user) {
       document.getElementById('login-screen').classList.add('hidden');
-      if (selectedCamId) {
-        document.getElementById('event-screen').classList.remove('hidden');
-        loadEvents();
-      } else {
-        document.getElementById('camera-screen').classList.remove('hidden');
-        renderCameraButtons();
-      }
+      document.getElementById('event-screen').classList.remove('hidden');
+      loadEvents();
     } else {
       document.getElementById('login-screen').classList.remove('hidden');
-      document.getElementById('camera-screen').classList.add('hidden');
       document.getElementById('event-screen').classList.add('hidden');
+      document.getElementById('camera-screen').classList.add('hidden');
     }
   });
 
   document.getElementById('btn-login').addEventListener('click', function() {
-    window.location.href = 'auth.html?redirect=' + encodeURIComponent(location.pathname + location.search);
+    window.location.href = 'auth.html?redirect=' + encodeURIComponent(location.pathname);
   });
-
-  function renderCameraButtons() {
-    var grid = document.getElementById('cam-select-grid');
-    grid.innerHTML = '';
-    ['cam1','cam2','cam3','cam4'].forEach(function(cam, i) {
-      var btn = document.createElement('button');
-      btn.className = 'select-btn';
-      btn.textContent = 'CAM ' + (i + 1);
-      btn.onclick = function() {
-        selectedCamId = cam;
-        document.getElementById('camera-screen').classList.add('hidden');
-        document.getElementById('event-screen').classList.remove('hidden');
-        loadEvents();
-      };
-      grid.appendChild(btn);
-    });
-  }
 
   function loadEvents() {
     var list = document.getElementById('event-select-list');
@@ -312,7 +166,6 @@
     db.collection('streams').where('active', '==', true).get().then(function(snap) {
       list.innerHTML = '';
       if (snap.empty) { list.innerHTML = '<p style="text-align:center; color:gray;">No active events.</p>'; return; }
-      
       snap.forEach(function(doc) {
         var data = doc.data();
         var btn = document.createElement('button');
@@ -322,21 +175,59 @@
           selectedEventId = doc.id;
           selectedEventName = data.title;
           document.getElementById('event-screen').classList.add('hidden');
-          document.getElementById('ad-screen').classList.remove('hidden');
+          document.getElementById('camera-screen').classList.remove('hidden');
+          listenToCameras();
         };
         list.appendChild(btn);
       });
     });
   }
 
-  document.getElementById('btn-back-cam').addEventListener('click', function() {
-    document.getElementById('event-screen').classList.add('hidden');
-    document.getElementById('camera-screen').classList.remove('hidden');
+  document.getElementById('btn-back-event').addEventListener('click', function() {
+    if (eventWatcher) eventWatcher();
+    document.getElementById('camera-screen').classList.add('hidden');
+    document.getElementById('event-screen').classList.remove('hidden');
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // 3. START BROADCAST
-  // ═══════════════════════════════════════════════════════════
+  // ── CAMERA LOCKING LOGIC ──
+  function listenToCameras() {
+    if (eventWatcher) eventWatcher();
+    
+    eventWatcher = db.collection('streams').doc(selectedEventId).onSnapshot(function(doc) {
+      if (!doc.exists) return;
+      var data = doc.data();
+      var camStatus = data.camStatus || {}; // Format: { cam1: { deviceId, lastSeen } }
+      var camNames = data.camNames || { cam1: 'CAM 1', cam2: 'CAM 2', cam3: 'CAM 3', cam4: 'CAM 4' };
+      
+      var grid = document.getElementById('cam-select-grid');
+      grid.innerHTML = '';
+      
+      ['cam1','cam2','cam3','cam4'].forEach(function(cam) {
+        var status = camStatus[cam];
+        var isInUse = status && status.deviceId !== deviceId && (Date.now() - status.lastSeen < 30000); // 30s timeout
+        
+        var btn = document.createElement('button');
+        btn.className = 'select-btn';
+        btn.disabled = isInUse;
+        
+        var camName = camNames[cam] || ('CAM ' + cam.replace('cam', ''));
+        var innerHTML = camName;
+        if (isInUse) {
+          innerHTML += '<div class="lock-badge">IN USE</div>';
+        }
+        btn.innerHTML = innerHTML;
+        
+        btn.onclick = function() {
+          selectedCamId = cam;
+          document.getElementById('camera-screen').classList.add('hidden');
+          document.getElementById('ad-screen').classList.remove('hidden');
+        };
+        grid.appendChild(btn);
+      });
+    });
+  }
+
+  // ── START BROADCAST ──
   document.getElementById('btn-start-stream').addEventListener('click', async function() {
     var adsTime = parseInt(document.getElementById('ads-time').value) || 0;
     var adsDuration = parseInt(document.getElementById('ads-duration').value) || 0;
@@ -346,18 +237,15 @@
         video: { facingMode: facingMode, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, sampleRate: 44100, channelCount: 2 }
       };
-      
       stream = await navigator.mediaDevices.getUserMedia(constraints);
       video.srcObject = stream;
       video.classList.remove('hidden');
 
-      try {
-        if ('wakeLock' in navigator) {
-          wakeLock = await navigator.wakeLock.request('screen');
-        }
-      } catch (err) { console.log("Wake Lock not supported"); }
+      try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
 
+      // Lock the camera in Firebase
       await db.collection('streams').doc(selectedEventId).update({
+        ['camStatus.' + selectedCamId]: { deviceId: deviceId, lastSeen: Date.now() },
         activeCamera: selectedCamId,
         streamUrl: 'broadcasting',
         killedAt: firebase.firestore.FieldValue.delete(),
@@ -369,7 +257,6 @@
       document.getElementById('status-indicator').classList.add('live');
       document.getElementById('status-text').textContent = 'LIVE: ' + (selectedEventName || 'Event');
       overlay.classList.add('show');
-      
       setTimeout(function(){ overlay.classList.remove('show'); }, 3000);
 
       startRecording();
@@ -381,9 +268,6 @@
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // 4. RECORDING & UPLOADING
-  // ═══════════════════════════════════════════════════════════
   function startRecording() {
     isStreaming = true;
     var options = { mimeType: 'video/webm;codecs=vp8,opus', videoBitsPerSecond: 4000000, audioBitsPerSecond: 128000 };
@@ -405,8 +289,7 @@
 
         try {
           var res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/video/upload', {
-            method: 'POST',
-            body: formData
+            method: 'POST', body: formData
           });
           var data = await res.json();
           
@@ -431,7 +314,6 @@
             if (window.lucide) lucide.createIcons();
           }
         } catch (err) {
-          console.error("Chunk upload failed", err);
           cloudStatus.innerHTML = '<i data-lucide="alert-circle" size="12"></i> Retrying...';
         }
       }
@@ -440,38 +322,56 @@
     mediaRecorder.onstop = function() { if (isStreaming) startRecording(); };
     mediaRecorder.start();
     setTimeout(function(){ if (mediaRecorder.state === 'recording') mediaRecorder.stop(); }, 2000);
+
+    // Heartbeat to keep the lock alive
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    heartbeatInterval = setInterval(async function() {
+      if (!isStreaming) return;
+      var update = {};
+      update['camStatus.' + selectedCamId] = { deviceId: deviceId, lastSeen: Date.now() };
+      await db.collection('streams').doc(selectedEventId).update(update);
+    }, 10000);
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // 5. KILL SWITCH WATCHER
-  // ═══════════════════════════════════════════════════════════
   function startKillWatcher() {
     if (killWatcher) killWatcher();
     killWatcher = db.collection('streams').doc(selectedEventId).onSnapshot(function(doc) {
       if (!doc.exists) return;
       if (doc.data().killedAt && isStreaming) {
-        isStreaming = false;
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-        if (stream) stream.getTracks().forEach(function(t){ t.stop(); });
-        if (wakeLock) wakeLock.release();
-        if (killWatcher) killWatcher();
-        
+        stopBroadcastLocally();
         alert('DIRECTOR HAS KILLED THE STREAM. Recording stopped.');
-        window.location.reload();
       }
     });
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // 6. UI CONTROLS
-  // ═══════════════════════════════════════════════════════════
+  async function stopBroadcastLocally() {
+    isStreaming = false;
+    if (killWatcher) killWatcher();
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    if (stream) stream.getTracks().forEach(function(t){ t.stop(); });
+    if (wakeLock) wakeLock.release();
+    
+    var update = {};
+    update['camStatus.' + selectedCamId] = firebase.firestore.FieldValue.delete();
+    update['streamUrl'] = null;
+    update['activeCamera'] = null;
+    await db.collection('streams').doc(selectedEventId).update(update);
+    window.location.reload();
+  }
+
+  document.getElementById('btn-stop').addEventListener('click', async function() {
+    if (!confirm("Stop broadcasting immediately?")) return;
+    await stopBroadcastLocally();
+  });
+
+  // UI Controls (Tap, Zoom, Flip, Torch, Audio)
   var lastTap = 0;
   document.body.addEventListener('click', function(e) {
     var now = Date.now();
     if (now - lastTap < 300) { overlay.classList.toggle('show'); e.preventDefault(); }
     lastTap = now;
   });
-
   document.getElementById('zoom-slider').addEventListener('input', function() {
     if (!stream) return;
     var track = stream.getVideoTracks()[0];
@@ -481,7 +381,6 @@
       track.applyConstraints({ advanced: [{ zoom: z }] });
     }
   });
-
   document.getElementById('bright-slider').addEventListener('input', function() {
     if (!stream) return;
     var track = stream.getVideoTracks()[0];
@@ -491,21 +390,15 @@
       track.applyConstraints({ advanced: [{ brightness: b }] });
     }
   });
-
   document.getElementById('btn-flip').addEventListener('click', async function() {
     facingMode = facingMode === "environment" ? "user" : "environment";
     if (stream) stream.getTracks().forEach(t => t.stop());
-    
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
-        audio: true
-      });
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: true });
       video.srcObject = stream;
       if (isStreaming) { mediaRecorder.stop(); }
     } catch(e) { alert("Could not flip camera."); }
   });
-
   document.getElementById('btn-torch').addEventListener('click', function() {
     if (!stream) return;
     var track = stream.getVideoTracks()[0];
@@ -513,11 +406,8 @@
       torchOn = !torchOn;
       track.applyConstraints({ advanced: [{ torch: torchOn }] });
       this.classList.toggle('active', torchOn);
-    } else {
-      alert("Flashlight not supported on this device/browser.");
     }
   });
-
   function startAudioMeter() {
     if (!stream) return;
     var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -527,13 +417,11 @@
     analyser.fftSize = 64;
     var dataArray = new Uint8Array(analyser.frequencyBinCount);
     var bars = document.querySelectorAll('.audio-bar');
-
     function draw() {
       analyser.getByteFrequencyData(dataArray);
       var avg = 0;
       for (var i = 0; i < dataArray.length; i++) avg += dataArray[i];
       avg = avg / dataArray.length;
-      
       bars.forEach(function(bar) {
         var height = Math.max(2, (avg / 255) * 40 * (Math.random() * 0.5 + 0.5));
         bar.style.height = height + 'px';
@@ -546,17 +434,6 @@
     }
     draw();
   }
-
-  document.getElementById('btn-stop').addEventListener('click', async function() {
-    if (!confirm("Stop broadcasting immediately?")) return;
-    isStreaming = false;
-    if (killWatcher) killWatcher();
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-    if (stream) stream.getTracks().forEach(function(t){ t.stop(); });
-    if (wakeLock) wakeLock.release();
-    await db.collection('streams').doc(selectedEventId).update({ streamUrl: null, activeCamera: null });
-    window.location.reload();
-  });
 
   if (window.lucide) lucide.createIcons();
 </script>
