@@ -19,7 +19,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { 
     background: var(--bg); color: var(--text); 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
     line-height: 1.5; -webkit-font-smoothing: antialiased; min-height: 100vh; position: relative;
   }
   a { text-decoration: none; color: inherit; }
@@ -47,7 +47,7 @@
   /* List Section */
   .list-section { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
   .list-title { font-size: 18px; font-weight: 800; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-  .event-list { display: flex; flex-direction: column; gap: 12px; max-height: 70vh; overflow-y: auto; padding-right: 4px; }
+  .event-list { display: flex; flex-direction: column; gap: 12px; max-height: 75vh; overflow-y: auto; padding-right: 4px; }
   .event-item { padding: 16px; border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; background: var(--surface); }
   .event-item:hover { border-color: var(--red); background: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(229,9,20,0.05); }
   .event-item.active { border-color: var(--red); background: #fee2e2; }
@@ -60,7 +60,7 @@
   .form-section { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
   .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
   .form-header h2 { font-size: 24px; font-weight: 900; letter-spacing: -0.5px; }
-  .btn-delete { background: #fee2e2; color: var(--red); border: 1px solid #fecaca; padding: 12px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+  .btn-delete { background: #fee2e2; color: var(--red); border: 1px solid #fecaca; padding: 12px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
   .btn-delete:hover { background: var(--red); color: #fff; border-color: var(--red); }
 
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
@@ -74,11 +74,11 @@
   .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--red); background: #fff; box-shadow: 0 0 0 3px rgba(229,9,20,0.1); }
   .form-group .hint { font-size: 12px; color: var(--text-muted); }
 
-  /* Image Upload Grid */
+  /* Image Upload */
   .image-upload-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .upload-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; border: 2px dashed var(--border); border-radius: 12px; background: var(--surface); color: var(--text-muted); font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; }
   .upload-btn:hover { border-color: var(--red); color: var(--red); background: #fee2e2; }
-  .image-preview { width: 100%; height: 120px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); object-fit: cover; display: none; margin-top: 12px; }
+  .image-preview { width: 100%; height: 160px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); object-fit: cover; display: none; margin-top: 12px; }
 
   /* Toggle Switch */
   .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
@@ -131,7 +131,7 @@
   <div class="form-section">
     <div class="form-header">
       <h2 id="form-title">Create New Event</h2>
-      <button id="btn-delete" class="btn-delete hidden"><i data-lucide="trash-2" size="16" style="vertical-align: middle;"></i> Delete</button>
+      <button id="btn-delete" class="btn-delete hidden"><i data-lucide="trash-2" size="16"></i> Delete</button>
     </div>
 
     <form id="event-form">
@@ -156,10 +156,12 @@
             <option value="Other">Other</option>
           </select>
         </div>
+        
         <div class="form-group">
           <label>Date <span>*</span></label>
           <input type="date" id="startDate" required />
         </div>
+        
         <div class="form-group">
           <label>Time <span>*</span></label>
           <input type="time" id="startTime" required />
@@ -177,15 +179,9 @@
               <i data-lucide="image-plus" size="18"></i> Upload File
               <input type="file" id="imageFile" accept="image/*" style="display: none;" />
             </label>
-            <input type="url" id="posterUrl" placeholder="Or paste image URL..." oninput="document.getElementById('image-preview').style.display='none'" />
+            <input type="url" id="posterUrl" placeholder="Or paste image URL..." oninput="document.getElementById('image-preview').style.display='none'; document.getElementById('poster-base64').value=''" />
           </div>
           <img id="image-preview" class="image-preview" />
-        </div>
-
-        <div class="form-group full">
-          <label>HLS Stream URL (Single Camera) <span style="color: var(--text-muted); font-weight: 500;">(Optional if using Multi-Cam)</span></label>
-          <input type="url" id="streamUrl" placeholder="https://... .m3u8" />
-          <div class="hint">The direct link to your live stream. Leave blank if you are using the phone broadcast.</div>
         </div>
 
         <div class="form-group full" style="background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
@@ -253,6 +249,7 @@
   var ADMIN_EMAILS = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
   var imagePreview = document.getElementById('image-preview');
   var posterBase64 = document.getElementById('poster-base64');
+  var currentEvents = [];
 
   auth.onAuthStateChanged(function(user) {
     if (!user || !ADMIN_EMAILS.includes(user.email.toLowerCase())) {
@@ -262,6 +259,7 @@
     }
   });
 
+  // Image Compression (Prevents hitting Firestore 1MB document limit)
   document.getElementById('imageFile').addEventListener('change', function(e) {
     var file = e.target.files[0];
     if (!file) return;
@@ -279,7 +277,8 @@
         var ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         
-        var dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        // Compress to JPEG at 70% quality
+        var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
         
         posterBase64.value = dataUrl;
         imagePreview.src = dataUrl;
@@ -297,6 +296,8 @@
     
     db.collection('streams').orderBy('createdAt', 'desc').get().then(function(snap) {
       listEl.innerHTML = '';
+      currentEvents = [];
+      
       if (snap.empty) {
         listEl.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 14px;">No events yet.</div>';
         return;
@@ -304,6 +305,9 @@
 
       snap.forEach(function(doc) {
         var data = doc.data();
+        data.id = doc.id;
+        currentEvents.push(data);
+        
         var price = data.ppvPrice || 0;
         var isPaid = price > 0;
         
@@ -336,10 +340,8 @@
     document.getElementById('title').value = data.title || '';
     document.getElementById('eventType').value = data.eventType || '';
     document.getElementById('spotifyLink').value = data.spotifyLink || '';
-    document.getElementById('streamUrl').value = data.streamUrl || '';
     document.getElementById('startDate').value = data.startDate || '';
     document.getElementById('startTime').value = data.startTime || '';
-    
     document.getElementById('price').value = data.ppvPrice || 0;
 
     if (data.posterUrl) {
@@ -397,7 +399,6 @@
       eventType: document.getElementById('eventType').value,
       spotifyLink: document.getElementById('spotifyLink').value,
       posterUrl: finalPoster,
-      streamUrl: document.getElementById('streamUrl').value,
       startDate: document.getElementById('startDate').value,
       startTime: document.getElementById('startTime').value,
       ppvPrice: finalPrice,
@@ -409,9 +410,14 @@
     };
 
     if (!id) {
+      // Create New
       eventData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      eventData.streamUrl = null;
+      eventData.activeCamera = null;
+      eventData.camStatus = {};
+      
       db.collection('streams').add(eventData).then(function() {
-        alert('Event Created!');
+        alert('Event Created Successfully!');
         window.location.reload();
       }).catch(function(err) {
         alert('Error: ' + err.message);
@@ -419,8 +425,9 @@
         btn.disabled = false;
       });
     } else {
+      // Update Existing
       db.collection('streams').doc(id).update(eventData).then(function() {
-        alert('Event Updated!');
+        alert('Event Updated Successfully!');
         window.location.reload();
       }).catch(function(err) {
         alert('Error: ' + err.message);
@@ -431,13 +438,14 @@
   };
 
   function deleteEvent(id) {
-    if (!confirm('Delete this event permanently?')) return;
+    if (!confirm('WARNING: Delete this event permanently? All links will break.')) return;
     db.collection('streams').doc(id).delete().then(function() {
       window.location.reload();
     });
   }
 
+  if (window.lucide) lucide.createIcons();
 })();
 </script>
 </body>
-  </html>
+</html>
