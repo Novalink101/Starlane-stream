@@ -10,48 +10,54 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
-  :root { --red: #E50914; --bg: #ffffff; --surface: #f9fafb; --text: #111827; --text-muted: #6b7280; --border: #e5e7eb; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 24px; }
+  :root { --red:#E50914; --bg:#fff; --surface:#f9fafb; --text:#111827; --text-muted:#6b7280; --border:#e5e7eb; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:24px; }
   
-  .nav { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-  .logo { display: flex; align-items: center; gap: 12px; }
-  .logo svg { width: 28px; height: 34px; }
-  .logo b { font-weight: 900; font-size: 20px; color: #111827; }
-  .logo b span { color: var(--red); }
-  .badge-admin { background: #fee2e2; color: var(--red); font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; margin-left: 8px; }
+  .nav { width:100%; max-width:800px; display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; }
+  .logo { display:flex; align-items:center; gap:12px; }
+  .logo svg { width:28px; height:34px; }
+  .logo b { font-weight:900; font-size:20px; color:#111827; }
+  .logo b span { color:var(--red); }
+  .badge-admin { background:#fee2e2; color:var(--red); font-size:10px; font-weight:900; padding:4px 10px; border-radius:20px; text-transform:uppercase; margin-left:8px; }
 
-  .header { text-align: center; margin-bottom: 30px; width: 100%; max-width: 800px; }
-  .header h1 { font-size: 32px; font-weight: 900; letter-spacing: -1px; margin-bottom: 8px; color: #111827; }
-  .header p { font-size: 15px; color: var(--text-muted); }
-  .header .event-title { font-size: 20px; font-weight: 800; color: var(--text); margin-top: 8px; display: block; }
+  .header { text-align:center; margin-bottom:30px; width:100%; max-width:800px; }
+  .header h1 { font-size:32px; font-weight:900; letter-spacing:-1px; margin-bottom:8px; color:#111827; }
+  .header p { font-size:15px; color:var(--text-muted); }
+  .header .event-title { font-size:20px; font-weight:800; color:var(--text); margin-top:8px; display:block; }
 
-  .master-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 800px; margin-bottom: 24px; }
-  @media (max-width: 600px) { .master-panel { grid-template-columns: 1fr; } }
+  .master-panel { display:grid; grid-template-columns:1fr 1fr; gap:16px; width:100%; max-width:800px; margin-bottom:24px; }
+  @media (max-width:600px) { .master-panel { grid-template-columns:1fr; } }
 
-  .master-btn { padding: 24px; border-radius: 16px; font-size: 18px; font-weight: 900; border: 2px solid var(--border); background: #fff; color: var(--text); cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-  .master-btn:hover { border-color: var(--text); }
-  .master-btn svg { width: 28px; height: 28px; }
-  .master-btn.ads { border-color: #F59E0B; color: #F59E0B; background: #fffbeb; }
-  .master-btn.ads:hover { background: #F59E0B; color: #fff; }
-  .master-btn.kill { border-color: var(--red); color: var(--red); background: #fee2e2; }
-  .master-btn.kill:hover { background: var(--red); color: #fff; }
-
-  .timer-box { background: var(--surface); border: 1px solid var(--border); padding: 16px 24px; border-radius: 16px; text-align: center; width: 100%; max-width: 800px; margin-bottom: 32px; }
-  .timer-box .status-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 4px; }
-  .timer-box .status-val { font-size: 24px; font-weight: 900; color: var(--text); font-family: monospace; }
-
-  .camera-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; width: 100%; max-width: 800px; }
-  @media (max-width: 600px) { .camera-grid { grid-template-columns: 1fr; } }
+  .master-btn { padding:24px; border-radius:16px; font-size:18px; font-weight:900; border:2px solid var(--border); background:#fff; color:var(--text); cursor:pointer; transition:0.2s; display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .master-btn:hover { border-color:var(--text); }
+  .master-btn svg { width:28px; height:28px; }
   
-  .cam-btn { padding: 30px 20px; border-radius: 16px; font-size: 18px; font-weight: 900; border: 2px solid var(--border); background: #fff; color: var(--text); cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-  .cam-btn:hover { border-color: var(--red); }
-  .cam-btn.active { background: var(--red); border-color: var(--red); color: #fff; box-shadow: 0 8px 20px rgba(229,9,20,0.3); }
-  .cam-btn svg { width: 24px; height: 24px; }
-  .split-btn { grid-column: span 2; }
-  @media (max-width: 600px) { .split-btn { grid-column: span 1; } }
+  .master-btn.ads { border-color:#F59E0B; color:#F59E0B; background:#fffbeb; }
+  .master-btn.ads:hover { background:#F59E0B; color:#fff; }
+  
+  .master-btn.kill { border-color:var(--red); color:var(--red); background:#fee2e2; }
+  .master-btn.kill:hover { background:var(--red); color:#fff; }
 
-  .error-box { background: #fee2e2; color: var(--red); padding: 16px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; display: none; text-align: center; width: 100%; max-width: 800px; }
+  .master-btn.reset { border-color:#16a34a; color:#16a34a; background:#f0fdf4; }
+  .master-btn.reset:hover { background:#16a34a; color:#fff; }
+
+  .timer-box { background:var(--surface); border:1px solid var(--border); padding:16px 24px; border-radius:16px; text-align:center; width:100%; max-width:800px; margin-bottom:32px; }
+  .timer-box .status-label { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin-bottom:4px; }
+  .timer-box .status-val { font-size:24px; font-weight:900; color:var(--text); font-family:monospace; }
+
+  .camera-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; width:100%; max-width:800px; }
+  @media (max-width:600px) { .camera-grid { grid-template-columns:1fr; } }
+  
+  .cam-btn { padding:30px 20px; border-radius:16px; font-size:18px; font-weight:900; border:2px solid var(--border); background:#fff; color:var(--text); cursor:pointer; transition:0.2s; display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .cam-btn:hover { border-color:var(--red); }
+  .cam-btn.active { background:var(--red); border-color:var(--red); color:#fff; box-shadow:0 8px 20px rgba(229,9,20,0.3); }
+  .cam-btn svg { width:24px; height:24px; }
+  
+  .split-btn { grid-column:span 2; }
+  @media (max-width:600px) { .split-btn { grid-column:span 1; } }
+
+  .error-box { background:#fee2e2; color:var(--red); padding:16px; border-radius:12px; margin-bottom:20px; font-weight:700; display:none; text-align:center; width:100%; max-width:800px; }
 </style>
 </head>
 <body>
@@ -67,7 +73,7 @@
 
 <div class="header">
   <h1>Broadcast Control</h1>
-  <p>Loading...</p>
+  <p>Switch cams, fire ads, or kill the stream.</p>
   <span class="event-title" id="event-title">Waiting for event...</span>
 </div>
 
@@ -81,6 +87,10 @@
   <button class="master-btn kill" id="btn-kill">
     <i data-lucide="power"></i>
     Kill Stream
+  </button>
+  <button class="master-btn reset" id="btn-reset" style="grid-column:1/-1;">
+    <i data-lucide="rotate-ccw"></i>
+    Resume Stream (Reset)
   </button>
 </div>
 
@@ -98,19 +108,11 @@
 </div>
 
 <script>
-  var firebaseConfig = {
-    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
-    authDomain: "starlane-stream.firebaseapp.com",
-    projectId: "starlane-stream",
-    storageBucket: "starlane-stream.firebasestorage.app",
-    messagingSenderId: "115625325145",
-    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
-  };
+  var firebaseConfig = { apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk", authDomain: "starlane-stream.firebaseapp.com", projectId: "starlane-stream", storageBucket: "starlane-stream.firebasestorage.app", messagingSenderId: "115625325145", appId: "1:115625325145:web:b14025df503bbe2b7d7748" };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var db = firebase.firestore();
 
-  var params = new URLSearchParams(window.location.search);
-  var currentEventId = params.get('event');
+  var currentEventId = new URLSearchParams(window.location.search).get('event');
   var eventStartTime = null;
 
   if (!currentEventId) {
@@ -173,8 +175,12 @@
     document.querySelectorAll('.cam-btn').forEach(function(btn) {
       btn.addEventListener('click', function() {
         var cam = this.dataset.cam;
-        db.collection('streams').doc(currentEventId).update({ activeCamera: cam, forceAds: false })
-          .catch(function(err) { alert("Error switching: " + err.message); });
+        // Clear kill flags when switching cams so the stream resumes
+        db.collection('streams').doc(currentEventId).update({ 
+          activeCamera: cam, 
+          forceAds: false,
+          killedAt: firebase.firestore.FieldValue.delete()
+        }).catch(function(err) { alert("Error switching: " + err.message); });
       });
     });
 
@@ -184,21 +190,32 @@
         .then(function() { alert("Ads fired! Viewers are now seeing the ad loop."); });
     });
 
-    // 5. Kill Stream Button
+    // 5. Kill Stream Button (Fixed)
     document.getElementById('btn-kill').addEventListener('click', function() {
       var pin = prompt("Enter the Kill PIN to stop the stream:");
       if (pin === "2138") {
+        // Set killedAt timestamp. The broadcast.html phones will see this and stop recording.
         db.collection('streams').doc(currentEventId).update({
-          activeCamera: null,
-          cams: null,
-          streamUrl: null,
+          killedAt: firebase.firestore.FieldValue.serverTimestamp(),
           forceAds: true
         }).then(function() {
-          alert("STREAM KILLED. Viewers are now seeing the ad loop.");
+          alert("STREAM KILLED. Viewers are now seeing the ad loop. Phones will stop recording within 3 seconds.");
         });
       } else if (pin !== null) {
         alert("Incorrect PIN.");
       }
+    });
+
+    // 6. Reset Stream Button (New)
+    document.getElementById('btn-reset').addEventListener('click', function() {
+      if (!confirm("Resume stream? This clears the Kill Switch and removes ads. You will need to restart the broadcast on the phones.")) return;
+      
+      db.collection('streams').doc(currentEventId).update({
+        killedAt: firebase.firestore.FieldValue.delete(),
+        forceAds: false
+      }).then(function() {
+        alert("Stream reset. Phones can now go live again.");
+      });
     });
   }
 
