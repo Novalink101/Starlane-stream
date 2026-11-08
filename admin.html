@@ -12,6 +12,7 @@
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <style>
   :root { 
@@ -25,6 +26,7 @@
     --text: #111827;
     --text-muted: #6B7280;
     --danger: #DC2626;
+    --success: #059669;
     
     --font-display: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', system-ui, sans-serif;
@@ -40,6 +42,11 @@
     min-height: 100vh;
   }
   a { text-decoration: none; color: inherit; }
+
+  /* Loader */
+  #loader { position: fixed; inset: 0; background: var(--ink-black); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.4s; color: #fff; font-family: var(--font-display); gap: 16px; }
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(163,255,18,0.2); border-top-color: var(--bright-lime); border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ── DASHBOARD LAYOUT ── */
   .dashboard-wrapper { display: flex; width: 100%; }
@@ -80,7 +87,7 @@
   .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
   .stat-title { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
   .stat-value { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--ink-black); }
-  .stat-trend { font-size: 13px; color: #059669; font-weight: 600; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+  .stat-trend { font-size: 13px; color: var(--success); font-weight: 600; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
   .stat-trend svg { width: 14px; height: 14px; }
 
   /* Panels */
@@ -95,31 +102,28 @@
   th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); padding: 16px; border-bottom: 1px solid var(--border); }
   td { padding: 16px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 14px; }
   
-  .user-cell { display: flex; align-items: center; gap: 12px; }
-  .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--ink-black); color: var(--bright-lime); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
-  .user-info h4 { font-weight: 600; color: var(--ink-black); }
-  .user-info p { font-size: 12px; color: var(--text-muted); }
+  .product-cell { display: flex; align-items: center; gap: 12px; }
+  .product-img { width: 40px; height: 40px; border-radius: 8px; background: var(--surface-2) center/cover; flex-shrink: 0; }
+  .product-info h4 { font-weight: 600; color: var(--ink-black); font-size: 14px; }
+  .product-info p { font-size: 12px; color: var(--text-muted); }
 
-  .role-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-  .role-admin { background: #FEF2F2; color: #DC2626; }
-  .role-seller { background: rgba(163,255,18,0.15); color: #5c9e00; }
-  .role-buyer { background: var(--surface-2); color: var(--text-muted); }
+  .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+  .status-pending { background: #FEF3C7; color: #D97706; }
+  .status-paid { background: rgba(163,255,18,0.15); color: #5c9e00; }
+  .status-shipped { background: #DBEAFE; color: #2563EB; }
 
-  .actions-cell { display: flex; gap: 8px; }
-  .btn-action { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; }
-  .btn-approve { background: rgba(163,255,18,0.2); color: #5c9e00; }
-  .btn-approve:hover { background: var(--bright-lime); color: var(--ink-black); }
-  .btn-reject { background: #FEF2F2; color: var(--danger); }
-  .btn-reject:hover { background: var(--danger); color: #fff; }
-
-  /* Toast */
-  #toast { position: fixed; bottom: 24px; right: 24px; background: var(--ink-black); color: #fff; padding: 16px 24px; border-radius: 12px; font-weight: 600; font-size: 14px; opacity: 0; transition: 0.3s; z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-left: 4px solid var(--bright-lime); transform: translateY(20px); pointer-events: none; }
-  #toast.show { opacity: 1; transform: translateY(0); }
+  .empty-row { text-align: center; padding: 40px; color: var(--text-muted); font-size: 15px; }
 </style>
 </head>
 <body>
 
-<div class="dashboard-wrapper">
+<!-- LOADER -->
+<div id="loader">
+  <div class="spinner"></div>
+  Authenticating Admin Access...
+</div>
+
+<div class="dashboard-wrapper" id="dashboard" style="display: none;">
   
   <!-- SIDEBAR -->
   <aside class="sidebar">
@@ -137,22 +141,13 @@
       <div class="nav-item active">
         <i data-lucide="shield-check"></i> Command Center
       </div>
-      <div class="nav-item">
-        <i data-lucide="users"></i> Manage Users
-      </div>
-      <div class="nav-item">
-        <i data-lucide="store"></i> Manage Sellers
-      </div>
-      <div class="nav-item">
-        <i data-lucide="shopping-cart"></i> Global Orders
-      </div>
-      <div class="nav-item">
-        <i data-lucide="settings"></i> Platform Settings
-      </div>
+      <a href="index.html" class="nav-item">
+        <i data-lucide="store"></i> View Storefront
+      </a>
     </div>
 
     <div class="sidebar-bottom">
-      <a href="index.html" class="nav-item" style="color: #F87171;">
+      <a href="#" id="admin-signout" class="nav-item" style="color: #F87171;">
         <i data-lucide="log-out"></i> Secure Sign Out
       </a>
     </div>
@@ -164,107 +159,76 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Admin Command Center</h1>
-        <p class="page-sub">System Overview · <span style="color: #059669; font-weight: 600;">All systems operational</span></p>
+        <p class="page-sub">Live Platform Overview · <span style="color: var(--success); font-weight: 600;">Database Connected</span></p>
       </div>
     </div>
 
     <!-- STATS ROW -->
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-title">Platform Revenue</div>
-        <div class="stat-value">R 145,200</div>
-        <div class="stat-trend"><i data-lucide="trending-up"></i> +24% this month</div>
+        <div class="stat-title">Total Revenue (Pending/Paid)</div>
+        <div class="stat-value" id="stat-revenue">R 0.00</div>
+        <div class="stat-trend"><i data-lucide="trending-up"></i> Live database</div>
       </div>
       <div class="stat-card">
-        <div class="stat-title">Total Buyers</div>
-        <div class="stat-value">1,248</div>
-        <div class="stat-trend" style="color: #059669;"><i data-lucide="user-plus"></i> +12 today</div>
+        <div class="stat-title">Total Orders</div>
+        <div class="stat-value" id="stat-orders">0</div>
+        <div class="stat-trend" style="color: var(--text-muted);">Processed via checkout</div>
       </div>
       <div class="stat-card">
-        <div class="stat-title">Active Sellers</div>
-        <div class="stat-value">34</div>
-        <div class="stat-trend" style="color: var(--text-muted);">Across 3 regions</div>
+        <div class="stat-title">Active Products</div>
+        <div class="stat-value" id="stat-products">0</div>
+        <div class="stat-trend" style="color: var(--text-muted);">Listed in the forest</div>
       </div>
       <div class="stat-card">
-        <div class="stat-title">Pending Approvals</div>
-        <div class="stat-value" style="color: var(--danger);" id="pending-count">2</div>
-        <div class="stat-trend" style="color: var(--danger);">Requires action</div>
+        <div class="stat-title">Registered Sellers</div>
+        <div class="stat-value" id="stat-sellers">0</div>
+        <div class="stat-trend" style="color: var(--text-muted);">Unique accounts</div>
       </div>
     </div>
 
-    <!-- PENDING SELLER APPROVALS -->
+    <!-- RECENT ORDERS PANEL -->
     <div class="panel">
       <div class="panel-header">
-        <h2 class="panel-title"><i data-lucide="alert-circle"></i> Action Required: Seller Applications</h2>
+        <h2 class="panel-title"><i data-lucide="shopping-cart"></i> Recent Orders</h2>
       </div>
       
       <div class="table-wrapper">
         <table>
           <thead>
             <tr>
-              <th>Applicant</th>
-              <th>Store Name</th>
-              <th>Date Applied</th>
-              <th>Actions</th>
+              <th>Order ID</th>
+              <th>Buyer</th>
+              <th>Total</th>
+              <th>Date</th>
+              <th>Status</th>
             </tr>
           </thead>
-          <tbody id="approvals-body">
-            <!-- Rows injected by JS -->
+          <tbody id="orders-body">
+            <!-- Real orders injected here -->
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- RECENT PLATFORM ACTIVITY -->
+    <!-- RECENT PRODUCTS PANEL -->
     <div class="panel">
       <div class="panel-header">
-        <h2 class="panel-title"><i data-lucide="activity"></i> System Activity</h2>
+        <h2 class="panel-title"><i data-lucide="package"></i> Recently Listed Products</h2>
       </div>
       
       <div class="table-wrapper">
         <table>
           <thead>
             <tr>
-              <th>User</th>
-              <th>Role</th>
-              <th>Activity</th>
-              <th>Time</th>
+              <th>Product</th>
+              <th>Seller</th>
+              <th>Price</th>
+              <th>Date Added</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>
-                <div class="user-cell">
-                  <div class="avatar">N</div>
-                  <div class="user-info"><h4>Nathan Nyl</h4><p>nyl@example.com</p></div>
-                </div>
-              </td>
-              <td><span class="role-badge role-seller">Seller</span></td>
-              <td>Uploaded new product: "Aether Headphones"</td>
-              <td style="color: var(--text-muted); font-size: 13px;">2 mins ago</td>
-            </tr>
-            <tr>
-              <td>
-                <div class="user-cell">
-                  <div class="avatar" style="background: var(--surface-2); color: var(--text-muted);">S</div>
-                  <div class="user-info"><h4>Sarah M.</h4><p>sarah@example.com</p></div>
-                </div>
-              </td>
-              <td><span class="role-badge role-buyer">Buyer</span></td>
-              <td>Purchased 1 item (Order #FB-992)</td>
-              <td style="color: var(--text-muted); font-size: 13px;">15 mins ago</td>
-            </tr>
-            <tr>
-              <td>
-                <div class="user-cell">
-                  <div class="avatar" style="background: var(--danger); color: #fff;">!</div>
-                  <div class="user-info"><h4>System</h4><p>Automated Task</p></div>
-                </div>
-              </td>
-              <td><span class="role-badge role-admin">Admin</span></td>
-              <td>Flagged product for review due to low stock</td>
-              <td style="color: var(--text-muted); font-size: 13px;">1 hour ago</td>
-            </tr>
+          <tbody id="products-body">
+            <!-- Real products injected here -->
           </tbody>
         </table>
       </div>
@@ -273,12 +237,10 @@
   </main>
 </div>
 
-<div id="toast">Action completed successfully.</div>
-
 <script>
 (function(){
   // ═══════════════════════════════════════════════
-  // 1. FIREBASE AUTH GUARD (Strict Admin Check)
+  // 1. FIREBASE INITIALIZATION & ADMIN GUARD
   // ═══════════════════════════════════════════════
   var firebaseConfig = {
     apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
@@ -290,89 +252,168 @@
   };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var auth = firebase.auth();
+  var db = firebase.firestore();
 
-  // Set your actual admin email here
-  var ADMIN_EMAIL = "nylnathan340@gmail.com"; 
+  // Add your admin emails here
+  var ADMIN_EMAILS = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
+
+  function money(v){ return 'R ' + parseFloat(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
   auth.onAuthStateChanged(function(user) {
     if (!user) {
+      // Not logged in
       window.location.href = 'login.html?redirect=admin.html';
-    } else if (user.email !== ADMIN_EMAIL) {
-      // If logged in but NOT the admin, kick them to the homepage
-      alert("Access Denied. You are not an administrator.");
+    } else if (!ADMIN_EMAILS.includes(user.email)) {
+      // Logged in, but NOT an admin
+      alert("Access Denied. You do not have administrator privileges.");
       window.location.href = 'index.html';
+    } else {
+      // Admin confirmed! Hide loader and show dashboard.
+      document.getElementById('loader').style.opacity = '0';
+      setTimeout(function() {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'flex';
+        if (window.lucide) lucide.createIcons();
+      }, 400);
+
+      // Fetch Data
+      loadPlatformStats();
+      loadRecentOrders();
+      loadRecentProducts();
     }
   });
 
   // ═══════════════════════════════════════════════
-  // 2. MOCK PENDING APPROVALS DATA
+  // 2. LOAD STATS
   // ═══════════════════════════════════════════════
-  var pendingSellers = [
-    { id: 1, name: 'John Doe', store: 'FutureTech ZA', date: 'Oct 24, 2026', initial: 'J' },
-    { id: 2, name: 'Jane Smith', store: 'Mystery Boxes Co.', date: 'Oct 25, 2026', initial: 'J' }
-  ];
+  function loadPlatformStats() {
+    // Total Revenue & Orders
+    db.collection('orders').get().then(function(snapshot) {
+      var totalRevenue = 0;
+      snapshot.forEach(function(doc) {
+        totalRevenue += parseFloat(doc.data().total || 0);
+      });
+      document.getElementById('stat-revenue').textContent = money(totalRevenue);
+      document.getElementById('stat-orders').textContent = snapshot.size;
+    });
 
-  function renderApprovals() {
-    var tbody = document.getElementById('approvals-body');
-    var countEl = document.getElementById('pending-count');
-    
-    tbody.innerHTML = '';
-    countEl.textContent = pendingSellers.length;
-
-    if (pendingSellers.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 30px;">All caught up! No pending applications.</td></tr>';
-      return;
-    }
-
-    pendingSellers.forEach(function(seller) {
-      var tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>
-          <div class="user-cell">
-            <div class="avatar">${seller.initial}</div>
-            <div class="user-info"><h4>${seller.name}</h4><p>Applicant</p></div>
-          </div>
-        </td>
-        <td style="font-weight: 600;">${seller.store}</td>
-        <td style="color: var(--text-muted);">${seller.date}</td>
-        <td>
-          <div class="actions-cell">
-            <button class="btn-action btn-approve" onclick="handleApproval(${seller.id}, 'approve')">Approve</button>
-            <button class="btn-action btn-reject" onclick="handleApproval(${seller.id}, 'reject')">Reject</button>
-          </div>
-        </td>
-      `;
-      tbody.appendChild(tr);
+    // Total Products & Unique Sellers
+    db.collection('products').get().then(function(snapshot) {
+      document.getElementById('stat-products').textContent = snapshot.size;
+      
+      var sellers = new Set();
+      snapshot.forEach(function(doc) {
+        if (doc.data().sellerId) {
+          sellers.add(doc.data().sellerId);
+        }
+      });
+      document.getElementById('stat-sellers').textContent = sellers.size;
     });
   }
 
   // ═══════════════════════════════════════════════
-  // 3. APPROVAL LOGIC
+  // 3. LOAD RECENT ORDERS
   // ═══════════════════════════════════════════════
-  window.handleApproval = function(id, action) {
-    // Filter out the approved/rejected seller
-    pendingSellers = pendingSellers.filter(function(s) { return s.id !== id; });
-    
-    // Re-render table
-    renderApprovals();
+  function loadRecentOrders() {
+    var tbody = document.getElementById('orders-body');
 
-    // Show Toast
-    var toast = document.getElementById('toast');
-    if (action === 'approve') {
-      toast.textContent = '✅ Seller approved. Store is now live.';
-      toast.style.borderLeftColor = 'var(--bright-lime)';
-    } else {
-      toast.textContent = '❌ Seller application rejected.';
-      toast.style.borderLeftColor = 'var(--danger)';
-    }
-    
-    toast.classList.add('show');
-    setTimeout(function() { toast.classList.remove('show'); }, 3000);
-  };
+    db.collection('orders')
+      .orderBy('createdAt', 'desc')
+      .limit(5)
+      .get()
+      .then(function(snapshot) {
+        if (snapshot.empty) {
+          tbody.innerHTML = '<tr><td colspan="5" class="empty-row">No orders have been placed yet.</td></tr>';
+          return;
+        }
 
-  // Initialize
-  renderApprovals();
-  if (window.lucide) lucide.createIcons();
+        tbody.innerHTML = '';
+        snapshot.forEach(function(doc) {
+          var order = doc.data();
+          
+          var dateStr = "Just now";
+          if (order.createdAt) {
+            dateStr = order.createdAt.toDate().toLocaleDateString('en-ZA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          }
+
+          var statusClass = order.status === 'paid' ? 'status-paid' : (order.status === 'shipped' ? 'status-shipped' : 'status-pending');
+
+          var tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="font-family: var(--mono); font-weight:600;">#${doc.id.slice(0, 8).toUpperCase()}</td>
+            <td>${order.buyerEmail || 'Unknown'}</td>
+            <td style="font-family: var(--mono); font-weight:700;">${money(order.total)}</td>
+            <td style="color: var(--text-muted); font-size: 13px;">${dateStr}</td>
+            <td><span class="status-badge ${statusClass}">${order.status || 'pending'}</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(function(error) {
+        console.error("Error loading orders: ", error);
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-row" style="color:red;">Failed to load orders. Missing Firestore Index?</td></tr>';
+      });
+  }
+
+  // ═══════════════════════════════════════════════
+  // 4. LOAD RECENT PRODUCTS
+  // ═══════════════════════════════════════════════
+  function loadRecentProducts() {
+    var tbody = document.getElementById('products-body');
+
+    db.collection('products')
+      .orderBy('createdAt', 'desc')
+      .limit(5)
+      .get()
+      .then(function(snapshot) {
+        if (snapshot.empty) {
+          tbody.innerHTML = '<tr><td colspan="4" class="empty-row">No products have been uploaded yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = '';
+        snapshot.forEach(function(doc) {
+          var p = doc.data();
+          
+          var dateStr = "Just now";
+          if (p.createdAt) {
+            dateStr = p.createdAt.toDate().toLocaleDateString('en-ZA', { month: 'short', day: 'numeric' });
+          }
+
+          var tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>
+              <div class="product-cell">
+                <div class="product-img" style="background-image:url('${p.imageUrl}')"></div>
+                <div class="product-info">
+                  <h4>${p.name}</h4>
+                  <p>${p.category}</p>
+                </div>
+              </div>
+            </td>
+            <td style="color: var(--text-muted); font-size: 13px;">${p.sellerEmail || 'Unknown'}</td>
+            <td style="font-family: var(--mono); font-weight:600;">${money(p.price)}</td>
+            <td style="color: var(--text-muted); font-size: 13px;">${dateStr}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(function(error) {
+        console.error("Error loading products: ", error);
+        tbody.innerHTML = '<tr><td colspan="4" class="empty-row" style="color:red;">Failed to load products.</td></tr>';
+      });
+  }
+
+  // ═══════════════════════════════════════════════
+  // 5. SIGN OUT
+  // ═══════════════════════════════════════════════
+  document.getElementById('admin-signout').addEventListener('click', function(e) {
+    e.preventDefault();
+    auth.signOut().then(function() {
+      window.location.href = 'login.html';
+    });
+  });
+
 })();
 </script>
 </body>
