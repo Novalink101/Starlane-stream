@@ -7,26 +7,27 @@
 <meta name="color-scheme" content="light" />
 <title>Watch Event · Starlane Stream</title>
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
-  :root { --red: #E50914; --red-hover: #FF3B4E; --bg: #ffffff; --surface: #f9fafb; --text: #111827; --text-muted: #6b7280; --border: #e5e7eb; }
+  :root { --red: #E50914; --bg: #ffffff; --surface: #f9fafb; --text: #111827; --text-muted: #6b7280; --border: #e5e7eb; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; position: relative; text-align: center; overflow-x: hidden; }
   a { text-decoration: none; color: inherit; }
   .hidden { display: none !important; }
+
   .starfield { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: #ffffff; overflow: hidden; }
   .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(229,9,20,.15), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
   @keyframes drift { 0% { transform: translateY(0) translateX(0); } 100% { transform: translateY(-200px) translateX(-100px); } }
+
   .nav { position: absolute; top: 0; left: 0; right: 0; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; z-index: 50; }
   .logo { display: flex; align-items: center; gap: 12px; }
   .logo svg { width: 28px; height: 34px; }
   .logo b { font-weight: 900; font-size: 20px; color: #111827; }
   .logo b span { color: var(--red); }
   .btn-nav { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-muted); }
-  .btn-nav:hover { color: var(--text); }
+
   .card { background: #ffffff; border: 1px solid var(--border); border-radius: 24px; padding: 48px 40px; max-width: 480px; margin: 0 auto; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08); z-index: 1; margin-top: 60px; }
   .icon-box { width: 72px; height: 72px; background: #fee2e2; color: var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 32px; }
   .card h1 { font-size: 26px; font-weight: 900; margin-bottom: 12px; }
@@ -34,20 +35,24 @@
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 16px 24px; border-radius: 12px; font-weight: 800; font-size: 16px; text-decoration: none; border: none; cursor: pointer; transition: 0.2s; width: 100%; margin-bottom: 12px; }
   .btn-primary { background: var(--red); color: #fff; }
   .btn-ghost { background: #ffffff; color: var(--text); border: 1px solid var(--border); }
+
   .player-container { position: relative; width: 100%; max-width: 1200px; aspect-ratio: 16/9; background: #000; border-radius: 20px; overflow: hidden; margin-top: 60px; z-index: 1; user-select: none; }
   .cam-grid { display: grid; width: 100%; height: 100%; gap: 4px; background: #000; }
   .grid-2 { grid-template-columns: 1fr 1fr; }
   .grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
   .cam-box { position: relative; width: 100%; height: 100%; background: #0a0a0f; display: flex; align-items: center; justify-content: center; overflow: hidden; }
   .cam-box video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  
   .cam-offline { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2; background: #0a0a0f; }
   .cam-offline svg { width: 40px; height: 48px; opacity: 0.5; margin-bottom: 8px; }
   .cam-offline p { font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; }
+
   .ad-container { position: absolute; inset: 0; z-index: 45; background: #000; display: flex; flex-direction: column; }
   .ad-container.hidden { display: none; }
   .ad-media { flex: 1; width: 100%; height: 100%; object-fit: contain; background: #000; }
   .ad-topbar { position: absolute; top: 0; left: 0; right: 0; padding: 16px; display: flex; justify-content: space-between; align-items: flex-start; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); z-index: 46; }
   .ad-label { background: #F59E0B; color: #000; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+
   .fullscreen-overlay { position: absolute; inset: 0; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0a0a0f; }
   .fullscreen-overlay.hidden { display: none; }
   .fullscreen-overlay .logos { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 24px; }
@@ -56,6 +61,10 @@
   .fullscreen-overlay p { font-size: 15px; color: rgba(255,255,255,0.6); }
   .prestream-spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--red); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 24px; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Unmute Button */
+  .unmute-btn { position: absolute; top: 20px; right: 20px; z-index: 30; background: rgba(0,0,0,0.75); border: 1px solid rgba(255,255,255,0.25); color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(8px); }
+  .unmute-btn:hover { background: var(--red); }
 </style>
 </head>
 <body>
@@ -139,6 +148,11 @@
       <h2 id="waiting-title">Connecting to live feed...</h2>
       <p id="waiting-sub">More than just ticketing.</p>
     </div>
+
+    <!-- UNMUTE BUTTON -->
+    <button class="unmute-btn hidden" id="unmute-btn">
+      <i data-lucide="volume-x" size="16"></i> Tap to Unmute
+    </button>
   </div>
 </div>
 
@@ -151,6 +165,7 @@
 
   var views = { single: document.getElementById('view-single'), way2: document.getElementById('view-2way'), way4: document.getElementById('view-4way') };
   var screens = { loading: document.getElementById('screen-loading'), paywall: document.getElementById('screen-paywall'), player: document.getElementById('screen-player') };
+  var unmuteBtn = document.getElementById('unmute-btn');
 
   function showScreen(name) {
     screens.loading.classList.add('hidden'); screens.paywall.classList.add('hidden'); screens.player.classList.add('hidden'); screens[name].classList.remove('hidden');
@@ -178,6 +193,7 @@
     if (window.lucide) lucide.createIcons();
   }
 
+  // Seamless Double Buffer + Retry Logic
   var isPlayingA = true;
   var lastUrlSingle = null;
 
@@ -188,19 +204,33 @@
       return;
     }
     document.getElementById('offline-single').classList.add('hidden');
+    
     if (url !== lastUrlSingle) {
       lastUrlSingle = url;
       var activeVid = isPlayingA ? document.getElementById('video-single-a') : document.getElementById('video-single-b');
       var hiddenVid = isPlayingA ? document.getElementById('video-single-b') : document.getElementById('video-single-a');
+      
       hiddenVid.src = url;
       hiddenVid.load();
-      hiddenVid.play().then(function() {
-        hiddenVid.style.display = 'block';
-        activeVid.style.display = 'none';
-        activeVid.pause();
-        isPlayingA = !isPlayingA;
-        hiddenVid.currentTime = hiddenVid.duration; 
-      }).catch(function(){});
+      
+      function tryPlay(attempts) {
+        hiddenVid.play().then(function() {
+          hiddenVid.style.display = 'block';
+          activeVid.style.display = 'none';
+          activeVid.pause();
+          isPlayingA = !isPlayingA;
+          hiddenVid.currentTime = hiddenVid.duration;
+          
+          // If audio is muted (default), show the unmute button
+          if (hiddenVid.muted) unmuteBtn.classList.remove('hidden');
+        }).catch(function(err) {
+          if (attempts < 5) {
+            // Cloudinary might still be processing, try again in 800ms
+            setTimeout(function() { tryPlay(attempts + 1); }, 800);
+          }
+        });
+      }
+      tryPlay(1);
     }
   }
 
@@ -221,6 +251,15 @@
     }
   }
 
+  // Unmute Logic
+  unmuteBtn.addEventListener('click', function() {
+    var activeVid = isPlayingA ? document.getElementById('video-single-b') : document.getElementById('video-single-a');
+    activeVid.muted = false;
+    activeVid.volume = 1;
+    unmuteBtn.classList.add('hidden');
+  });
+
+  // Ads
   var currentAds = [];
   var adTimeout = null;
   db.collection('ads').get().then(function(snap) { snap.forEach(function(doc) { currentAds.push(doc.data()); }); });
@@ -245,6 +284,7 @@
 
   function startPlayer() {
     showScreen('player');
+    
     setInterval(function() {
       db.collection('streams').doc(streamId).get().then(function(doc) {
         if (!doc.exists) return;
@@ -256,6 +296,7 @@
         if (data.forceAds === true) { playNextAd(); return; }
         document.getElementById('ad-overlay').classList.add('hidden');
         document.getElementById('waiting-overlay').classList.add('hidden');
+        
         Object.values(views).forEach(v => v.classList.add('hidden'));
 
         if (activeCam === 'split4') {
