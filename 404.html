@@ -3,25 +3,36 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#ffffff" />
-<meta name="color-scheme" content="light" />
-<title>Page Not Found · Starlane Stream</title>
+<meta name="theme-color" content="#030407" />
+<meta name="color-scheme" content="dark" />
+<title>Page Not Found · FORESTBASE</title>
+
+<!-- GOOGLE FONTS -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+
 <style>
   :root { 
-    --red: #E50914; 
-    --red-hover: #FF3B4E;
-    --bg: #ffffff; 
-    --surface: #f9fafb; 
-    --text: #111827; 
-    --text-muted: #6b7280; 
-    --border: #e5e7eb;
+    --lime: #A3FF12; 
+    --lime-hover: #BDFF53;
+    --bg: #030407; 
+    --surface: #12141A; 
+    --text: #FFFFFF; 
+    --text-muted: #AAB0C4; 
+    --border: rgba(255, 255, 255, 0.1);
+    
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  
   body { 
     background: var(--bg); 
     color: var(--text); 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+    font-family: var(--font-body); 
     display: flex; 
     flex-direction: column;
     align-items: center; 
@@ -34,58 +45,77 @@
   }
   a { text-decoration: none; color: inherit; }
 
-  /* ── MOVING STARFIELD BACKGROUND (WHITE) ── */
-  .starfield { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: #ffffff; overflow: hidden; }
-  .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(229,9,20,.15), transparent 100%), radial-gradient(1px 1px at 85% 15%, rgba(0,0,0,.08), transparent 100%), radial-gradient(2px 2px at 45% 35%, rgba(229,9,20,.1), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
-  .stars-2 { position: absolute; inset: -50%; background-image: radial-gradient(1px 1px at 20% 30%, rgba(229,9,20,.3), transparent 100%), radial-gradient(2px 2px at 60% 10%, rgba(0,0,0,.15), transparent 100%); background-size: 300px 300px; animation: drift 20s linear infinite reverse; }
+  /* ── MOVING STARFIELD BACKGROUND (DARK) ── */
+  .starfield { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--bg); overflow: hidden; }
+  .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(163,255,18,.15), transparent 100%), radial-gradient(1px 1px at 85% 15%, rgba(170,176,196,.1), transparent 100%), radial-gradient(2px 2px at 45% 35%, rgba(163,255,18,.1), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
+  .stars-2 { position: absolute; inset: -50%; background-image: radial-gradient(1px 1px at 20% 30%, rgba(163,255,18,.3), transparent 100%), radial-gradient(2px 2px at 60% 10%, rgba(170,176,196,.15), transparent 100%); background-size: 300px 300px; animation: drift 20s linear infinite reverse; }
   @keyframes drift { 0% { transform: translateY(0) translateX(0); } 100% { transform: translateY(-200px) translateX(-100px); } }
 
   /* Navbar */
   .nav { position: absolute; top: 0; left: 0; right: 0; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
   .logo { display: flex; align-items: center; gap: 12px; }
   .logo svg { width: 28px; height: 34px; }
-  .logo b { font-weight: 900; font-size: 20px; color: #111827; letter-spacing: -0.5px; }
-  .logo b span { color: var(--red); }
+  .logo b { font-family: var(--font-display); font-weight: 700; font-size: 20px; color: #fff; letter-spacing: -0.03em; }
+  .logo b span { color: var(--lime); }
   
-  .btn-home-nav { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-muted); transition: 0.2s; }
-  .btn-home-nav:hover { color: var(--text); }
+  .btn-home-nav { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text-muted); transition: 0.2s; }
+  .btn-home-nav:hover { color: var(--lime); }
 
   /* 404 Content */
   .container { max-width: 500px; z-index: 1; margin-top: 40px; }
   
   .error-code { 
+    font-family: var(--font-display);
     font-size: clamp(100px, 20vw, 160px); 
-    font-weight: 900; 
+    font-weight: 700; 
     line-height: 0.9; 
     letter-spacing: -0.05em; 
-    background: linear-gradient(135deg, var(--red) 0%, #FF5566 100%);
+    background: linear-gradient(135deg, var(--lime) 0%, #7DAE14 100%);
     -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 10px 20px rgba(229,9,20,0.15));
+    filter: drop-shadow(0 10px 20px rgba(163,255,18,0.15));
     margin-bottom: 20px;
   }
 
   .icon-box { 
     width: 72px; height: 72px; 
-    background: #fee2e2; color: var(--red); 
+    background: rgba(163,255,18,0.1); 
+    color: var(--lime); 
     border-radius: 50%; display: flex; align-items: center; justify-content: center; 
     margin: 0 auto 24px; font-size: 32px; 
+    border: 1px solid rgba(163,255,18,0.2);
   }
 
-  .container h1 { font-size: 28px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 12px; color: #111827; }
-  .container p { font-size: 16px; color: var(--text-muted); line-height: 1.6; margin-bottom: 32px; font-weight: 500; }
+  .container h1 { font-family: var(--font-display); font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; color: #fff; }
+  .container p { font-size: 16px; color: var(--text-muted); line-height: 1.6; margin-bottom: 32px; font-weight: 400; }
 
   .btn-group { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
   
   .btn { 
     display: inline-flex; align-items: center; justify-content: center; gap: 8px; 
-    padding: 14px 28px; border-radius: 12px; font-size: 15px; font-weight: 800; 
-    transition: 0.2s; cursor: pointer; border: none; font-family: inherit;
+    padding: 14px 28px; border-radius: 12px; font-size: 15px; font-weight: 700; 
+    transition: 0.2s; cursor: pointer; border: none; font-family: var(--font-display);
   }
-  .btn-primary { background: var(--red); color: #fff; box-shadow: 0 8px 20px rgba(229,9,20,0.3); }
-  .btn-primary:hover { background: var(--red-hover); transform: translateY(-2px); }
-  .btn-ghost { background: #ffffff; color: var(--text); border: 1px solid var(--border); }
-  .btn-ghost:hover { background: var(--surface); }
+  .btn-primary { 
+    background: var(--lime); 
+    color: var(--bg); 
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset; 
+  }
+  .btn-primary:hover { 
+    background: var(--lime-hover); 
+    transform: translateY(-2px); 
+    box-shadow: 0 12px 24px rgba(0,0,0,0.6), 0 0 15px rgba(163,255,18,0.3);
+  }
+  .btn-ghost { 
+    background: rgba(255,255,255,0.05); 
+    color: var(--text); 
+    border: 1px solid var(--border); 
+    backdrop-filter: blur(10px);
+  }
+  .btn-ghost:hover { 
+    background: rgba(255,255,255,0.1); 
+    border-color: rgba(255,255,255,0.2);
+  }
 
 </style>
 </head>
@@ -96,12 +126,12 @@
 <nav class="nav">
   <a href="index.html" class="logo">
     <svg viewBox="0 0 60 74" aria-hidden="true">
-      <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#E50914"/><stop offset="100%" stop-color="#FF5566"/></linearGradient></defs>
-      <path d="M10 60 Q 22 32 44 20" stroke="url(#sg)" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <path d="M16 62 Q 26 40 46 26" stroke="url(#sg)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
-      <circle cx="46" cy="18" r="5" fill="#fff"/><circle cx="46" cy="18" r="2.5" fill="#E50914"/>
+      <path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" />
+      <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
+      <path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" />
+      <path d="M20 56 H40 V60 H20 Z" fill="#030407" />
     </svg>
-    <b>STAR<span>LANE</span></b>
+    <b>FOREST<span>BASE</span></b>
   </a>
   <a href="index.html" class="btn-home-nav"><i data-lucide="arrow-left" size="16"></i> Back to Home</a>
 </nav>
@@ -109,12 +139,12 @@
 <div class="container">
   <div class="error-code">404</div>
   <div class="icon-box"><i data-lucide="map-off"></i></div>
-  <h1>Lost in space</h1>
-  <p>The page you are looking for doesn't exist, has been moved, or the link is incorrect. Let's get you back on track.</p>
+  <h1>Lost in the forest</h1>
+  <p>The mystery you seek doesn't exist, has been moved, or the link is incorrect. Let's get you back to the marketplace.</p>
   
   <div class="btn-group">
     <a href="index.html" class="btn btn-primary"><i data-lucide="home" size="18"></i> Go to Homepage</a>
-    <a href="https://novalink-tickets.onrender.com" class="btn btn-ghost"><i data-lucide="ticket" size="18"></i> Find Tickets</a>
+    <a href="index.html#shop" class="btn btn-ghost"><i data-lucide="shopping-bag" size="18"></i> Explore Products</a>
   </div>
 </div>
 
