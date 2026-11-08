@@ -141,9 +141,9 @@
   var db = firebase.firestore();
   var auth = firebase.auth();
 
-  // ⚠️ ENTER YOUR CLOUDINARY CLOUD NAME HERE
-  var CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME_HERE"; 
-  var CLOUDINARY_UPLOAD_PRESET = "starlane_chunks";
+  // ✅ YOUR CLOUDINARY CREDENTIALS
+  var CLOUDINARY_CLOUD_NAME = "s5iwi88d"; 
+  var CLOUDINARY_UPLOAD_PRESET = "starlane_unsigned";
 
   // Generate a permanent ID for this device so it remembers its locks
   var deviceId = localStorage.getItem('starlane_device_id');
@@ -176,7 +176,9 @@
       document.getElementById('login-screen').classList.add('hidden');
       
       // Check if admin already selected an event in the dashboard
-      var storedEventId = localStorage.getItem('starlane_activeEvent');
+      var urlEventId = new URLSearchParams(location.search).get('event');
+      var storedEventId = urlEventId || localStorage.getItem('starlane_activeEvent');
+      
       if (storedEventId) {
         selectedEventId = storedEventId;
         document.getElementById('camera-screen').classList.remove('hidden');
@@ -193,7 +195,7 @@
   });
 
   document.getElementById('btn-login').addEventListener('click', function() {
-    window.location.href = 'auth.html?redirect=' + encodeURIComponent(location.pathname);
+    window.location.href = 'auth.html?redirect=' + encodeURIComponent(location.pathname + location.search);
   });
 
   function loadEvents() {
@@ -510,4 +512,4 @@
 })();
 </script>
 </body>
-  </html>
+</html>
