@@ -11,79 +11,45 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
-  :root { 
-    --red: #E50914; 
-    --red-hover: #FF3B4E;
-    --bg: #ffffff; 
-    --surface: #f9fafb; 
-    --text: #111827; 
-    --text-muted: #6b7280; 
-    --border: #e5e7eb;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { 
-    background: var(--bg); color: var(--text); 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-    display: flex; flex-direction: column; align-items: center; justify-content: center; 
-    min-height: 100vh; padding: 24px; overflow-x: hidden; position: relative;
-  }
-  a { text-decoration: none; color: inherit; }
-  .hidden { display: none !important; }
-
-  /* Starfield */
-  .starfield { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: #ffffff; overflow: hidden; }
-  .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(229,9,20,.15), transparent 100%), radial-gradient(1px 1px at 85% 15%, rgba(0,0,0,.08), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
-  .stars-2 { position: absolute; inset: -50%; background-image: radial-gradient(1px 1px at 20% 30%, rgba(229,9,20,.3), transparent 100%), radial-gradient(2px 2px at 60% 10%, rgba(0,0,0,.15), transparent 100%); background-size: 300px 300px; animation: drift 20s linear infinite reverse; }
-  @keyframes drift { 0% { transform: translateY(0) translateX(0); } 100% { transform: translateY(-200px) translateX(-100px); } }
-
-  /* Navbar */
-  .nav { position: absolute; top: 0; left: 0; right: 0; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; z-index: 50; }
-  .logo { display: flex; align-items: center; gap: 12px; }
-  .logo svg { width: 28px; height: 34px; }
-  .logo b { font-weight: 900; font-size: 20px; color: #111827; letter-spacing: -0.5px; }
-  .logo b span { color: var(--red); }
-  .btn-nav { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-muted); transition: 0.2s; }
-  .btn-nav:hover { color: var(--text); }
-
-  /* Card */
-  .card { background: #ffffff; border: 1px solid var(--border); border-radius: 24px; padding: 40px; width: 100%; max-width: 480px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08); z-index: 1; margin-top: 60px; }
-  @media (max-width: 480px) { .card { padding: 32px 24px; } }
-
-  .card-header { text-align: center; margin-bottom: 32px; }
-  .icon-box { width: 64px; height: 64px; background: #fee2e2; color: var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px; }
-  .card h1 { font-size: 24px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 8px; }
-  .card p { font-size: 15px; color: var(--text-muted); font-weight: 500; }
-
-  .price-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-  .price-box span { font-weight: 700; font-size: 15px; color: var(--text-muted); }
-  .price-box strong { font-size: 28px; font-weight: 900; color: var(--red); }
-
-  .checkbox-group { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 24px; font-size: 13px; color: var(--text-muted); cursor: pointer; line-height: 1.5; }
-  .checkbox-group input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--red); cursor: pointer; }
-  .checkbox-group a { color: var(--red); text-decoration: none; font-weight: 700; }
-  .checkbox-group a:hover { text-decoration: underline; }
-
-  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; transition: 0.2s; border: none; font-family: inherit; }
-  .btn-primary { background: var(--red); color: #fff; box-shadow: 0 8px 20px rgba(229,9,20,0.3); }
-  .btn-primary:hover:not(:disabled) { background: var(--red-hover); transform: translateY(-2px); }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-
-  .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  :root { --red:#E50914; --red-hover:#FF3B4E; --bg:#fff; --surface:#f9fafb; --text:#111827; --text-muted:#6b7280; --border:#e5e7eb; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system, BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:24px; overflow-x:hidden; position:relative; }
+  a { text-decoration:none; color:inherit; }
+  .hidden { display:none !important; }
+  .starfield { position:fixed; inset:0; z-index:-1; pointer-events:none; background:#fff; overflow:hidden; }
+  .stars-1 { position:absolute; inset:-50%; background-image:radial-gradient(1.5px 1.5px at 10% 20%,rgba(229,9,20,.15),transparent 100%),radial-gradient(1px 1px at 85% 15%,rgba(0,0,0,.08),transparent 100%); background-size:200px 200px; animation:drift 40s linear infinite; }
+  @keyframes drift { to { transform:translateY(-200px) translateX(-100px); } }
+  .nav { position:absolute; top:0; left:0; right:0; padding:20px 24px; display:flex; justify-content:space-between; align-items:center; z-index:50; }
+  .logo { display:flex; align-items:center; gap:12px; }
+  .logo svg { width:28px; height:34px; }
+  .logo b { font-weight:900; font-size:20px; color:#111827; letter-spacing:-.5px; }
+  .logo b span { color:var(--red); }
+  .btn-nav { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:var(--text-muted); }
+  .card { background:#fff; border:1px solid var(--border); border-radius:24px; padding:40px; width:100%; max-width:480px; box-shadow:0 20px 40px -10px rgba(0,0,0,.08); z-index:1; margin-top:60px; }
+  @media (max-width:480px){ .card { padding:32px 24px; } }
+  .card-header { text-align:center; margin-bottom:32px; }
+  .icon-box { width:64px; height:64px; background:#fee2e2; color:var(--red); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:28px; }
+  .card h1 { font-size:24px; font-weight:900; letter-spacing:-.5px; margin-bottom:8px; }
+  .card p { font-size:15px; color:var(--text-muted); font-weight:500; }
+  .price-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+  .price-box span { font-weight:700; font-size:15px; color:var(--text-muted); }
+  .price-box strong { font-size:28px; font-weight:900; color:var(--red); }
+  .checkbox-group { display:flex; align-items:flex-start; gap:12px; margin-bottom:24px; font-size:13px; color:var(--text-muted); cursor:pointer; line-height:1.5; }
+  .checkbox-group input { width:18px; height:18px; margin-top:2px; accent-color:var(--red); cursor:pointer; }
+  .checkbox-group a { color:var(--red); font-weight:700; }
+  .btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:16px; border-radius:12px; font-size:16px; font-weight:800; cursor:pointer; transition:.2s; border:none; font-family:inherit; }
+  .btn-primary { background:var(--red); color:#fff; box-shadow:0 8px 20px rgba(229,9,20,.3); }
+  .btn-primary:hover:not(:disabled) { background:var(--red-hover); transform:translateY(-2px); }
+  .btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+  .spinner { width:20px; height:20px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
 </style>
 </head>
 <body>
-
-<div class="starfield"><div class="stars-1"></div><div class="stars-2"></div></div>
-
+<div class="starfield"><div class="stars-1"></div></div>
 <nav class="nav">
   <a href="index.html" class="logo">
-    <svg viewBox="0 0 60 74" aria-hidden="true">
-      <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#E50914"/><stop offset="100%" stop-color="#FF5566"/></linearGradient></defs>
-      <path d="M10 60 Q 22 32 44 20" stroke="url(#sg)" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <path d="M16 62 Q 26 40 46 26" stroke="url(#sg)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
-      <circle cx="46" cy="18" r="5" fill="#fff"/><circle cx="46" cy="18" r="2.5" fill="#E50914"/>
-    </svg>
+    <svg viewBox="0 0 60 74"><defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#E50914"/><stop offset="100%" stop-color="#FF5566"/></linearGradient></defs><path d="M10 60 Q 22 32 44 20" stroke="url(#sg)" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="46" cy="18" r="5" fill="#fff"/><circle cx="46" cy="18" r="2.5" fill="#E50914"/></svg>
     <b>STAR<span>LANE</span></b>
   </a>
   <a href="index.html" class="btn-nav"><i data-lucide="arrow-left" size="16"></i> Back to Home</a>
@@ -106,9 +72,7 @@
     <span>I agree to the <a href="legal.html#terms" target="_blank">Terms of Service</a>, <a href="legal.html#privacy" target="_blank">Privacy Policy</a>, and understand this is a non-refundable digital purchase.</span>
   </label>
 
-  <button id="pay-btn" class="btn btn-primary" disabled>
-    Pay Now <i data-lucide="lock" size="18"></i>
-  </button>
+  <button id="pay-btn" class="btn btn-primary" disabled>Pay Now <i data-lucide="lock" size="18"></i></button>
 </div>
 
 <script>
@@ -121,21 +85,17 @@
     messagingSenderId: "115625325145",
     appId: "1:115625325145:web:b14025df503bbe2b7d7748"
   };
-  
-  // Initialize Firebase
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-  
-  // Initialize BOTH Auth and Firestore
   var auth = firebase.auth();
-  var db = firebase.firestore(); 
+  var db = firebase.firestore();
 
   var params = new URLSearchParams(window.location.search);
   var streamId = params.get('streamId');
-  var price = params.get('price');
+  var price = parseInt(params.get('price'), 10) || 0;
   var currentUser = null;
 
-  if (!streamId || !price) {
-    document.body.innerHTML = '<h2 style="text-align:center; padding: 40px;">Invalid Checkout Link</h2>';
+  if (!streamId || price <= 0) {
+    document.body.innerHTML = '<h2 style="text-align:center; padding:40px;">Invalid Checkout Link</h2>';
     return;
   }
 
@@ -144,13 +104,9 @@
   payBtn.innerHTML = 'Pay R' + price + ' Now <i data-lucide="lock" size="18"></i>';
   if (window.lucide) lucide.createIcons();
 
-  // Handle Terms Checkbox
   var termsCheck = document.getElementById('terms-check');
-  termsCheck.addEventListener('change', function() {
-    payBtn.disabled = !this.checked;
-  });
+  termsCheck.addEventListener('change', function(){ payBtn.disabled = !this.checked; });
 
-  // Auth Check
   auth.onAuthStateChanged(function(user) {
     if (!user) {
       window.location.href = 'auth.html?redirect=' + encodeURIComponent(location.pathname + location.search);
@@ -159,51 +115,56 @@
     currentUser = user;
   });
 
-  // Pay Button Action
+  function makeId() {
+    if (crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'chk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+  }
+
   payBtn.addEventListener('click', async function() {
     if (!termsCheck.checked || !currentUser) return;
-
     var btn = this;
     btn.disabled = true;
     btn.innerHTML = '<div class="spinner"></div> Connecting to Yoco...';
 
+    var checkoutId = makeId();
+
     try {
-      // Call our new Starlane backend API to generate the Yoco link
-      var res = await fetch('https://starlane-stream-api.onrender.com/api/create-yoco-checkout', {
+      await db.collection('purchases').doc(checkoutId).set({
+        checkoutId: checkoutId,
+        userId: currentUser.uid,
+        userEmail: currentUser.email,
+        streamId: streamId,
+        price: price,
+        status: 'pending',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      // FIXED: Relative URL (No more hardcoded Render URL)
+      var res = await fetch('/api/create-yoco-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          checkoutId: checkoutId,
+          userId: currentUser.uid,
+          userEmail: currentUser.email,
           streamId: streamId,
           price: price,
-          userEmail: currentUser.email
+          returnUrl: window.location.origin + '/watch.html?id=' + streamId + '&justPaid=1'
         })
       });
 
       var data = await res.json();
+      if (!data.redirectUrl) throw new Error(data.error || 'No payment link returned.');
+      window.location.href = data.redirectUrl;
 
-      if (data.redirectUrl) {
-        // Instantly save the pass in Firebase BEFORE redirecting to Yoco
-        await db.collection('users').doc(currentUser.uid).collection('passes').doc(streamId).set({
-          streamId: streamId,
-          email: currentUser.email,
-          price: parseInt(price, 10),
-          status: 'approved',
-          purchasedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        // Send to Yoco
-        window.location.href = data.redirectUrl;
-      } else {
-        throw new Error(data.error || 'Failed to generate payment link.');
-      }
-    } catch(e) {
-      alert(e.message || 'Network error connecting to payment server.');
+    } catch (e) {
+      try { await db.collection('purchases').doc(checkoutId).delete(); } catch(_){}
+      alert(e.message || 'Could not reach payment server.');
       btn.disabled = false;
       btn.innerHTML = 'Pay R' + price + ' Now <i data-lucide="lock" size="18"></i>';
       if (window.lucide) lucide.createIcons();
     }
   });
-
 })();
 </script>
 </body>
