@@ -43,7 +43,7 @@
   .logo b span { color: var(--red); }
   .btn-nav { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-muted); }
   
-  /* Cards */
+  /* Cards (Loading & Paywall) */
   .card { background: #fff; border: 1px solid var(--border); border-radius: 24px; padding: 48px 40px; max-width: 480px; margin: 0 auto; box-shadow: 0 20px 40px -10px rgba(0,0,0,.08); z-index: 1; margin-top: 60px; }
   .icon-box { width: 72px; height: 72px; background: #fee2e2; color: var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 32px; }
   .card h1 { font-size: 26px; font-weight: 900; margin-bottom: 12px; }
@@ -56,7 +56,7 @@
   .player-wrap { 
     position: relative; width: 100%; max-width: 1200px; aspect-ratio: 16/9; 
     background: #000; border-radius: 20px; overflow: hidden; margin-top: 60px; z-index: 1; 
-    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); group;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
   }
   .video-container { width: 100%; height: 100%; position: relative; }
   .video-container video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
@@ -213,7 +213,7 @@
       if (!doc.exists) return showPaywall('Event not found.');
       var s = doc.data();
 
-      // Admin Bypass (for testing)
+      // Admin Bypass
       if (user && ADMIN_EMAILS.includes(user.email.toLowerCase())) return startPlayer();
       
       // Free event
@@ -243,7 +243,7 @@
   }
 
   // ═══════════════════════════════════════════════════════════
-  // 2. 40-SECOND BUFFER PLAYER (THE FIX)
+  // 2. 40-SECOND BUFFER ENGINE
   // ═══════════════════════════════════════════════════════════
   var currentActiveCam = null;
   var pendingChunks = [];
@@ -251,13 +251,14 @@
   var activeVidElement = null;
   var inactiveVidElement = null;
   var nextTimeout = null;
+  var currentHistoryUrls = []; // Keeps track of what we've seen
   
   var isPaused = false;
   var isMuted = true;
 
   function playNextFromQueue() {
     if (isPaused) {
-      nextTimeout = setTimeout(playNextFromQueue, 500); // Check again in 500ms
+      nextTimeout = setTimeout(playNextFromQueue, 500);
       return;
     }
 
@@ -273,7 +274,6 @@
 
     var url = pendingChunks.shift();
     
-    // Hide overlays
     document.getElementById('waiting-overlay').classList.add('hidden');
     document.getElementById('live-badge').style.display = 'flex';
 
@@ -290,23 +290,22 @@
       activeVidElement = inactiveVidElement;
       inactiveVidElement = temp;
       
-      if (!isMuted) activeVidElement.muted = false;
-      else activeVidElement.muted = true;
+      activeVidElement.muted = isMuted;
 
-      // Play the next chunk when this one ends
+      // Play next chunk when this one ends
       activeVidElement.onended = function() {
         clearTimeout(nextTimeout);
         playNextFromQueue();
       };
       
-      // Fallback for WebM chunks that might not fire 'onended' correctly
+      // Fallback timer (WebM chunks can be exactly 2s)
       clearTimeout(nextTimeout);
       nextTimeout = setTimeout(function() {
         playNextFromQueue();
       }, 1950); 
 
     }).catch(function(err) {
-      console.log("Skipping chunk due to error:", err);
+      console.log("Skipping chunk:", err);
       playNextFromQueue();
     });
   }
@@ -325,35 +324,22 @@
       isPaused = !isPaused;
       this.innerHTML = isPaused ? '<i data-lucide="play" size="24"></i>' : '<i data-lucide="pause" size="24"></i>';
       if (window.lucide) lucide.createIcons();
-      if (isPaused) {
-        activeVidElement.pause();
-      } else {
-        activeVidElement.play();
-      }
+      if (isPaused) { activeVidElement.pause(); } else { activeVidElement.play(); }
     });
-
     document.getElementById('mute-btn').addEventListener('click', function() {
       isMuted = !isMuted;
-      activeVidElement.muted = isMuted;
-      inactiveVidElement.muted = isMuted;
+      activeVidElement.muted = isMuted; inactiveVidElement.muted = isMuted;
       document.getElementById('unmute-btn').style.display = 'none';
       this.innerHTML = isMuted ? '<i data-lucide="volume-x" size="24"></i>' : '<i data-lucide="volume-2" size="24"></i>';
       if (window.lucide) lucide.createIcons();
     });
-
     document.getElementById('fullscreen-btn').addEventListener('click', function() {
       var wrap = document.getElementById('player-wrap');
-      if (!document.fullscreenElement) {
-        wrap.requestFullscreen();
-      } else {
-        document.exitFullscreen();
-      }
+      if (!document.fullscreenElement) { wrap.requestFullscreen(); } else { document.exitFullscreen(); }
     });
-
     document.getElementById('unmute-btn').addEventListener('click', function() {
       isMuted = false;
-      activeVidElement.muted = false;
-      inactiveVidElement.muted = false;
+      activeVidElement.muted = false; inactiveVidElement.muted = false;
       this.style.display = 'none';
       document.getElementById('mute-btn').innerHTML = '<i data-lucide="volume-2" size="24"></i>';
       if (window.lucide) lucide.createIcons();
@@ -364,21 +350,23 @@
       if (!doc.exists) return;
       var data = doc.data();
 
-      // Handle Ads
       if (data.forceAds === true) {
         document.getElementById('ad-overlay').classList.remove('hidden');
+        activeVidElement.pause();
         return;
       } else {
         document.getElementById('ad-overlay').classList.add('hidden');
+        if (!isPaused) activeVidElement.play();
       }
 
       var activeCam = data.activeCamera || 'cam1';
       var camHistory = data.camHistory || {};
       
-      // Handle Camera Switch
+      // Camera Switch
       if (currentActiveCam !== activeCam) {
         currentActiveCam = activeCam;
         pendingChunks = [];
+        currentHistoryUrls = [];
         isQueuePlaying = false;
         clearTimeout(nextTimeout);
         
@@ -406,27 +394,39 @@
         views.single.classList.remove('hidden');
       }
 
-      // Handle Single View 40-Second Buffer Logic
+      // Buffer Queue Logic
       if (currentActiveCam !== 'split4' && currentActiveCam !== 'split2') {
         var history = camHistory[currentActiveCam] || [];
         
-        // Find new chunks
-        history.forEach(function(chunk) {
-          if (!pendingChunks.includes(chunk.url) && chunk.url !== activeVidElement.src && chunk.url !== inactiveVidElement.src) {
-            pendingChunks.push(chunk.url);
+        if (!isQueuePlaying) {
+          // We wait for 20 chunks (40 seconds) before starting
+          if (history.length >= 20) {
+            // Start exactly 20 chunks behind live
+            var startIndex = history.length - 20;
+            pendingChunks = history.slice(startIndex).map(function(c) { return c.url; });
+            currentHistoryUrls = history.map(function(c) { return c.url; });
+            
+            isQueuePlaying = true;
+            document.getElementById('waiting-overlay').classList.add('hidden');
+            playNextFromQueue();
+          } else if (history.length > 0) {
+            document.getElementById('waiting-overlay').classList.remove('hidden');
+            document.getElementById('waiting-title').textContent = "Building live buffer...";
+            document.getElementById('waiting-sub').textContent = "Buffering 40 seconds of video... (" + history.length + "/20)";
           }
-        });
-
-        // IF WE HAVE 20 CHUNKS (40 seconds) AND NOT PLAYING, START!
-        if (!isQueuePlaying && pendingChunks.length >= 20) {
-          isQueuePlaying = true;
-          document.getElementById('waiting-overlay').classList.add('hidden');
-          playNextFromQueue();
-        } else if (!isQueuePlaying && pendingChunks.length > 0) {
-          // Show buffering progress
-          document.getElementById('waiting-overlay').classList.remove('hidden');
-          document.getElementById('waiting-title').textContent = "Building live buffer...";
-          document.getElementById('waiting-sub').textContent = "Buffering 40 seconds of video... (" + pendingChunks.length + "/20)";
+        } else {
+          // We are already playing. Just append new chunks that we haven't seen yet.
+          history.forEach(function(chunk) {
+            if (!currentHistoryUrls.includes(chunk.url)) {
+              currentHistoryUrls.push(chunk.url);
+              pendingChunks.push(chunk.url);
+            }
+          });
+          
+          // Cleanup old URLs from tracking array so it doesn't grow infinitely
+          if (currentHistoryUrls.length > 50) {
+             currentHistoryUrls = currentHistoryUrls.slice(-50);
+          }
         }
       }
     });
@@ -436,4 +436,4 @@
 })();
 </script>
 </body>
-  </html>
+</html>
