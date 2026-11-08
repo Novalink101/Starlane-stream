@@ -38,8 +38,9 @@
   .grid-4 { grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; }
   .cam-box { position:relative; width:100%; height:100%; background:#0a0a0f; display:flex; align-items:center; justify-content:center; overflow:hidden; }
   .cam-box video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  
   .cam-offline { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:2; background:#0a0a0f; }
-  .cam-offline p { font-size:12px; font-weight:800; color:rgba(255,255,255,.4); text-transform:uppercase; }
+  .cam-offline p { font-size:12px; font-weight:800; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:1px; }
   
   .ad-container { position:absolute; inset:0; z-index:45; background:#000; display:flex; flex-direction:column; }
   .ad-media { flex:1; width:100%; height:100%; object-fit:contain; background:#000; }
@@ -48,6 +49,7 @@
   
   .waiting { position:absolute; inset:0; z-index:40; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#0a0a0f; }
   .waiting h2 { font-size:24px; font-weight:900; color:#fff; margin-bottom:8px; }
+  .waiting p { font-size:14px; color:rgba(255,255,255,.6); margin-top:8px; }
   .spinner { width:40px; height:40px; border:3px solid rgba(255,255,255,.1); border-top-color:var(--red); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:24px; }
   @keyframes spin { to { transform:rotate(360deg); } }
   
@@ -80,7 +82,7 @@
 <div id="screen-player" class="hidden" style="width:100%; display:flex; justify-content:center;">
   <div class="player-container" id="player-container">
     
-    <!-- SINGLE VIEW (Double Buffer) -->
+    <!-- SINGLE VIEW (Buffered) -->
     <div id="view-single" class="cam-box">
       <video id="video-single-a" playsinline autoplay muted preload="auto"></video>
       <video id="video-single-b" playsinline autoplay muted preload="auto" style="display:none;"></video>
@@ -89,7 +91,6 @@
       </div>
     </div>
 
-    <!-- SPLIT VIEWS -->
     <div id="view-2way" class="cam-grid grid-2 hidden">
       <div class="cam-box"><video id="video-cam1-2" playsinline autoplay muted preload="auto"></video><div class="cam-offline" id="offline-cam1-2"><p>CAM 1</p></div></div>
       <div class="cam-box"><video id="video-cam2-2" playsinline autoplay muted preload="auto"></video><div class="cam-offline" id="offline-cam2-2"><p>CAM 2</p></div></div>
@@ -102,7 +103,6 @@
       <div class="cam-box"><video id="video-cam4-4" playsinline autoplay muted preload="auto"></video><div class="cam-offline" id="offline-cam4-4"><p>CAM 4</p></div></div>
     </div>
 
-    <!-- ADS & WAITING -->
     <div class="ad-container hidden" id="ad-overlay">
       <div class="ad-topbar"><div class="ad-label">Sponsored</div></div>
       <div id="ad-media-container" style="flex:1; display:flex; align-items:center; justify-content:center;"></div>
@@ -110,7 +110,8 @@
 
     <div class="waiting" id="waiting-overlay">
       <div class="spinner"></div>
-      <h2>Connecting to live feed...</h2>
+      <h2 id="waiting-title">Connecting to live feed...</h2>
+      <p id="waiting-sub">Buffering 40 seconds of video...</p>
     </div>
 
     <button class="unmute-btn hidden" id="unmute-btn">
@@ -131,7 +132,6 @@
   if (!streamId) return;
 
   var screens = { loading: document.getElementById('screen-loading'), paywall: document.getElementById('screen-paywall'), player: document.getElementById('screen-player') };
-  var views = { single: document.getElementById('view-single'), way2: document.getElementById('view-2way'), way4: document.getElementById('view-4way') };
   var unmuteBtn = document.getElementById('unmute-btn');
 
   function showScreen(name) {
@@ -145,7 +145,6 @@
       if (!doc.exists) return showPaywall('Event not found.');
       var s = doc.data();
 
-      // Admin Bypass (for testing)
       if (user && ADMIN_EMAILS.includes(user.email.toLowerCase())) return startPlayer();
       if (!s.ppvPrice || s.ppvPrice === 0) return startPlayer();
       if (!user) return showPaywall(s.ppvPrice);
@@ -169,156 +168,148 @@
     if (window.lucide) lucide.createIcons();
   }
 
-  // 2. CLOUDINARY DOUBLE BUFFER
-  var isPlayingA = true;
-  var lastUrlSingle = null;
+  // 2. THE 40-SECOND QUEUE PLAYER
+  var currentActiveCam = null;
+  var pendingChunks = [];
+  var isQueuePlaying = false;
+  var activeVidElement = null;
+  var inactiveVidElement = null;
+  var nextTimeout = null;
 
-  function updateSingleCam(url, camName) {
-    var offline = document.getElementById('offline-single');
-    if (!url || url === 'broadcasting') {
-      offline.classList.remove('hidden');
+  function playNextFromQueue() {
+    // If we run out of chunks, wait for the next upload
+    if (pendingChunks.length === 0) {
+      isQueuePlaying = false;
+      document.getElementById('offline-single').classList.remove('hidden');
+      document.getElementById('waiting-title').textContent = "Buffering next segment...";
+      document.getElementById('waiting-overlay').classList.remove('hidden');
       return;
     }
-    offline.classList.add('hidden');
+
+    var url = pendingChunks.shift();
     
-    if (url !== lastUrlSingle) {
-      lastUrlSingle = url;
-      var a = document.getElementById('video-single-a');
-      var b = document.getElementById('video-single-b');
-      var activeVid = isPlayingA ? a : b;
-      var hiddenVid = isPlayingA ? b : a;
-
-      hiddenVid.src = url;
-      hiddenVid.load();
-
-      // Retry logic for Cloudinary processing delay
-      (function tryPlay(attempts) {
-        hiddenVid.play().then(function() {
-          hiddenVid.style.display = 'block';
-          activeVid.style.display = 'none';
-          activeVid.pause();
-          isPlayingA = !isPlayingA;
-          if (hiddenVid.muted) unmuteBtn.classList.remove('hidden');
-        }).catch(function() {
-          if (attempts < 5) setTimeout(function(){ tryPlay(attempts + 1); }, 800);
-        });
-      })(1);
-    }
-  }
-
-  function updateCamBox(videoId, offlineId, url) {
-    var vid = document.getElementById(videoId);
-    var offline = document.getElementById(offlineId);
-    if (url && url !== 'broadcasting') {
-      offline.classList.add('hidden');
-      if (vid.src !== url) {
-        vid.src = url;
-        vid.play().catch(()=>{});
-      }
-    } else {
-      offline.classList.remove('hidden');
-      vid.src = '';
-    }
-  }
-
-  // 3. UNMUTE FIX (Unmutes BOTH buffers so it works after swaps)
-  unmuteBtn.addEventListener('click', function() {
-    document.getElementById('video-single-a').muted = false;
-    document.getElementById('video-single-b').muted = false;
-    document.getElementById('video-single-a').volume = 1;
-    document.getElementById('video-single-b').volume = 1;
-    unmuteBtn.classList.add('hidden');
-  });
-
-  // 4. ADS LOGIC (Fixed to prevent infinite restart loop)
-  var currentAds = [];
-  var currentForceAds = false;
-  var adsPlaying = false;
-  var adTimeout = null;
-
-  function startAdsIfNeeded() {
-    if (adsPlaying) return; // Crucial guard
-    if (currentAds.length === 0) return;
-    adsPlaying = true;
-    playNextAd();
-  }
-
-  function stopAds() {
-    if (!adsPlaying) return;
-    adsPlaying = false;
-    clearInterval(adTimeout);
-    document.getElementById('ad-overlay').classList.add('hidden');
-    document.getElementById('ad-media-container').innerHTML = '';
-  }
-
-  function playNextAd() {
-    if (!adsPlaying) return;
-    var mediaEl = document.getElementById('ad-media-container');
-    var ad = currentAds[Math.floor(Math.random() * currentAds.length)];
-    document.getElementById('ad-overlay').classList.remove('hidden');
+    // Hide offline overlay if this is the first chunk
+    document.getElementById('offline-single').classList.add('hidden');
     document.getElementById('waiting-overlay').classList.add('hidden');
-    mediaEl.innerHTML = '';
 
-    if (ad.type === 'video') {
-      var v = document.createElement('video');
-      v.src = ad.mediaUrl; v.className = 'ad-media';
-      v.autoplay = true; v.muted = true; v.playsInline = true;
-      mediaEl.appendChild(v);
-    } else {
-      var i = document.createElement('img');
-      i.src = ad.mediaUrl; i.className = 'ad-media';
-      i.style.objectFit = 'contain';
-      mediaEl.appendChild(i);
-    }
+    inactiveVidElement.src = url;
+    inactiveVidElement.load();
+    
+    inactiveVidElement.play().then(function() {
+      inactiveVidElement.style.display = 'block';
+      activeVidElement.style.display = 'none';
+      activeVidElement.pause();
+      
+      // Swap elements
+      var temp = activeVidElement;
+      activeVidElement = inactiveVidElement;
+      inactiveVidElement = temp;
+      
+      if (activeVidElement.muted) unmuteBtn.classList.remove('hidden');
 
-    var timeLeft = ad.duration || 30;
-    var elapsed = 0;
-    clearInterval(adTimeout);
-    adTimeout = setInterval(function() {
-      elapsed++;
-      if (elapsed >= timeLeft) { clearInterval(adTimeout); playNextAd(); }
-    }, 1000);
+      // Play the next chunk when this one ends
+      activeVidElement.onended = function() {
+        clearTimeout(nextTimeout);
+        playNextFromQueue();
+      };
+      
+      // Fallback in case 'onended' doesn't fire for WebM
+      clearTimeout(nextTimeout);
+      nextTimeout = setTimeout(function() {
+        playNextFromQueue();
+      }, 1950); // Chunks are 2s, so play next at 1.95s
+
+    }).catch(function(err) {
+      console.log("Skipping chunk due to error:", err);
+      playNextFromQueue();
+    });
   }
 
-  // 5. START PLAYER (Using onSnapshot to save Firestore reads)
   function startPlayer() {
     showScreen('player');
     
-    // Load ads once
-    db.collection('ads').get().then(function(snap) {
-      snap.forEach(function(d){ currentAds.push(d.data()); });
-      if (currentForceAds) startAdsIfNeeded();
-    });
+    // Initialize video elements
+    activeVidElement = document.getElementById('video-single-a');
+    inactiveVidElement = document.getElementById('video-single-b');
 
     db.collection('streams').doc(streamId).onSnapshot(function(doc) {
       if (!doc.exists) return;
       var data = doc.data();
-      currentForceAds = data.forceAds === true;
 
-      if (currentForceAds) { startAdsIfNeeded(); return; }
-      stopAds();
-      document.getElementById('waiting-overlay').classList.add('hidden');
-
-      var cams = data.cams || {};
-      var activeCam = data.activeCamera || 'cam1';
-      var camNames = data.camNames || { cam1:'CAM 1', cam2:'CAM 2', cam3:'CAM 3', cam4:'CAM 4' };
-
-      Object.values(views).forEach(v => v.classList.add('hidden'));
-
-      if (activeCam === 'split4') {
-        views.way4.classList.remove('hidden');
-        updateCamBox('video-cam1-4','offline-cam1-4',cams.cam1);
-        updateCamBox('video-cam2-4','offline-cam2-4',cams.cam2);
-        updateCamBox('video-cam3-4','offline-cam3-4',cams.cam3);
-        updateCamBox('video-cam4-4','offline-cam4-4',cams.cam4);
-      } else if (activeCam === 'split2') {
-        views.way2.classList.remove('hidden');
-        updateCamBox('video-cam1-2','offline-cam1-2',cams.cam1);
-        updateCamBox('video-cam2-2','offline-cam2-2',cams.cam2);
+      if (data.forceAds === true) {
+        document.getElementById('ad-overlay').classList.remove('hidden');
+        return;
       } else {
-        views.single.classList.remove('hidden');
-        updateSingleCam(cams[activeCam]);
+        document.getElementById('ad-overlay').classList.add('hidden');
       }
+
+      var activeCam = data.activeCamera || 'cam1';
+      var camHistory = data.camHistory || {};
+      
+      // Handle Camera Switch
+      if (currentActiveCam !== activeCam) {
+        currentActiveCam = activeCam;
+        pendingChunks = [];
+        isQueuePlaying = false;
+        clearTimeout(nextTimeout);
+        activeVidElement.pause();
+        inactiveVidElement.pause();
+        activeVidElement.src = "";
+        inactiveVidElement.src = "";
+        
+        document.getElementById('view-single').classList.add('hidden');
+        document.getElementById('view-2way').classList.add('hidden');
+        document.getElementById('view-4way').classList.add('hidden');
+
+        if (activeCam === 'split4' || activeCam === 'split2') {
+           // Split views play latest without delay for simplicity
+           document.getElementById(activeCam === 'split4' ? 'view-4way' : 'view-2way').classList.remove('hidden');
+           var cams = data.cams || {};
+           if (activeCam === 'split4') {
+             document.getElementById('video-cam1-4').src = cams.cam1 || ''; document.getElementById('video-cam1-4').play();
+             document.getElementById('video-cam2-4').src = cams.cam2 || ''; document.getElementById('video-cam2-4').play();
+             document.getElementById('video-cam3-4').src = cams.cam3 || ''; document.getElementById('video-cam3-4').play();
+             document.getElementById('video-cam4-4').src = cams.cam4 || ''; document.getElementById('video-cam4-4').play();
+           } else {
+             document.getElementById('video-cam1-2').src = cams.cam1 || ''; document.getElementById('video-cam1-2').play();
+             document.getElementById('video-cam2-2').src = cams.cam2 || ''; document.getElementById('video-cam2-2').play();
+           }
+           return;
+        }
+        
+        document.getElementById('view-single').classList.remove('hidden');
+      }
+
+      // Handle Single View Buffer Logic
+      if (currentActiveCam !== 'split4' && currentActiveCam !== 'split2') {
+        var history = camHistory[currentActiveCam] || [];
+        
+        // Find new chunks
+        history.forEach(function(chunk) {
+          if (!pendingChunks.includes(chunk.url) && chunk.url !== activeVidElement.src && chunk.url !== inactiveVidElement.src) {
+            pendingChunks.push(chunk.url);
+          }
+        });
+
+        // IF WE HAVE 20 CHUNKS (40 seconds) AND NOT PLAYING, START!
+        if (!isQueuePlaying && pendingChunks.length >= 20) {
+          isQueuePlaying = true;
+          document.getElementById('waiting-overlay').classList.add('hidden');
+          playNextFromQueue();
+        } else if (!isQueuePlaying && pendingChunks.length > 0) {
+          // Show buffering message
+          document.getElementById('waiting-overlay').classList.remove('hidden');
+          document.getElementById('waiting-sub').textContent = "Buffering 40 seconds of video... (" + pendingChunks.length + "/20)";
+        }
+      }
+    });
+
+    unmuteBtn.addEventListener('click', function() {
+      activeVidElement.muted = false;
+      inactiveVidElement.muted = false;
+      activeVidElement.volume = 1;
+      inactiveVidElement.volume = 1;
+      unmuteBtn.classList.add('hidden');
     });
   }
 
