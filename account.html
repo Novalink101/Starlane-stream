@@ -2,149 +2,279 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#ffffff" />
-<meta name="color-scheme" content="light" />
-<title>My Account · Starlane Stream</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#030407" />
+<title>My Account · FORESTBASE</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
 <style>
   :root { 
-    --red: #E50914; 
-    --red-hover: #FF3B4E;
-    --bg: #ffffff; 
-    --surface: #f9fafb; 
-    --text: #111827; 
-    --text-muted: #6b7280; 
-    --border: #e5e7eb;
+    --ink-black: #030407;
+    --silver-glass: #AAB0C4;
+    --bright-lime: #A3FF12;
+    
+    --surface: #FFFFFF;
+    --surface-dark: #12141A;
+    --surface-2: #F1F3F7;
+    --border: #E2E5EB;
+    --border-dark: rgba(255, 255, 255, 0.1);
+    
+    --text: #111827;
+    --text-muted: #6B7280;
+    
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { 
-    background: var(--bg); color: var(--text); 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-    line-height: 1.5; -webkit-font-smoothing: antialiased; 
-    min-height: 100vh; display: flex; flex-direction: column; position: relative;
+    background: #FAFBFC; 
+    color: var(--text); 
+    font-family: var(--font-body); 
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
   a { text-decoration: none; color: inherit; }
-  .hidden { display: none !important; }
-  main { flex: 1; }
+  
+  .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; width: 100%; flex: 1; }
 
-  /* Starfield */
-  .starfield { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: #ffffff; overflow: hidden; }
-  .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(229,9,20,.15), transparent 100%), radial-gradient(1px 1px at 85% 15%, rgba(0,0,0,.08), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
-  .stars-2 { position: absolute; inset: -50%; background-image: radial-gradient(1px 1px at 20% 30%, rgba(229,9,20,.3), transparent 100%), radial-gradient(2px 2px at 60% 10%, rgba(0,0,0,.15), transparent 100%); background-size: 300px 300px; animation: drift 20s linear infinite reverse; }
-  @keyframes drift { 0% { transform: translateY(0) translateX(0); } 100% { transform: translateY(-200px) translateX(-100px); } }
+  /* ── NAVBAR (Simplified for Account) ── */
+  .nav { background: var(--ink-black); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-dark); }
+  .nav-brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: #fff; }
+  .nav-brand svg { width: 28px; height: 34px; }
+  .nav-back { color: var(--silver-glass); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
+  .nav-back:hover { color: var(--bright-lime); }
 
-  /* Navbar */
-  .nav { border-bottom: 1px solid var(--border); padding: 16px 0; position: sticky; top: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); z-index: 50; }
-  .nav-inner { max-width: 1000px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
-  .logo { display: flex; align-items: center; gap: 12px; }
-  .logo svg { width: 28px; height: 34px; }
-  .logo b { font-weight: 900; font-size: 20px; color: #111827; }
-  .logo b span { color: var(--red); }
-  .btn-nav { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; background: var(--surface); border: 1px solid var(--border); transition: 0.2s; cursor: pointer; }
-  .btn-nav:hover { background: #fff; border-color: var(--text); }
+  /* ── DASHBOARD LAYOUT ── */
+  .dashboard { display: grid; grid-template-columns: 280px 1fr; gap: 32px; align-items: start; }
+  @media (max-width: 800px) { .dashboard { grid-template-columns: 1fr; } }
+
+  /* Sidebar */
+  .sidebar { background: #fff; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+  
+  .profile-card { padding: 32px 24px; text-align: center; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #fff 0%, #f9fafb 100%); }
+  .avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--ink-black); color: var(--bright-lime); font-family: var(--font-display); font-size: 32px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
+  .user-name { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--ink-black); margin-bottom: 4px; }
+  .user-email { font-size: 13px; color: var(--text-muted); }
+  
+  .nav-menu { padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--text-muted); transition: all 0.2s; cursor: pointer; }
+  .nav-item:hover { background: var(--surface-2); color: var(--ink-black); }
+  .nav-item.active { background: var(--ink-black); color: var(--bright-lime); }
+  .nav-item svg { width: 18px; height: 18px; }
 
   /* Main Content */
-  .container { max-width: 800px; margin: 60px auto; padding: 0 24px; }
-  .page-title { font-size: 32px; font-weight: 900; letter-spacing: -1px; margin-bottom: 32px; }
-
-  /* Profile Card */
-  .profile-card { background: #fff; border: 1px solid var(--border); border-radius: 24px; padding: 40px; display: flex; align-items: center; gap: 24px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); margin-bottom: 40px; }
-  .avatar { width: 80px; height: 80px; border-radius: 50%; background: #fee2e2; color: var(--red); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; flex-shrink: 0; }
-  .profile-info h2 { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
-  .profile-info p { font-size: 15px; color: var(--text-muted); font-weight: 500; margin-bottom: 16px; }
-  .btn-signout { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; background: #fee2e2; color: var(--red); font-weight: 700; font-size: 13px; border: 1px solid #fecaca; cursor: pointer; transition: 0.2s; }
-  .btn-signout:hover { background: var(--red); color: #fff; border-color: var(--red); }
-
-  /* Event List */
-  .section-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-  .section-title i { color: var(--red); }
+  .content-area { display: flex; flex-direction: column; gap: 24px; }
   
-  .event-list { display: flex; flex-direction: column; gap: 16px; }
-  .event-item { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-  .event-item:hover { border-color: var(--red); box-shadow: 0 4px 12px rgba(229,9,20,0.05); transform: translateY(-2px); }
-  .event-info h4 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
-  .event-info p { font-size: 14px; color: var(--text-muted); font-weight: 500; }
-  
-  .btn-watch { padding: 10px 20px; border-radius: 10px; background: var(--red); color: #fff; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; border: none; cursor: pointer; }
-  .btn-watch:hover { background: var(--red-hover); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(229,9,20,0.3); }
+  .page-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--ink-black); margin-bottom: 8px; }
+  .page-sub { font-size: 15px; color: var(--text-muted); margin-bottom: 24px; }
 
-  /* Empty States */
-  .empty-state { text-align: center; padding: 60px 20px; background: #fff; border: 1px dashed var(--border); border-radius: 20px; color: var(--text-muted); }
-  .empty-state i { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; }
-  .empty-state h3 { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+  /* Tabs Content Setup */
+  .tab-content { display: none; animation: fadeIn 0.3s ease-out; }
+  .tab-content.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Orders Panel */
+  .order-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 16px; }
+  .order-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+  .order-id { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--ink-black); }
+  .order-date { font-size: 13px; color: var(--text-muted); }
+  .order-status { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(163,255,18,0.15); color: #5c9e00; }
   
-  .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: spin .8s linear infinite; margin: 40px auto; }
+  .order-item { display: flex; align-items: center; gap: 16px; }
+  .order-img { width: 64px; height: 64px; border-radius: 8px; background: var(--surface-2); object-fit: cover; }
+  .order-details h4 { font-size: 15px; font-weight: 600; color: var(--ink-black); margin-bottom: 4px; }
+  .order-details p { font-size: 13px; color: var(--text-muted); }
+  .order-total { margin-left: auto; font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--ink-black); }
+
+  /* Wishlist Grid */
+  .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+  .wishlist-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: 0.2s; }
+  .wishlist-card:hover { border-color: var(--bright-lime); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+  .wishlist-img { height: 160px; background: var(--surface-2) center/cover no-repeat; }
+  .wishlist-info { padding: 16px; }
+  .wishlist-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; line-height: 1.4; }
+  .wishlist-price { font-family: var(--mono); font-weight: 700; color: var(--ink-black); }
+
+  /* Settings Form */
+  .settings-form { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 32px; max-width: 600px; }
+  .form-group { margin-bottom: 20px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-black); margin-bottom: 8px; }
+  .form-group input { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; font-family: var(--font-body); font-size: 14px; background: var(--surface-2); }
+  .form-group input:disabled { opacity: 0.6; cursor: not-allowed; }
+  
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; transition: 0.2s; cursor: pointer; border: none; font-family: var(--font-body); }
+  .btn-primary { background: var(--ink-black); color: #fff; }
+  .btn-primary:hover { background: #1f222c; }
+  .btn-danger { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
+  .btn-danger:hover { background: #FEE2E2; }
+
+  /* Loading Screen */
+  #loader { position: fixed; inset: 0; background: var(--ink-black); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.4s; }
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(163,255,18,0.2); border-top-color: var(--bright-lime); border-radius: 50%; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  @media (max-width: 600px) {
-    .profile-card { flex-direction: column; text-align: center; padding: 32px 24px; }
-    .event-item { flex-direction: column; text-align: center; gap: 16px; }
-    .btn-watch { width: 100%; justify-content: center; }
-  }
 </style>
 </head>
 <body>
 
-<div class="starfield"><div class="stars-1"></div><div class="stars-2"></div></div>
+<!-- LOADER (Prevents flashing of unauth content) -->
+<div id="loader">
+  <div class="spinner"></div>
+</div>
 
+<!-- NAVBAR -->
 <nav class="nav">
-  <div class="nav-inner">
-    <a href="index.html" class="logo">
-      <svg viewBox="0 0 60 74" aria-hidden="true">
-        <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#E50914"/><stop offset="100%" stop-color="#FF5566"/></linearGradient></defs>
-        <path d="M10 60 Q 22 32 44 20" stroke="url(#sg)" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <path d="M16 62 Q 26 40 46 26" stroke="url(#sg)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
-        <circle cx="46" cy="18" r="5" fill="#fff"/><circle cx="46" cy="18" r="2.5" fill="#E50914"/>
-      </svg>
-      <b>STAR<span>LANE</span></b>
-    </a>
-    <a href="index.html" class="btn-nav"><i data-lucide="home" size="16"></i> Back to Home</a>
-  </div>
+  <a href="index.html" class="nav-brand">
+    <svg viewBox="0 0 60 74">
+      <path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" />
+      <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
+      <path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" />
+      <path d="M20 56 H40 V60 H20 Z" fill="#030407" />
+    </svg>
+    FORESTBASE
+  </a>
+  <a href="index.html" class="nav-back"><i data-lucide="arrow-left" size="16"></i> Back to Shop</a>
 </nav>
 
-<main class="container">
-  <div id="loading" class="spinner"></div>
-
-  <!-- LOGGED IN VIEW -->
-  <div id="content" class="hidden">
-    <h1 class="page-title">My Account</h1>
-
-    <!-- Profile Info -->
-    <div class="profile-card">
-      <div class="avatar" id="avatar-initials">?</div>
-      <div class="profile-info" style="flex: 1;">
-        <h2 id="user-name">Loading...</h2>
-        <p id="user-email">Loading...</p>
-        <button class="btn-signout" id="btn-signout">
-          <i data-lucide="log-out" size="14"></i> Sign Out
-        </button>
+<div class="container">
+  <div class="dashboard">
+    
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="profile-card">
+        <div class="avatar" id="user-avatar">?</div>
+        <div class="user-name" id="user-name">Loading...</div>
+        <div class="user-email" id="user-email">...</div>
       </div>
-    </div>
-
-    <!-- My Streams -->
-    <div>
-      <h2 class="section-title"><i data-lucide="play-circle"></i> My Unlocked Streams</h2>
-      <div id="my-streams" class="event-list">
-        <!-- Streams injected here -->
+      
+      <div class="nav-menu">
+        <div class="nav-item active" data-target="tab-orders">
+          <i data-lucide="package"></i> My Orders
+        </div>
+        <div class="nav-item" data-target="tab-wishlist">
+          <i data-lucide="heart"></i> Wishlist
+        </div>
+        <div class="nav-item" data-target="tab-settings">
+          <i data-lucide="settings"></i> Account Settings
+        </div>
+        <div class="nav-item" id="signout-btn" style="color: #DC2626; margin-top: 12px;">
+          <i data-lucide="log-out"></i> Sign Out
+        </div>
       </div>
-    </div>
-  </div>
+    </aside>
 
-  <!-- LOGGED OUT VIEW -->
-  <div id="not-logged-in" class="hidden empty-state">
-    <i data-lucide="lock"></i>
-    <h3>You are not signed in</h3>
-    <p style="margin-bottom: 24px;">Please sign in to view your account and unlocked streams.</p>
-    <a href="auth.html?redirect=account.html" class="btn-watch">Sign In Now <i data-lucide="arrow-right" size="16"></i></a>
+    <!-- MAIN CONTENT -->
+    <main class="content-area">
+      
+      <!-- TAB: ORDERS -->
+      <div id="tab-orders" class="tab-content active">
+        <h1 class="page-title">Order History</h1>
+        <p class="page-sub">Track your recent purchases and view order details.</p>
+
+        <!-- Order 1 -->
+        <div class="order-card">
+          <div class="order-header">
+            <div>
+              <div class="order-id">#FB-892402</div>
+              <div class="order-date">Placed on Oct 24, 2026</div>
+            </div>
+            <div class="order-status">Processing</div>
+          </div>
+          <div class="order-item">
+            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=150&auto=format&fit=crop" class="order-img" alt="Headphones">
+            <div class="order-details">
+              <h4>Aether Noise-Canceling Headphones</h4>
+              <p>Qty: 1 · Color: Obsidian Black</p>
+            </div>
+            <div class="order-total">R 3,499.00</div>
+          </div>
+        </div>
+
+        <!-- Order 2 -->
+        <div class="order-card">
+          <div class="order-header">
+            <div>
+              <div class="order-id">#FB-881103</div>
+              <div class="order-date">Placed on Sep 12, 2026</div>
+            </div>
+            <div class="order-status" style="background: rgba(107, 114, 128, 0.1); color: #4B5563;">Delivered</div>
+          </div>
+          <div class="order-item">
+            <img src="https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?q=80&w=150&auto=format&fit=crop" class="order-img" alt="VR Headset">
+            <div class="order-details">
+              <h4>Lumina VR Headset Pro</h4>
+              <p>Qty: 1 · Color: Silver Glass</p>
+            </div>
+            <div class="order-total">R 8,500.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: WISHLIST -->
+      <div id="tab-wishlist" class="tab-content">
+        <h1 class="page-title">Your Wishlist</h1>
+        <p class="page-sub">Items you are keeping an eye on.</p>
+
+        <div class="wishlist-grid">
+          <div class="wishlist-card">
+            <div class="wishlist-img" style="background-image: url('https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400&auto=format&fit=crop')"></div>
+            <div class="wishlist-info">
+              <div class="wishlist-title">Obsidian Smart Watch Series X</div>
+              <div class="wishlist-price">R 2,899.00</div>
+            </div>
+          </div>
+          <div class="wishlist-card">
+            <div class="wishlist-img" style="background-image: url('https://images.unsplash.com/photo-1491553895911-0055eca6402d?q=80&w=400&auto=format&fit=crop')"></div>
+            <div class="wishlist-info">
+              <div class="wishlist-title">Neon Runner Sneakers V2</div>
+              <div class="wishlist-price">R 1,599.00</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: SETTINGS -->
+      <div id="tab-settings" class="tab-content">
+        <h1 class="page-title">Account Settings</h1>
+        <p class="page-sub">Manage your personal information and security.</p>
+
+        <div class="settings-form">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="settings-name" disabled value="Loading..." />
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="settings-email" disabled value="Loading..." />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" value="********" disabled />
+          </div>
+          
+          <div style="display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="alert('Password reset link sent to your email!')">Reset Password</button>
+            <button class="btn btn-danger" onclick="alert('Are you sure you want to delete your account? (Not wired up yet)')">Delete Account</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
   </div>
-</main>
+</div>
 
 <script>
 (function(){
+  // ═══════════════════════════════════════════════
+  // 1. FIREBASE CONFIG (From Starlane)
+  // ═══════════════════════════════════════════════
   var firebaseConfig = {
     apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
     authDomain: "starlane-stream.firebaseapp.com",
@@ -153,107 +283,79 @@
     messagingSenderId: "115625325145",
     appId: "1:115625325145:web:b14025df503bbe2b7d7748"
   };
+
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-  var db = firebase.firestore();
   var auth = firebase.auth();
 
-  document.addEventListener('DOMContentLoaded', function() {
-    if (window.lucide) lucide.createIcons();
+  var currentUser = null;
 
-    auth.onAuthStateChanged(function(user) {
-      document.getElementById('loading').classList.add('hidden');
-
-      if (!user) {
-        document.getElementById('not-logged-in').classList.remove('hidden');
-        if (window.lucide) lucide.createIcons();
-        return;
-      }
-
-      // Populate User Info
-      document.getElementById('content').classList.remove('hidden');
-      var name = user.displayName || user.email.split('@')[0];
-      document.getElementById('user-name').textContent = name;
-      document.getElementById('user-email').textContent = user.email;
+  // ═══════════════════════════════════════════════
+  // 2. AUTHENTICATION GUARD
+  // ═══════════════════════════════════════════════
+  auth.onAuthStateChanged(function(user) {
+    if (user) {
+      currentUser = user;
       
-      // Generate Initials safely
-      var initials = name.trim().split(/\s+/).map(function(n){ return n[0]; }).join('').substring(0, 2).toUpperCase();
-      if (!initials) initials = "?";
-      document.getElementById('avatar-initials').textContent = initials;
+      // Update UI with User Data
+      var name = user.displayName || user.email.split('@')[0];
+      var email = user.email || '';
+      var initial = name.charAt(0).toUpperCase();
 
-      // Load unlocked passes from Firestore
-      db.collection('users').doc(user.uid).collection('passes').get().then(function(snap) {
-        var streamContainer = document.getElementById('my-streams');
-        streamContainer.innerHTML = '';
+      document.getElementById('user-avatar').textContent = initial;
+      document.getElementById('user-name').textContent = name;
+      document.getElementById('user-email').textContent = email;
+      
+      document.getElementById('settings-name').value = name;
+      document.getElementById('settings-email').value = email;
 
-        if (snap.empty) {
-          streamContainer.innerHTML = `
-            <div class="empty-state" style="grid-column: 1 / -1;">
-              <i data-lucide="ticket"></i>
-              <h3>No unlocked streams</h3>
-              <p>You haven't purchased any Pay-Per-View passes yet.</p>
-              <a href="browse.html" class="btn-watch" style="margin-top: 16px;">Browse Events <i data-lucide="arrow-right" size="16"></i></a>
-            </div>
-          `;
-          if (window.lucide) lucide.createIcons();
-          return;
-        }
+      // Hide Loader
+      var loader = document.getElementById('loader');
+      loader.style.opacity = '0';
+      setTimeout(function() { loader.style.display = 'none'; }, 400);
 
-        // Fetch event details for each pass
-        var promises = [];
-        snap.forEach(function(doc) {
-          // We use doc.id (the streamId) to fetch the actual event data
-          promises.push(db.collection('streams').doc(doc.id).get());
-        });
+    } else {
+      // Not logged in -> Redirect to login
+      window.location.href = 'login.html?redirect=account.html';
+    }
+  });
 
-        Promise.all(promises).then(function(eventDocs) {
-          streamContainer.innerHTML = '';
-          var validEventsFound = 0;
+  // ═══════════════════════════════════════════════
+  // 3. TAB SWITCHING LOGIC
+  // ═══════════════════════════════════════════════
+  var navItems = document.querySelectorAll('.nav-item[data-target]');
+  var tabContents = document.querySelectorAll('.tab-content');
 
-          eventDocs.forEach(function(eventDoc) {
-            // If the event was deleted by the admin, skip it
-            if (!eventDoc.exists) return;
-            
-            validEventsFound++;
-            var data = eventDoc.data();
-            var id = eventDoc.id;
-            
-            var div = document.createElement('div');
-            div.className = 'event-item';
-            div.innerHTML = `
-              <div class="event-info">
-                <h4>${data.title || 'Untitled Event'}</h4>
-                <p>${data.startDate || 'Date TBA'} · ${data.startTime || ''}</p>
-              </div>
-              <a href="watch.html?id=${id}" class="btn-watch">Watch Now <i data-lucide="play" size="14"></i></a>
-            `;
-            streamContainer.appendChild(div);
-          });
-          
-          // If they had passes, but all the events were deleted
-          if (validEventsFound === 0) {
-             streamContainer.innerHTML = `
-               <div class="empty-state" style="grid-column: 1 / -1;">
-                 <i data-lucide="video-off"></i>
-                 <h3>Events Unavailable</h3>
-                 <p>Your unlocked events are no longer available on the platform.</p>
-               </div>
-             `;
-          }
-          if (window.lucide) lucide.createIcons();
-        });
-      });
+  navItems.forEach(function(item) {
+    item.addEventListener('click', function() {
+      // Remove active from all tabs
+      navItems.forEach(function(nav) { nav.classList.remove('active'); });
+      tabContents.forEach(function(content) { content.classList.remove('active'); });
 
-    });
-
-    // Sign out action
-    document.getElementById('btn-signout').addEventListener('click', function() {
-      if(confirm("Are you sure you want to sign out?")) {
-        auth.signOut().then(function() {
-          window.location.href = 'index.html';
-        });
-      }
+      // Add active to clicked tab
+      this.classList.add('active');
+      
+      // Show corresponding content
+      var targetId = this.getAttribute('data-target');
+      document.getElementById(targetId).classList.add('active');
     });
   });
+
+  // ═══════════════════════════════════════════════
+  // 4. SIGN OUT LOGIC
+  // ═══════════════════════════════════════════════
+  document.getElementById('signout-btn').addEventListener('click', function() {
+    if(confirm('Are you sure you want to sign out?')) {
+      auth.signOut().then(function() {
+        window.location.href = 'index.html';
+      }).catch(function(error) {
+        alert('Error signing out: ' + error.message);
+      });
+    }
+  });
+
+  // Init Icons
+  if (window.lucide) lucide.createIcons();
+
 })();
 </script>
 </body>
