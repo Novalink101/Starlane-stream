@@ -35,11 +35,13 @@ try {
 // --- [ YOCO PAYMENT: CREATE CHECKOUT ] ---
 app.post('/api/create-yoco-checkout', async (req, res) => {
   try {
-    const { checkoutId, userId, userEmail, streamId, price, returnUrl } = req.body;
+    const { orderId, userId, userEmail, price, returnUrl } = req.body;
 
-    if (!checkoutId || !userId || !streamId || !price) {
+    if (!orderId || !userId || !price) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
+
+    const domainUrl = process.env.FRONTEND_URL || 'https://your-forestbase-domain.com';
 
     const yocoRes = await fetch('https://payments.yoco.com/api/checkouts', {
       method: 'POST',
@@ -50,10 +52,14 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
       body: JSON.stringify({
         amount: Math.round(price * 100), // Convert Rands to cents
         currency: 'ZAR',
-        cancelUrl: returnUrl || 'https://starlane-stream-api.onrender.com/index.html',
-        successUrl: returnUrl || 'https://starlane-stream-api.onrender.com/index.html',
-        failureUrl: returnUrl || 'https://starlane-stream-api.onrender.com/index.html',
-        metadata: { checkoutId, userId, streamId, userEmail }
+        cancelUrl: returnUrl || `${domainUrl}/checkout.html`,
+        successUrl: returnUrl || `${domainUrl}/account.html`,
+        failureUrl: returnUrl || `${domainUrl}/checkout.html`,
+        metadata: { 
+          orderId: orderId, 
+          userId: userId, 
+          userEmail: userEmail 
+        }
       })
     });
 
@@ -72,7 +78,7 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
 });
 
 // --- [ YOCO PAYMENT: WEBHOOK ] ---
-// ⚠️ IMPORTANT: Add this URL to your Yoco Dashboard: https://starlane-stream-api.onrender.com/api/yoco-webhook
+// ⚠️ IMPORTANT: Add this URL to your Yoco Dashboard: https://your-render-url.onrender.com/api/yoco-webhook
 app.post('/api/yoco-webhook', async (req, res) => {
   try {
     if (!db) return res.status(500).json({ error: 'Database not initialized' });
@@ -85,30 +91,25 @@ app.post('/api/yoco-webhook', async (req, res) => {
     }
 
     const meta = event.payload.metadata || {};
-    const { checkoutId, userId, streamId } = meta;
+    const { orderId, userId } = meta;
 
-    if (!userId || !streamId) {
+    if (!userId || !orderId) {
       return res.status(400).json({ error: 'Missing metadata' });
     }
 
-    // 1. Mark purchase as paid
-    if (checkoutId) {
-      await db.collection('purchases').doc(checkoutId).update({
-        status: 'paid',
-        paidAt: admin.firestore.FieldValue.serverTimestamp(),
-        yocoPaymentId: event.payload.id
-      }).catch(e => console.log('Purchase doc not found'));
-    }
+    // 1. Mark the e-commerce ORDER as paid in Firestore
+    await db.collection('orders').doc(orderId).update({
+      status: 'paid',
+      paidAt: admin.firestore.FieldValue.serverTimestamp(),
+      yocoPaymentId: event.payload.id
+    }).catch(e => console.log('Order doc not found:', e));
 
-    // 2. GRANT THE PASS (The secure way!)
-    await db.collection('users').doc(userId).collection('passes').doc(streamId).set({
-      streamId: streamId,
-      status: 'approved',
-      purchasedAt: admin.firestore.FieldValue.serverTimestamp(),
-      checkoutId: checkoutId
-    }, { merge: true });
+    // 2. Log the payment success
+    console.log(`✅ [Webhook] Order ${orderId} marked as PAID for User ${userId}`);
+    
+    // Note: If you need to decrease product inventory, you would query 
+    // the items in the order here and decrement their stock in Firestore.
 
-    console.log(`✅ [Webhook] Pass granted for User ${userId} to Stream ${streamId}`);
     res.status(200).json({ success: true });
 
   } catch (err) {
@@ -121,7 +122,6 @@ app.post('/api/yoco-webhook', async (req, res) => {
 // STATIC FRONTEND HOSTING (WITH CACHING)
 // ==========================================
 // Serves HTML files from the current folder and caches them in the browser.
-// This stops the "hell slow" loading issue on Render's free tier.
 app.use(express.static(__dirname, {
   maxAge: '1d',
   etag: true
@@ -137,5 +137,5 @@ app.get('*', (req, res) => {
 // ==========================================
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 FORESTBASE Server running on port ${PORT}`);
 });
