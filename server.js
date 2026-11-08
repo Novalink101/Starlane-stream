@@ -8,11 +8,11 @@ const path = require('path');
 
 const app = express();
 
-// 1. Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// 2. Firebase Admin Initialization
+// 1. Firebase Admin Initialization (Safely)
+let db = null;
 try {
   const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
   if (serviceAccount.private_key) {
@@ -21,21 +21,19 @@ try {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
+  db = admin.firestore();
   console.log("✅ Firebase Admin Initialized");
 } catch (error) {
-  console.error("❌ Firebase Admin Error:", error.message);
+  console.error("❌ Firebase Admin Error (Server will still run):", error.message);
 }
 
-const db = admin.firestore();
-
-// 3. Cloudinary Configuration
+// 2. Cloudinary Configuration
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// 4. Multer Setup
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }
@@ -59,9 +57,9 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
       body: JSON.stringify({
         amount: Math.round(price * 100),
         currency: 'ZAR',
-        cancelUrl: returnUrl || 'https://starlane-stream.onrender.com/index.html',
-        successUrl: returnUrl || 'https://starlane-stream.onrender.com/index.html',
-        failureUrl: returnUrl || 'https://starlane-stream.onrender.com/index.html',
+        cancelUrl: returnUrl || 'https://starlane-stream-api.onrender.com/index.html',
+        successUrl: returnUrl || 'https://starlane-stream-api.onrender.com/index.html',
+        failureUrl: returnUrl || 'https://starlane-stream-api.onrender.com/index.html',
         metadata: { checkoutId, userId, streamId, userEmail }
       })
     });
@@ -75,6 +73,7 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
 
 app.post('/api/yoco-webhook', async (req, res) => {
   try {
+    if (!db) return res.status(500).json({ error: 'DB not initialized' });
     const event = req.body;
     if (event.type !== 'payment.succeeded') return res.status(200).json({ received: true });
 
@@ -92,7 +91,6 @@ app.post('/api/yoco-webhook', async (req, res) => {
       await db.collection('users').doc(userId).collection('passes').doc(streamId).set({
         streamId, status: 'approved', purchasedAt: admin.firestore.FieldValue.serverTimestamp(), checkoutId
       }, { merge: true });
-      console.log(`✅ Pass granted for ${userId}`);
     }
     res.status(200).json({ success: true });
   } catch (err) {
@@ -100,19 +98,9 @@ app.post('/api/yoco-webhook', async (req, res) => {
   }
 });
 
-app.post('/api/verify-stream', async (req, res) => {
-  try {
-    const { ticketCode } = req.body;
-    if (!ticketCode) return res.status(400).json({ error: 'No ticket code' });
-    if (ticketCode.startsWith('NOVA-')) res.json({ valid: true });
-    else res.status(401).json({ valid: false, error: 'Invalid ticket' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
   try {
+    if (!db) return res.status(500).json({ error: 'DB not initialized' });
     const { eventId, camId } = req.body;
     if (!req.file) return res.status(400).json({ error: 'No video chunk' });
 
@@ -140,19 +128,16 @@ app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
 });
 
 // ==========================================
-// STATIC FRONTEND HOSTING (ROOT DIRECTORY)
+// STATIC FRONTEND HOSTING (CRITICAL FIX)
 // ==========================================
-// This tells Express: "Look in the exact same folder as server.js for HTML files"
+// This serves ALL files in the current folder
 app.use(express.static(__dirname));
 
-// Fallback: If a user goes to the main URL, load index.html
-app.get('/', (req, res) => {
+// Catch-all: If someone types a URL that isn't an API or file, send index.html
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ==========================================
-// START SERVER
-// ==========================================
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
