@@ -12,6 +12,7 @@
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <style>
   :root { 
@@ -20,16 +21,14 @@
     --bright-lime: #A3FF12;
     
     --surface: #FFFFFF;
-    --surface-dark: #12141A;
     --surface-2: #F1F3F7;
     --border: #E2E5EB;
-    --border-dark: rgba(255, 255, 255, 0.1);
-    
     --text: #111827;
     --text-muted: #6B7280;
     
     --font-display: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { 
@@ -46,8 +45,8 @@
   .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; width: 100%; flex: 1; }
 
   /* ── NAVBAR (Simplified for Account) ── */
-  .nav { background: var(--ink-black); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-dark); }
-  .nav-brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: #fff; }
+  .nav { background: var(--ink-black); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+  .nav-brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: #fff; letter-spacing:-0.03em; }
   .nav-brand svg { width: 28px; height: 34px; }
   .nav-back { color: var(--silver-glass); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
   .nav-back:hover { color: var(--bright-lime); }
@@ -58,7 +57,6 @@
 
   /* Sidebar */
   .sidebar { background: #fff; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-  
   .profile-card { padding: 32px 24px; text-align: center; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #fff 0%, #f9fafb 100%); }
   .avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--ink-black); color: var(--bright-lime); font-family: var(--font-display); font-size: 32px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
   .user-name { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--ink-black); margin-bottom: 4px; }
@@ -72,36 +70,30 @@
 
   /* Main Content */
   .content-area { display: flex; flex-direction: column; gap: 24px; }
-  
   .page-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--ink-black); margin-bottom: 8px; }
   .page-sub { font-size: 15px; color: var(--text-muted); margin-bottom: 24px; }
 
-  /* Tabs Content Setup */
+  /* Tabs */
   .tab-content { display: none; animation: fadeIn 0.3s ease-out; }
   .tab-content.active { display: block; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* Orders Panel */
+  /* Orders */
   .order-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 16px; }
   .order-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
   .order-id { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--ink-black); }
-  .order-date { font-size: 13px; color: var(--text-muted); }
-  .order-status { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(163,255,18,0.15); color: #5c9e00; }
-  
+  .order-date { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .order-status { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+  .status-pending { background: #FEF3C7; color: #D97706; }
+  .status-paid { background: rgba(163,255,18,0.15); color: #5c9e00; }
+  .status-shipped { background: #DBEAFE; color: #2563EB; }
+
+  .order-items-list { display: flex; flex-direction: column; gap: 12px; }
   .order-item { display: flex; align-items: center; gap: 16px; }
-  .order-img { width: 64px; height: 64px; border-radius: 8px; background: var(--surface-2); object-fit: cover; }
+  .order-img { width: 64px; height: 64px; border-radius: 8px; background: var(--surface-2) center/cover; flex-shrink: 0; }
   .order-details h4 { font-size: 15px; font-weight: 600; color: var(--ink-black); margin-bottom: 4px; }
   .order-details p { font-size: 13px; color: var(--text-muted); }
   .order-total { margin-left: auto; font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--ink-black); }
-
-  /* Wishlist Grid */
-  .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
-  .wishlist-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: 0.2s; }
-  .wishlist-card:hover { border-color: var(--bright-lime); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
-  .wishlist-img { height: 160px; background: var(--surface-2) center/cover no-repeat; }
-  .wishlist-info { padding: 16px; }
-  .wishlist-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; line-height: 1.4; }
-  .wishlist-price { font-family: var(--mono); font-weight: 700; color: var(--ink-black); }
 
   /* Settings Form */
   .settings-form { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 32px; max-width: 600px; }
@@ -113,18 +105,22 @@
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; transition: 0.2s; cursor: pointer; border: none; font-family: var(--font-body); }
   .btn-primary { background: var(--ink-black); color: #fff; }
   .btn-primary:hover { background: #1f222c; }
-  .btn-danger { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
-  .btn-danger:hover { background: #FEE2E2; }
 
-  /* Loading Screen */
+  /* Loader */
   #loader { position: fixed; inset: 0; background: var(--ink-black); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.4s; }
   .spinner { width: 40px; height: 40px; border: 3px solid rgba(163,255,18,0.2); border-top-color: var(--bright-lime); border-radius: 50%; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Empty State */
+  .empty-state { text-align: center; padding: 60px 20px; background: #fff; border: 1px dashed var(--border); border-radius: 16px; }
+  .empty-state svg { width: 48px; height: 48px; color: var(--silver-glass); margin: 0 auto 16px; }
+  .empty-state h3 { font-family: var(--font-display); font-size: 20px; margin-bottom: 8px; }
+  .empty-state p { color: var(--text-muted); margin-bottom: 24px; font-size: 14px; }
 </style>
 </head>
 <body>
 
-<!-- LOADER (Prevents flashing of unauth content) -->
+<!-- LOADER -->
 <div id="loader">
   <div class="spinner"></div>
 </div>
@@ -178,42 +174,8 @@
         <h1 class="page-title">Order History</h1>
         <p class="page-sub">Track your recent purchases and view order details.</p>
 
-        <!-- Order 1 -->
-        <div class="order-card">
-          <div class="order-header">
-            <div>
-              <div class="order-id">#FB-892402</div>
-              <div class="order-date">Placed on Oct 24, 2026</div>
-            </div>
-            <div class="order-status">Processing</div>
-          </div>
-          <div class="order-item">
-            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=150&auto=format&fit=crop" class="order-img" alt="Headphones">
-            <div class="order-details">
-              <h4>Aether Noise-Canceling Headphones</h4>
-              <p>Qty: 1 · Color: Obsidian Black</p>
-            </div>
-            <div class="order-total">R 3,499.00</div>
-          </div>
-        </div>
-
-        <!-- Order 2 -->
-        <div class="order-card">
-          <div class="order-header">
-            <div>
-              <div class="order-id">#FB-881103</div>
-              <div class="order-date">Placed on Sep 12, 2026</div>
-            </div>
-            <div class="order-status" style="background: rgba(107, 114, 128, 0.1); color: #4B5563;">Delivered</div>
-          </div>
-          <div class="order-item">
-            <img src="https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?q=80&w=150&auto=format&fit=crop" class="order-img" alt="VR Headset">
-            <div class="order-details">
-              <h4>Lumina VR Headset Pro</h4>
-              <p>Qty: 1 · Color: Silver Glass</p>
-            </div>
-            <div class="order-total">R 8,500.00</div>
-          </div>
+        <div id="orders-container">
+          <!-- Orders injected here by JS -->
         </div>
       </div>
 
@@ -222,21 +184,11 @@
         <h1 class="page-title">Your Wishlist</h1>
         <p class="page-sub">Items you are keeping an eye on.</p>
 
-        <div class="wishlist-grid">
-          <div class="wishlist-card">
-            <div class="wishlist-img" style="background-image: url('https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400&auto=format&fit=crop')"></div>
-            <div class="wishlist-info">
-              <div class="wishlist-title">Obsidian Smart Watch Series X</div>
-              <div class="wishlist-price">R 2,899.00</div>
-            </div>
-          </div>
-          <div class="wishlist-card">
-            <div class="wishlist-img" style="background-image: url('https://images.unsplash.com/photo-1491553895911-0055eca6402d?q=80&w=400&auto=format&fit=crop')"></div>
-            <div class="wishlist-info">
-              <div class="wishlist-title">Neon Runner Sneakers V2</div>
-              <div class="wishlist-price">R 1,599.00</div>
-            </div>
-          </div>
+        <div class="empty-state">
+          <i data-lucide="heart"></i>
+          <h3>Your wishlist is empty</h3>
+          <p>Start adding items you love to your wishlist.</p>
+          <a href="browse.html" class="btn btn-primary" style="background:var(--bright-lime); color:var(--ink-black);">Explore Products</a>
         </div>
       </div>
 
@@ -261,7 +213,6 @@
           
           <div style="display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap;">
             <button class="btn btn-primary" onclick="alert('Password reset link sent to your email!')">Reset Password</button>
-            <button class="btn btn-danger" onclick="alert('Are you sure you want to delete your account? (Not wired up yet)')">Delete Account</button>
           </div>
         </div>
       </div>
@@ -273,7 +224,7 @@
 <script>
 (function(){
   // ═══════════════════════════════════════════════
-  // 1. FIREBASE CONFIG (From Starlane)
+  // 1. FIREBASE INITIALIZATION
   // ═══════════════════════════════════════════════
   var firebaseConfig = {
     apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
@@ -283,14 +234,15 @@
     messagingSenderId: "115625325145",
     appId: "1:115625325145:web:b14025df503bbe2b7d7748"
   };
-
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var auth = firebase.auth();
+  var db = firebase.firestore();
 
   var currentUser = null;
+  function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
   // ═══════════════════════════════════════════════
-  // 2. AUTHENTICATION GUARD
+  // 2. AUTHENTICATION GUARD & PROFILE LOAD
   // ═══════════════════════════════════════════════
   auth.onAuthStateChanged(function(user) {
     if (user) {
@@ -304,7 +256,6 @@
       document.getElementById('user-avatar').textContent = initial;
       document.getElementById('user-name').textContent = name;
       document.getElementById('user-email').textContent = email;
-      
       document.getElementById('settings-name').value = name;
       document.getElementById('settings-email').value = email;
 
@@ -313,6 +264,9 @@
       loader.style.opacity = '0';
       setTimeout(function() { loader.style.display = 'none'; }, 400);
 
+      // Fetch Real Orders
+      loadOrders(user.uid);
+
     } else {
       // Not logged in -> Redirect to login
       window.location.href = 'login.html?redirect=account.html';
@@ -320,29 +274,105 @@
   });
 
   // ═══════════════════════════════════════════════
-  // 3. TAB SWITCHING LOGIC
+  // 3. FETCH LIVE ORDERS FROM FIRESTORE
+  // ═══════════════════════════════════════════════
+  function loadOrders(userId) {
+    var container = document.getElementById('orders-container');
+
+    db.collection('orders')
+      .where('buyerId', '==', userId)
+      .orderBy('createdAt', 'desc')
+      .get()
+      .then(function(snapshot) {
+        
+        if (snapshot.empty) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <i data-lucide="package"></i>
+              <h3>No orders yet</h3>
+              <p>You haven't uncovered any mysteries yet. When you make a purchase, it will appear here.</p>
+              <a href="browse.html" class="btn btn-primary" style="background:var(--bright-lime); color:var(--ink-black);">Start Shopping</a>
+            </div>
+          `;
+          if (window.lucide) lucide.createIcons();
+          return;
+        }
+
+        container.innerHTML = '';
+
+        snapshot.forEach(function(doc) {
+          var order = doc.data();
+          
+          // Format Date
+          var dateStr = "Just now";
+          if (order.createdAt) {
+            var d = order.createdAt.toDate();
+            dateStr = d.toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+          }
+
+          // Status styling
+          var statusClass = 'status-pending';
+          if (order.status === 'paid') statusClass = 'status-paid';
+          if (order.status === 'shipped') statusClass = 'status-shipped';
+
+          // Build items HTML
+          var itemsHTML = '';
+          if (order.items && Array.isArray(order.items)) {
+            order.items.forEach(function(item) {
+              itemsHTML += `
+                <div class="order-item">
+                  <div class="order-img" style="background-image:url('${item.imageUrl}')"></div>
+                  <div class="order-details">
+                    <h4>${item.name}</h4>
+                    <p>Qty: ${item.quantity}</p>
+                  </div>
+                  <div class="order-total">${money(item.price * item.quantity)}</div>
+                </div>
+              `;
+            });
+          }
+
+          var card = document.createElement('div');
+          card.className = 'order-card';
+          card.innerHTML = `
+            <div class="order-header">
+              <div>
+                <div class="order-id">Order #${doc.id.slice(0, 8).toUpperCase()}</div>
+                <div class="order-date">${dateStr}</div>
+              </div>
+              <div class="order-status ${statusClass}">${order.status || 'Pending'}</div>
+            </div>
+            <div class="order-items-list">
+              ${itemsHTML}
+            </div>
+          `;
+          container.appendChild(card);
+        });
+        
+        if (window.lucide) lucide.createIcons();
+      })
+      .catch(function(error) {
+        console.error("Error loading orders: ", error);
+        container.innerHTML = `<p style="color:red;">Failed to load orders. Check your Firestore indexes.</p>`;
+      });
+  }
+
+  // ═══════════════════════════════════════════════
+  // 4. TAB SWITCHING & SIGN OUT
   // ═══════════════════════════════════════════════
   var navItems = document.querySelectorAll('.nav-item[data-target]');
   var tabContents = document.querySelectorAll('.tab-content');
 
   navItems.forEach(function(item) {
     item.addEventListener('click', function() {
-      // Remove active from all tabs
       navItems.forEach(function(nav) { nav.classList.remove('active'); });
       tabContents.forEach(function(content) { content.classList.remove('active'); });
-
-      // Add active to clicked tab
       this.classList.add('active');
-      
-      // Show corresponding content
       var targetId = this.getAttribute('data-target');
       document.getElementById(targetId).classList.add('active');
     });
   });
 
-  // ═══════════════════════════════════════════════
-  // 4. SIGN OUT LOGIC
-  // ═══════════════════════════════════════════════
   document.getElementById('signout-btn').addEventListener('click', function() {
     if(confirm('Are you sure you want to sign out?')) {
       auth.signOut().then(function() {
@@ -353,9 +383,7 @@
     }
   });
 
-  // Init Icons
   if (window.lucide) lucide.createIcons();
-
 })();
 </script>
 </body>
