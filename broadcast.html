@@ -90,6 +90,10 @@
   var db = firebase.firestore();
   var auth = firebase.auth();
 
+  // REPLACE WITH YOUR CLOUDINARY DETAILS
+  var CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME_HERE"; 
+  var CLOUDINARY_UPLOAD_PRESET = "starlane_chunks";
+
   var video = document.getElementById('preview');
   var overlay = document.getElementById('overlay');
   var stream = null;
@@ -100,7 +104,6 @@
   var selectedEventId = null;
   var selectedEventName = null;
 
-  // Preselect camera from QR code (?cam=cam1)
   var presetCam = new URLSearchParams(location.search).get('cam');
   if (presetCam && ['cam1','cam2','cam3','cam4'].includes(presetCam)) selectedCamId = presetCam;
 
@@ -183,7 +186,6 @@
       video.srcObject = stream;
       video.classList.remove('hidden');
 
-      // Clear any previous kill flag, set active camera
       await db.collection('streams').doc(selectedEventId).update({
         activeCamera: selectedCamId,
         streamUrl: 'broadcasting',
@@ -199,7 +201,7 @@
       setTimeout(function(){ overlay.classList.remove('show'); }, 3000);
 
       startRecording();
-      startKillWatcher(); // Watch for Director Kill Switch
+      startKillWatcher();
     } catch (err) {
       alert("Camera Error: " + err.message);
     }
@@ -259,21 +261,49 @@
 
   function startRecording() {
     isStreaming = true;
-    var options = { mimeType:'video/webm;codecs=vp8,opus', videoBitsPerSecond:5000000, audioBitsPerSecond:128000 };
+    var options = { mimeType:'video/webm;codecs=vp8,opus', videoBitsPerSecond:3000000, audioBitsPerSecond:128000 };
     if (!MediaRecorder.isTypeSupported(options.mimeType)) options = {};
 
     mediaRecorder = new MediaRecorder(stream, options);
+    
     mediaRecorder.ondataavailable = async function(e) {
       if (e.data.size > 0 && isStreaming) {
         var formData = new FormData();
-        formData.append('video', e.data);
-        formData.append('eventId', selectedEventId);
-        formData.append('camId', selectedCamId);
+        formData.append('file', e.data);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        formData.append('folder', 'starlane/' + selectedEventId);
+
         try {
-          await fetch('https://starlane-stream-api.onrender.com/api/upload-chunk', { method:'POST', body: formData });
-        } catch (err) { console.error(err); }
+          // 1. Upload DIRECTLY to Cloudinary (Bypassing Render)
+          var res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/video/upload', {
+            method: 'POST',
+            body: formData
+          });
+          var data = await res.json();
+          
+          if (data.secure_url) {
+            // 2. Write directly to Firebase (Bypassing Render)
+            var streamRef = db.collection('streams').doc(selectedEventId);
+            var doc = await streamRef.get();
+            var currentHistory = doc.data().camHistory || {};
+            var camArray = currentHistory[selectedCamId] || [];
+            
+            camArray.push({ url: data.secure_url, time: Date.now() });
+            if (camArray.length > 50) camArray.shift(); // Keep last 50 chunks
+            
+            var update = {};
+            update['camHistory.' + selectedCamId] = camArray;
+            update['cams.' + selectedCamId] = data.secure_url;
+            update.lastChunkAt = firebase.firestore.FieldValue.serverTimestamp();
+            
+            await streamRef.update(update);
+          }
+        } catch (err) {
+          console.error("Chunk upload failed", err);
+        }
       }
     };
+    
     mediaRecorder.onstop = function() { if (isStreaming) startRecording(); };
     mediaRecorder.start();
     setTimeout(function(){ if (mediaRecorder.state === 'recording') mediaRecorder.stop(); }, 2000);
