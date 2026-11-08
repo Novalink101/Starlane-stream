@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#030407" />
+<meta name="color-scheme" content="dark" />
+<title>Sign In · FORESTBASE</title>
+
+<!-- GOOGLE FONTS -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<style>
+  :root { 
+    --ink-black: #030407;
+    --silver-glass: #AAB0C4;
+    --bright-lime: #A3FF12;
+    
+    --surface: #12141A;
+    --surface-2: #1A1D24;
+    --border: rgba(255, 255, 255, 0.1);
+    --text: #FFFFFF;
+    --text-muted: var(--silver-glass);
+    
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body { 
+    background: var(--ink-black); 
+    color: var(--text); 
+    font-family: var(--font-body); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    min-height: 100vh; 
+    padding: 24px;
+    overflow-x: hidden;
+    position: relative;
+  }
+  a { text-decoration: none; color: inherit; }
+  .hidden { display: none !important; }
+
+  /* Futuristic Dark Starfield */
+  .starfield { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--ink-black); overflow: hidden; }
+  .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(163,255,18,.15), transparent 100%), radial-gradient(1px 1px at 85% 15%, rgba(170,176,196,.1), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
+  .stars-2 { position: absolute; inset: -50%; background-image: radial-gradient(1px 1px at 20% 30%, rgba(163,255,18,.3), transparent 100%), radial-gradient(2px 2px at 60% 10%, rgba(170,176,196,.15), transparent 100%); background-size: 300px 300px; animation: drift 20s linear infinite reverse; }
+  @keyframes drift { 0% { transform: translateY(0) translateX(0); } 100% { transform: translateY(-200px) translateX(-100px); } }
+
+  .nav-back { position: absolute; top: 24px; left: 24px; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text-muted); transition: 0.2s; z-index: 10; }
+  .nav-back:hover { color: var(--bright-lime); transform: translateX(-4px); }
+
+  .auth-card { 
+    background: rgba(18, 20, 26, 0.85); 
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border); 
+    border-radius: 24px; 
+    padding: 40px 32px; 
+    width: 100%; 
+    max-width: 440px; 
+    box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+    position: relative;
+    z-index: 1;
+  }
+
+  .logo-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
+  .logo-wrap svg { width: 48px; height: 58px; filter: drop-shadow(0 8px 16px rgba(163,255,18,0.15)); }
+
+  .auth-tagline { font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bright-lime); text-align: center; margin-bottom: 12px; }
+  .auth-title { font-family: var(--font-display); font-size: 26px; font-weight: 700; text-align: center; letter-spacing: -0.5px; margin-bottom: 8px; color: #fff; }
+  .auth-sub { font-size: 14px; color: var(--text-muted); text-align: center; margin-bottom: 28px; font-weight: 400; }
+
+  .tabs { display: flex; background: var(--ink-black); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin-bottom: 24px; }
+  .tabs button { flex: 1; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-muted); background: transparent; border: none; cursor: pointer; transition: 0.2s; font-family: var(--font-body); }
+  .tabs button.active { background: var(--surface-2); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px; }
+  .form-group input { 
+    width: 100%; padding: 14px 16px; 
+    border: 1px solid var(--border); border-radius: 12px; 
+    font-size: 15px; font-family: var(--font-body); 
+    background: rgba(3, 4, 7, 0.6); color: #fff; 
+    transition: 0.2s; 
+  }
+  .form-group input::placeholder { color: rgba(170, 176, 196, 0.4); }
+  .form-group input:focus { outline: none; border-color: var(--bright-lime); box-shadow: 0 0 0 3px rgba(163,255,18,0.15); background: var(--ink-black); }
+
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; border: none; font-family: var(--font-display); letter-spacing: 0.02em; }
+  
+  .btn-primary { 
+    background: var(--bright-lime); 
+    color: var(--ink-black); 
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1) inset; 
+  }
+  .btn-primary:hover:not(:disabled) { 
+    transform: translateY(-2px); 
+    box-shadow: 0 12px 32px rgba(0,0,0,0.8), 0 0 20px rgba(163,255,18,0.3); 
+  }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  
+  .btn-google { 
+    background: rgba(255, 255, 255, 0.05); 
+    color: #fff; 
+    border: 1px solid var(--border); 
+    margin-top: 12px; 
+    font-family: var(--font-body);
+    font-weight: 600;
+  }
+  .btn-google:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
+
+  .divider { display: flex; align-items: center; gap: 16px; margin: 20px 0; color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .spinner { width: 18px; height: 18px; border: 2px solid rgba(3,4,7,0.3); border-top-color: var(--ink-black); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  
+  .forgot-link { display: block; text-align: right; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-top: -8px; margin-bottom: 16px; cursor: pointer; transition: 0.2s; }
+  .forgot-link:hover { color: var(--bright-lime); }
+  
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--surface-2); color: #fff; padding: 14px 24px; border-radius: 12px; font-weight: 600; font-size: 14px; opacity: 0; transition: 0.3s; z-index: 100; pointer-events: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--border); text-align: center; width: 90%; max-width: 400px; }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="starfield"><div class="stars-1"></div><div class="stars-2"></div></div>
+
+<a href="index.html" class="nav-back"><i data-lucide="arrow-left" size="18"></i> Back to site</a>
+
+<div class="auth-card">
+  <div class="logo-wrap">
+    <!-- NEW FORESTBASE LOGO -->
+    <svg viewBox="0 0 60 74" aria-hidden="true">
+      <path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" />
+      <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
+      <path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" />
+      <path d="M20 56 H40 V60 H20 Z" fill="#030407" />
+    </svg>
+  </div>
+
+  <div class="auth-tagline">Deep in the forest there's always a mystery</div>
+  <h1 class="auth-title" id="auth-title">Welcome back</h1>
+  <p class="auth-sub" id="auth-sub">Sign in to continue to FORESTBASE.</p>
+
+  <div class="tabs">
+    <button type="button" id="tab-login" class="active">Sign In</button>
+    <button type="button" id="tab-signup">Create Account</button>
+  </div>
+
+  <form id="auth-form">
+    <div class="form-group hidden" id="name-group">
+      <label>Full Name</label>
+      <input type="text" id="name-input" placeholder="John Doe" />
+    </div>
+
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="email-input" placeholder="you@example.com" required />
+    </div>
+
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="pw-input" placeholder="••••••••" required minlength="6" />
+    </div>
+
+    <div class="forgot-link" id="forgot-link">Forgot password?</div>
+
+    <button type="submit" class="btn btn-primary" id="submit-btn">
+      Sign In
+    </button>
+  </form>
+
+  <div class="divider">or</div>
+
+  <button type="button" class="btn btn-google" id="google-btn">
+    <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Continue with Google
+  </button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+  var firebaseConfig = {
+    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+    authDomain: "starlane-stream.firebaseapp.com",
+    projectId: "starlane-stream",
+    storageBucket: "starlane-stream.firebasestorage.app",
+    messagingSenderId: "115625325145",
+    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var auth = firebase.auth();
+
+  var isSignup = false;
+  var redirectUrl = new URLSearchParams(window.location.search).get('redirect') || 'index.html';
+  var isProcessing = false; // Prevents redirect loops
+
+  var titleEl = document.getElementById('auth-title');
+  var subEl = document.getElementById('auth-sub');
+  var tabLogin = document.getElementById('tab-login');
+  var tabSignup = document.getElementById('tab-signup');
+  var nameGroup = document.getElementById('name-group');
+  var forgotLink = document.getElementById('forgot-link');
+  var submitBtn = document.getElementById('submit-btn');
+  var form = document.getElementById('auth-form');
+  var toastEl = document.getElementById('toast');
+
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    setTimeout(function(){ toastEl.classList.remove('show'); }, 5000);
+  }
+
+  function setMode(signup) {
+    isSignup = signup;
+    form.reset();
+    
+    if (isSignup) {
+      titleEl.textContent = 'Create an account';
+      subEl.textContent = 'Join FORESTBASE to unlock mystery drops and track orders.';
+      tabSignup.classList.add('active');
+      tabLogin.classList.remove('active');
+      nameGroup.classList.remove('hidden');
+      forgotLink.classList.add('hidden');
+      submitBtn.textContent = 'Create Account';
+    } else {
+      titleEl.textContent = 'Welcome back';
+      subEl.textContent = 'Sign in to continue to FORESTBASE.';
+      tabLogin.classList.add('active');
+      tabSignup.classList.remove('active');
+      nameGroup.classList.add('hidden');
+      forgotLink.classList.remove('hidden');
+      submitBtn.textContent = 'Sign In';
+    }
+  }
+
+  tabLogin.addEventListener('click', function() { setMode(false); });
+  tabSignup.addEventListener('click', function() { setMode(true); });
+
+  // 1. EMAIL / PASSWORD LOGIN
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var email = document.getElementById('email-input').value;
+    var pw = document.getElementById('pw-input').value;
+    var name = document.getElementById('name-input').value;
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="spinner"></div>';
+
+    if (isSignup) {
+      auth.createUserWithEmailAndPassword(email, pw)
+        .then(function(cred) {
+          return cred.user.updateProfile({ displayName: name });
+        })
+        .then(function() {
+          showToast('Account created successfully!');
+          setTimeout(function() { window.location.href = redirectUrl; }, 1000);
+        })
+        .catch(function(err) {
+          showToast(err.message);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Create Account';
+        });
+    } else {
+      auth.signInWithEmailAndPassword(email, pw)
+        .then(function() {
+          showToast('Signed in successfully!');
+          setTimeout(function() { window.location.href = redirectUrl; }, 1000);
+        })
+        .catch(function(err) {
+          showToast(err.message);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Sign In';
+        });
+    }
+  });
+
+  // 2. GOOGLE LOGIN (Mobile Safe)
+  document.getElementById('google-btn').addEventListener('click', function() {
+    var provider = new firebase.auth.GoogleAuthProvider();
+    var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      auth.signInWithRedirect(provider).catch(function(err) {
+        showToast("Google Login Error: " + err.message);
+      });
+    } else {
+      auth.signInWithPopup(provider)
+        .then(function() {
+          showToast('Signed in with Google!');
+          setTimeout(function() { window.location.href = redirectUrl; }, 1000);
+        })
+        .catch(function(err) {
+          showToast(err.message);
+        });
+    }
+  });
+
+  // 3. FORGOT PASSWORD
+  forgotLink.addEventListener('click', function() {
+    var email = document.getElementById('email-input').value;
+    if (!email) return showToast('Please enter your email address first.');
+    
+    auth.sendPasswordResetEmail(email)
+      .then(function() {
+        showToast('Password reset email sent! Check your inbox.');
+      })
+      .catch(function(err) {
+        showToast(err.message);
+      });
+  });
+
+  if (new URLSearchParams(window.location.search).get('tab') === 'signup') {
+    setMode(true);
+  }
+
+  // 4. SMART REDIRECT & GOOGLE REDIRECT HANDLER
+  auth.getRedirectResult().then(function(result) {
+    if (result.user) {
+      showToast('Signed in with Google!');
+      window.location.href = redirectUrl;
+    }
+  }).catch(function(error) {
+    if (error.code === 'auth/unauthorized-domain') {
+      showToast("Firebase Error: You must add " + window.location.hostname + " to Firebase Authorized Domains.");
+    } else if (error.code !== 'auth/no-auth-event') {
+      showToast(error.message);
+    }
+  });
+
+  // 5. CHECK CURRENT LOGIN STATE
+  auth.onAuthStateChanged(function(user) {
+    if (isProcessing) return;
+    
+    if (user) {
+      isProcessing = true;
+      window.location.href = redirectUrl;
+    }
+  });
+
+  if (window.lucide) lucide.createIcons();
+})();
+</script>
+</body>
+</html>
