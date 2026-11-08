@@ -7,7 +7,7 @@
 <meta name="description" content="FORESTBASE — The future of e-commerce. Deep in the forest there's always a mystery." />
 <title>FORESTBASE — Deep in the forest there's always a mystery</title>
 
-<!-- REVERTED TO SPACE GROTESK & INTER -->
+<!-- GOOGLE FONTS -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -17,6 +17,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<!-- FIREBASE SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <style>
 :root{
@@ -63,58 +67,9 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .container{max-width:var(--container);margin:0 auto;padding:0 20px;width:100%}
 
 /* ═══════════════════════════════════════════════
-   BOOT SPLASH
-   ═══════════════════════════════════════════════ */
-#bootSplash{
-  position:fixed;inset:0;z-index:9999;
-  background:#FFFFFF;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:32px;text-align:center;
-  opacity:1;transition:opacity .4s var(--ease);
-}
-#bootSplash.fade-out{opacity:0;pointer-events:none}
-
-#bootLogo{width:clamp(100px, 25vw, 140px);height:auto;animation: bootLogoIn 0.6s cubic-bezier(.2,.8,.2,1) forwards;}
-@keyframes bootLogoIn{0%{opacity:0;transform:scale(.8)}100%{opacity:1;transform:scale(1)}}
-
-#bootTagline{
-  font-family:var(--font-display);
-  font-size:clamp(16px, 3vw, 22px);font-weight:700;letter-spacing:0em;
-  color:var(--ink-black);opacity:0;transform:translateY(10px);
-  animation: bootTagIn 0.8s ease-out 0.4s forwards;margin-top:24px;
-}
-@keyframes bootTagIn{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
-
-#bootTagline::after{content:'';display:block;height:3px;width:0;margin:16px auto 0;background:var(--bright-lime);border-radius:2px;animation:bootLine .8s ease-out 0.6s forwards;}
-@keyframes bootLine{0%{width:0;opacity:0}100%{width:80px;opacity:1}}
-
-/* ═══════════════════════════════════════════════
-   AUTH GATE
-   ═══════════════════════════════════════════════ */
-#authGate{
-  position:fixed;inset:0;z-index:9000;
-  background:radial-gradient(circle at 50% 0%, rgba(163,255,18,.08), transparent 60%),#030407;
-  display:none;flex-direction:column;align-items:center;justify-content:center;
-  padding:32px 24px;text-align:center;
-}
-#authGate.show{display:flex;animation:gateIn .4s var(--ease)}
-@keyframes gateIn{from{opacity:0}to{opacity:1}}
-
-.auth-logo{width:clamp(90px, 20vw, 120px);height:auto;margin-bottom:24px;}
-.auth-tagline{font-family:var(--font-display);font-size:clamp(13px, 2.5vw, 16px);font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--bright-lime);margin-bottom:16px;}
-.auth-title{font-size:clamp(1.8rem, 5vw, 2.5rem);color:#fff;margin-bottom:12px;line-height:1.1;}
-.auth-sub{color:var(--silver-glass);font-size:15px;max-width:340px;margin:0 auto 32px;}
-
-/* BLACK BLEND BUTTON */
-.auth-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:16px 32px;min-height:56px;background:var(--bright-lime);color:var(--ink-black);border-radius:var(--r-full);font-weight:700;font-size:16px;box-shadow:0 10px 30px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1) inset;transition:all .2s var(--ease);max-width:340px;width:100%;}
-.auth-btn:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(0,0,0,0.9), 0 0 20px rgba(163,255,18,0.3);}
-.auth-btn svg{width:20px;height:20px;}
-
-/* ═══════════════════════════════════════════════
    MAIN APP & HEADER
    ═══════════════════════════════════════════════ */
-#appShell{display:none}
-#appShell.ready{display:block;animation:fadeIn .6s ease-out;}
+#appShell{display:block;animation:fadeIn .6s ease-out;}
 
 /* Header Layout */
 .header-wrapper{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--line);}
@@ -140,8 +95,6 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
   white-space:nowrap;cursor:pointer;transition:color .3s var(--ease);
 }
 .nav-tab:hover{color:var(--ink-black);}
-
-/* The sliding Lime underline */
 .nav-tab::after{
   content:'';position:absolute;bottom:0;left:20px;right:20px;height:3px;
   background:var(--bright-lime);border-radius:3px 3px 0 0;
@@ -149,8 +102,6 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 }
 .nav-tab.active{color:var(--ink-black);}
 .nav-tab.active::after{transform:scaleX(1);}
-
-/* Highlight the "Sell" tab */
 .nav-tab.sell-tab{color:var(--ink-black);font-weight:700;}
 .nav-tab.sell-tab svg{width:16px;height:16px;color:var(--bright-lime);}
 
@@ -243,42 +194,9 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 </head>
 <body>
 
-<!-- BOOT SPLASH -->
-<div id="bootSplash">
-  <svg id="bootLogo" viewBox="0 0 60 74">
-    <path d="M30 4 L54 46 H6 Z" fill="#030407" />
-    <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
-    <path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" />
-    <path d="M20 56 H40 V60 H20 Z" fill="#030407" />
-  </svg>
-  <div id="bootTagline">Deep in the forest there's always a mystery</div>
-</div>
-
-<!-- AUTH GATE -->
-<div id="authGate">
-  <svg class="auth-logo" viewBox="0 0 60 74">
-    <path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" />
-    <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
-    <path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" />
-    <path d="M20 56 H40 V60 H20 Z" fill="#030407" />
-  </svg>
-  <div class="auth-tagline">Deep in the forest there's always a mystery</div>
-  <h1 class="auth-title">Uncover the Future<br>of Shopping.</h1>
-  <p class="auth-sub">Sign in to unlock exclusive tech drops, track your orders, and explore the mystery.</p>
-  
-  <button class="auth-btn" id="gateGoogleBtn">
-    <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-    Continue with Google
-  </button>
-  
-  <a class="auth-browse" href="#" id="skipAuth" style="margin-top:24px; color:var(--silver-glass); font-size:13px; font-weight:600;">Just browsing? <span style="color:#fff; text-decoration:underline;">Enter the store</span> →</a>
-</div>
-
-<!-- MAIN APP -->
 <div id="appShell">
 
 <header class="header-wrapper">
-  <!-- TOP ROW: Logo, Search, Cart -->
   <div class="nav-top">
     <a href="#" class="nav-brand">
       <svg viewBox="0 0 60 74">
@@ -296,9 +214,10 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
     </div>
 
     <div class="nav-actions">
-      <button class="btn" style="padding:0; width:44px; height:44px; border-radius:50%; background:var(--surface-2);">
-        <i data-lucide="user" style="width:20px; height:20px; color:var(--ink-black);"></i>
-      </button>
+      <!-- This links to your login.html. It updates dynamically based on Auth state. -->
+      <a href="login.html" class="btn" id="user-btn" style="padding:0; width:44px; height:44px; border-radius:50%; background:var(--surface-2);">
+        <i data-lucide="user" id="user-icon" style="width:20px; height:20px; color:var(--ink-black);"></i>
+      </a>
       <button class="cart-btn">
         <i data-lucide="shopping-bag" style="width:20px; height:20px;"></i>
         <span class="cart-badge">3</span>
@@ -306,7 +225,6 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
     </div>
   </div>
 
-  <!-- BOTTOM ROW: Fluid Tabs -->
   <div class="nav-tabs-wrapper">
     <a href="#" class="nav-tab active">All</a>
     <a href="#" class="nav-tab">Electronics</a>
@@ -318,9 +236,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 </header>
 
 <section class="hero">
-  <div class="hero-bg" id="heroBg">
-    <!-- Carousel dynamically injected -->
-  </div>
+  <div class="hero-bg" id="heroBg"></div>
   <div class="hero-overlay"></div>
 
   <div class="hero-in">
@@ -355,7 +271,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
       <a href="#" class="see-all">See all <i data-lucide="arrow-right" style="width:16px;"></i></a>
     </div>
     <div class="grid" id="productsGrid">
-      <!-- Products dynamically injected -->
+      <!-- Products injected here by JS -->
     </div>
   </div>
 </section>
@@ -413,11 +329,52 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 (function(){
 'use strict';
 
+// ═══════════════════════════════════════════════
+// 1. FIREBASE CONFIG (From your Starlane API)
+// ═══════════════════════════════════════════════
+var firebaseConfig = {
+  apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+  authDomain: "starlane-stream.firebaseapp.com",
+  projectId: "starlane-stream",
+  storageBucket: "starlane-stream.firebasestorage.app",
+  messagingSenderId: "115625325145",
+  appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+};
+
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+var auth = firebase.auth();
+// var db = firebase.firestore(); // Uncomment when you have products in Firestore
+
 function $(id){return document.getElementById(id);}
 function refreshIcons(){if(window.lucide)lucide.createIcons();}
 function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
-/* ── CAROUSEL ── */
+// ═══════════════════════════════════════════════
+// 2. AUTHENTICATION & USER UI
+// ═══════════════════════════════════════════════
+auth.onAuthStateChanged(function(user) {
+  var userBtn = $('user-btn');
+  var userIcon = $('user-icon');
+  
+  if (user) {
+    // User is logged in
+    userBtn.href = "#"; // Change this to account.html when you build it
+    userIcon.setAttribute('data-lucide', 'user-check');
+    userIcon.style.color = 'var(--bright-lime)'; // Highlight icon
+    userBtn.title = user.displayName || user.email;
+  } else {
+    // User is logged out
+    userBtn.href = "login.html";
+    userIcon.setAttribute('data-lucide', 'user');
+    userIcon.style.color = 'var(--ink-black)';
+    userBtn.title = "Sign In";
+  }
+  refreshIcons();
+});
+
+// ═══════════════════════════════════════════════
+// 3. HERO CAROUSEL
+// ═══════════════════════════════════════════════
 var HERO_IMAGES = [
   'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1600&q=80&auto=format&fit=crop', 
   'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1600&q=80&auto=format&fit=crop', 
@@ -446,7 +403,12 @@ function initCarousel(){
   }, 5000);
 }
 
-/* ── MOCK PRODUCTS ── */
+// ═══════════════════════════════════════════════
+// 4. PRODUCT FETCHING & RENDERING
+// ═══════════════════════════════════════════════
+
+// Currently using mock data. 
+// To use Firestore: Replace this array with db.collection('products').get() inside loadProducts()
 var MOCK_PRODUCTS = [
   { id: 'p1', name: 'Aether Noise-Canceling Headphones', price: 3499, oldPrice: 4200, rating: 4.8, reviews: 124, img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600&auto=format&fit=crop', badge: 'Mystery Drop' },
   { id: 'p2', name: 'Obsidian Smart Watch Series X', price: 2899, oldPrice: null, rating: 4.6, reviews: 89, img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop', badge: null },
@@ -489,9 +451,14 @@ function loadProducts() {
   refreshIcons();
 }
 
-/* ── BOOT & AUTH LOGIC ── */
-document.addEventListener('DOMContentLoaded',function(){
-  
+// ═══════════════════════════════════════════════
+// 5. INITIALIZATION
+// ═══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function(){
+  refreshIcons();
+  initCarousel();
+  loadProducts();
+
   // Tab Fluid Logic
   var tabs = document.querySelectorAll('.nav-tab');
   tabs.forEach(function(tab) {
@@ -501,34 +468,6 @@ document.addEventListener('DOMContentLoaded',function(){
       this.classList.add('active');
     });
   });
-
-  setTimeout(function() {
-    var splash = $('bootSplash');
-    splash.classList.add('fade-out');
-    setTimeout(function() {
-      splash.style.display = 'none';
-      $('authGate').classList.add('show'); 
-    }, 400);
-  }, 5000);
-
-  function enterStore() {
-    $('authGate').classList.remove('show');
-    $('appShell').classList.add('ready');
-    loadProducts();
-    initCarousel();
-    refreshIcons();
-  }
-
-  $('gateGoogleBtn').addEventListener('click', function() {
-    this.innerHTML = 'Connecting...';
-    setTimeout(enterStore, 800);
-  });
-
-  $('skipAuth').addEventListener('click', function(e) {
-    e.preventDefault();
-    enterStore();
-  });
-
 });
 })();
 </script>
