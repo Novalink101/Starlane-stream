@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#030407" />
+<title>Aether Headphones · FORESTBASE</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<style>
+  :root { 
+    --ink-black: #030407;
+    --silver-glass: #AAB0C4;
+    --bright-lime: #A3FF12;
+    
+    --surface: #FFFFFF;
+    --surface-2: #F1F3F7;
+    --border: #E2E5EB;
+    --text: #111827;
+    --text-muted: #6B7280;
+    
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    background: #FAFBFC; 
+    color: var(--text); 
+    font-family: var(--font-body); 
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  a { text-decoration: none; color: inherit; }
+
+  /* ── HEADER (Matches Index) ── */
+  .header-wrapper{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+  .nav-top{max-width:1300px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  .nav-brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--ink-black);letter-spacing:-0.03em;}
+  .nav-brand svg{width:28px;height:34px;}
+
+  .nav-search{flex:1;max-width:600px;position:relative;display:flex;}
+  .nav-search input{width:100%;padding:12px 20px 12px 48px;border-radius:999px;border:2px solid transparent;background:var(--surface-2);font-size:14px;font-weight:500;transition:all .2s;}
+  .nav-search input:focus{outline:none;border-color:var(--bright-lime);background:#fff;box-shadow:0 0 0 4px rgba(163,255,18,.2);}
+  .nav-search svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--silver-glass);width:20px;height:20px;}
+
+  .nav-actions{display:flex;gap:12px;align-items:center;}
+  .btn-icon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--surface-2);color:var(--ink-black);transition:0.2s;}
+  .btn-icon:hover{background:var(--border);}
+  
+  .cart-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--ink-black);color:#fff;transition:all .2s;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
+  .cart-btn:hover{background:#1F222C;transform:scale(1.05);}
+  .cart-badge{position:absolute;top:-4px;right:-4px;background:var(--bright-lime);color:var(--ink-black);font-size:11px;font-weight:900;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;border:2px solid #fff;}
+
+  /* ── BREADCRUMBS ── */
+  .breadcrumbs { max-width: 1300px; margin: 0 auto; padding: 24px 20px 0; font-size: 13px; color: var(--text-muted); display: flex; gap: 8px; align-items: center; }
+  .breadcrumbs a:hover { color: var(--ink-black); }
+  .breadcrumbs span { color: var(--ink-black); font-weight: 600; }
+
+  /* ── PRODUCT LAYOUT ── */
+  .container { max-width: 1300px; margin: 0 auto; padding: 24px 20px 60px; width: 100%; flex: 1; }
+  
+  .product-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+  @media (max-width: 860px) { .product-layout { grid-template-columns: 1fr; gap: 32px; } }
+
+  /* Gallery */
+  .gallery { display: flex; flex-direction: column; gap: 16px; }
+  .main-image { 
+    width: 100%; aspect-ratio: 1/1; 
+    background: var(--surface-2) center/cover no-repeat; 
+    border-radius: 24px; border: 1px solid var(--border);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    transition: transform 0.3s;
+  }
+  .main-image:hover { transform: scale(1.02); }
+  .thumbnails { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .thumb { 
+    aspect-ratio: 1/1; background: var(--surface-2) center/cover no-repeat; 
+    border-radius: 12px; border: 2px solid transparent; cursor: pointer; transition: 0.2s; opacity: 0.7;
+  }
+  .thumb:hover, .thumb.active { border-color: var(--bright-lime); opacity: 1; }
+
+  /* Details */
+  .details { display: flex; flex-direction: column; gap: 20px; padding-top: 10px; }
+  .badge { display: inline-block; background: rgba(163,255,18,0.15); color: #5c9e00; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; width: fit-content; }
+  
+  .title { font-family: var(--font-display); font-size: clamp(28px, 4vw, 40px); font-weight: 700; line-height: 1.1; color: var(--ink-black); }
+  
+  .rating-row { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-muted); }
+  .stars { display: flex; gap: 2px; color: #FBBF24; }
+  .stars svg { width: 16px; height: 16px; fill: #FBBF24; }
+  
+  .price-row { display: flex; align-items: flex-end; gap: 12px; padding: 16px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .price { font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--ink-black); }
+  .old-price { font-family: var(--mono); font-size: 18px; color: var(--text-muted); text-decoration: line-through; margin-bottom: 4px; }
+  .save-tag { background: #FEF2F2; color: #DC2626; font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 6px; margin-bottom: 6px; }
+
+  .description { font-size: 15px; line-height: 1.6; color: var(--text-muted); }
+
+  /* Actions */
+  .actions { display: flex; flex-direction: column; gap: 16px; margin-top: 10px; }
+  
+  .qty-selector { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 10px; width: fit-content; overflow: hidden; }
+  .qty-btn { padding: 12px 16px; background: var(--surface-2); border: none; font-size: 18px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+  .qty-btn:hover { background: var(--border); }
+  .qty-input { width: 50px; text-align: center; border: none; font-family: var(--mono); font-size: 16px; font-weight: 700; outline: none; }
+
+  .btn-group { display: flex; gap: 12px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 16px 24px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; border: none; font-family: var(--font-display); flex: 1; }
+  
+  .btn-add { background: var(--ink-black); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .btn-add:hover { background: #1F222C; transform: translateY(-2px); }
+  
+  .btn-buy { background: var(--bright-lime); color: var(--ink-black); box-shadow: 0 8px 24px rgba(163,255,18,0.3); }
+  .btn-buy:hover { background: #BDFF53; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(163,255,18,0.5); }
+
+  .trust-badges { display: flex; gap: 20px; margin-top: 10px; font-size: 13px; color: var(--text-muted); flex-wrap: wrap; }
+  .trust-item { display: flex; align-items: center; gap: 6px; }
+  .trust-item svg { width: 16px; height: 16px; color: var(--bright-lime); }
+
+  /* ── TABS (Description / Reviews) ── */
+  .tabs-section { margin-top: 80px; }
+  .tabs-header { display: flex; gap: 32px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+  .tab-btn { padding: 16px 0; font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--text-muted); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; transition: 0.2s; margin-bottom: -1px; }
+  .tab-btn.active { color: var(--ink-black); border-bottom-color: var(--bright-lime); }
+  
+  .tab-content { display: none; animation: fadeIn 0.3s ease-out; line-height: 1.7; color: var(--text-muted); font-size: 15px; }
+  .tab-content.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Footer */
+  .footer{background:var(--ink-black);color:var(--silver-glass);padding:40px 20px;text-align:center;font-size:13px;margin-top:auto;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header-wrapper">
+  <div class="nav-top">
+    <a href="index.html" class="nav-brand">
+      <svg viewBox="0 0 60 74">
+        <path d="M30 4 L54 46 H6 Z" fill="#030407" />
+        <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
+        <path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" />
+        <path d="M20 56 H40 V60 H20 Z" fill="#030407" />
+      </svg>
+      FORESTBASE
+    </a>
+    
+    <div class="nav-search">
+      <i data-lucide="search"></i>
+      <input type="text" placeholder="Search the forest..." />
+    </div>
+
+    <div class="nav-actions">
+      <a href="login.html" class="btn-icon" id="user-btn">
+        <i data-lucide="user" id="user-icon" style="width:20px; height:20px;"></i>
+      </a>
+      <a href="checkout.html" class="cart-btn">
+        <i data-lucide="shopping-bag" style="width:20px; height:20px;"></i>
+        <span class="cart-badge" id="cart-count">1</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- BREADCRUMBS -->
+<div class="breadcrumbs">
+  <a href="index.html">Home</a> <i data-lucide="chevron-right" style="width:14px;"></i>
+  <a href="browse.html">Electronics</a> <i data-lucide="chevron-right" style="width:14px;"></i>
+  <span>Aether Headphones</span>
+</div>
+
+<div class="container">
+  <div class="product-layout">
+    
+    <!-- LEFT: IMAGE GALLERY -->
+    <div class="gallery">
+      <div class="main-image" id="main-image" style="background-image: url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1000&auto=format&fit=crop')"></div>
+      <div class="thumbnails">
+        <div class="thumb active" data-img="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1000&auto=format&fit=crop" style="background-image: url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=200&auto=format&fit=crop')"></div>
+        <div class="thumb" data-img="https://images.unsplash.com/photo-1484704849700-f032a568e944?q=80&w=1000&auto=format&fit=crop" style="background-image: url('https://images.unsplash.com/photo-1484704849700-f032a568e944?q=80&w=200&auto=format&fit=crop')"></div>
+        <div class="thumb" data-img="https://images.unsplash.com/photo-1546435770-a3e426bf472b?q=80&w=1000&auto=format&fit=crop" style="background-image: url('https://images.unsplash.com/photo-1546435770-a3e426bf472b?q=80&w=200&auto=format&fit=crop')"></div>
+        <div class="thumb" data-img="https://images.unsplash.com/photo-1583394838336-acd977736f90?q=80&w=1000&auto=format&fit=crop" style="background-image: url('https://images.unsplash.com/photo-1583394838336-acd977736f90?q=80&w=200&auto=format&fit=crop')"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: PRODUCT DETAILS -->
+    <div class="details">
+      <div class="badge">Mystery Drop</div>
+      
+      <h1 class="title">Aether Noise-Canceling Headphones</h1>
+      
+      <div class="rating-row">
+        <div class="stars">
+          <i data-lucide="star"></i><i data-lucide="star"></i><i data-lucide="star"></i><i data-lucide="star"></i><i data-lucide="star"></i>
+        </div>
+        <span>4.8 (124 reviews)</span>
+      </div>
+
+      <div class="price-row">
+        <div class="price">R 3,499.00</div>
+        <div class="old-price">R 4,200.00</div>
+        <div class="save-tag">Save 16%</div>
+      </div>
+
+      <p class="description">
+        Experience the future of sound. The Aether headphones feature adaptive active noise cancellation, spatial audio tracking, and a 40-hour battery life. Deep in the forest, you'll hear nothing but the mystery.
+      </p>
+
+      <div class="actions">
+        <div class="qty-selector">
+          <button class="qty-btn" id="qty-minus">−</button>
+          <input type="text" class="qty-input" id="qty-input" value="1" readonly>
+          <button class="qty-btn" id="qty-plus">+</button>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-add" onclick="addToCart('add')">
+            <i data-lucide="shopping-cart" style="width:20px;"></i> Add to Cart
+          </button>
+          <button class="btn btn-buy" onclick="addToCart('buy')">
+            Buy Now
+          </button>
+        </div>
+      </div>
+
+      <div class="trust-badges">
+        <div class="trust-item"><i data-lucide="truck"></i> Fast Delivery</div>
+        <div class="trust-item"><i data-lucide="shield-check"></i> Secure Checkout</div>
+        <div class="trust-item"><i data-lucide="refresh-cw"></i> 30-Day Returns</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS SECTION -->
+  <div class="tabs-section">
+    <div class="tabs-header">
+      <button class="tab-btn active" data-target="tab-desc">Product Details</button>
+      <button class="tab-btn" data-target="tab-reviews">Reviews (124)</button>
+    </div>
+
+    <div class="tab-content active" id="tab-desc">
+      <p><strong>Technical Specifications:</strong></p>
+      <ul style="margin-top: 12px; margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+        <li>Driver Size: 40mm Dynamic</li>
+        <li>Battery Life: 40 Hours (ANC On)</li>
+        <li>Connectivity: Bluetooth 5.3, USB-C</li>
+        <li>Water Resistance: IPX4</li>
+        <li>Weight: 250g</li>
+      </ul>
+    </div>
+    
+    <div class="tab-content" id="tab-reviews">
+      <div style="background: var(--surface-2); padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+        <div style="font-weight: 700; color: var(--ink-black); margin-bottom: 4px;">Nathan N. <span style="color: #FBBF24;">★★★★★</span></div>
+        <p>"Absolutely incredible noise cancellation. The lime green accents look even better in person. Highly recommend!"</p>
+      </div>
+      <div style="background: var(--surface-2); padding: 20px; border-radius: 12px;">
+        <div style="font-weight: 700; color: var(--ink-black); margin-bottom: 4px;">Sarah M. <span style="color: #FBBF24;">★★★★☆</span></div>
+        <p>"Fast delivery, premium packaging. The sound is a bit bass-heavy for my taste, but overall a great buy."</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  © <span id="year"></span> FORESTBASE. All rights reserved. Deep in the forest there's always a mystery.
+</footer>
+
+<script>
+(function(){
+  // ═══════════════════════════════════════════════
+  // 1. FIREBASE AUTH (Header state)
+  // ═══════════════════════════════════════════════
+  var firebaseConfig = {
+    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+    authDomain: "starlane-stream.firebaseapp.com",
+    projectId: "starlane-stream",
+    storageBucket: "starlane-stream.firebasestorage.app",
+    messagingSenderId: "115625325145",
+    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var auth = firebase.auth();
+
+  auth.onAuthStateChanged(function(user) {
+    var userBtn = document.getElementById('user-btn');
+    var userIcon = document.getElementById('user-icon');
+    if (user) {
+      userBtn.href = "account.html";
+      userIcon.setAttribute('data-lucide', 'user-check');
+    } else {
+      userBtn.href = "login.html";
+      userIcon.setAttribute('data-lucide', 'user');
+    }
+    if (window.lucide) lucide.createIcons();
+  });
+
+  // ═══════════════════════════════════════════════
+  // 2. IMAGE GALLERY LOGIC
+  // ═══════════════════════════════════════════════
+  var mainImg = document.getElementById('main-image');
+  var thumbs = document.querySelectorAll('.thumb');
+
+  thumbs.forEach(function(thumb) {
+    thumb.addEventListener('click', function() {
+      // Remove active class from all
+      thumbs.forEach(function(t) { t.classList.remove('active'); });
+      // Add active to clicked
+      this.classList.add('active');
+      // Swap main image
+      var newImgUrl = this.getAttribute('data-img');
+      mainImg.style.backgroundImage = `url('${newImgUrl}')`;
+    });
+  });
+
+  // ═══════════════════════════════════════════════
+  // 3. QUANTITY SELECTOR LOGIC
+  // ═══════════════════════════════════════════════
+  var qtyInput = document.getElementById('qty-input');
+  
+  document.getElementById('qty-minus').addEventListener('click', function() {
+    var val = parseInt(qtyInput.value);
+    if (val > 1) qtyInput.value = val - 1;
+  });
+
+  document.getElementById('qty-plus').addEventListener('click', function() {
+    var val = parseInt(qtyInput.value);
+    if (val < 10) qtyInput.value = val + 1; // Max 10 per order
+  });
+
+  // ═══════════════════════════════════════════════
+  // 4. ADD TO CART LOGIC
+  // ═══════════════════════════════════════════════
+  window.addToCart = function(action) {
+    var qty = parseInt(qtyInput.value);
+    var cartCountEl = document.getElementById('cart-count');
+    var currentCart = parseInt(cartCountEl.textContent) || 0;
+    
+    // Update Cart Badge
+    cartCountEl.textContent = currentCart + qty;
+
+    if (action === 'buy') {
+      // If Buy Now, redirect straight to checkout
+      window.location.href = 'checkout.html';
+    } else {
+      // If Add to Cart, just show a sleek button animation
+      var btn = document.querySelector('.btn-add');
+      var originalText = btn.innerHTML;
+      btn.innerHTML = '<i data-lucide="check" style="width:20px;"></i> Added!';
+      btn.style.background = 'var(--bright-lime)';
+      btn.style.color = 'var(--ink-black)';
+      
+      if (window.lucide) lucide.createIcons();
+
+      setTimeout(function() {
+        btn.innerHTML = originalText;
+        btn.style.background = 'var(--ink-black)';
+        btn.style.color = '#fff';
+        if (window.lucide) lucide.createIcons();
+      }, 2000);
+    }
+  };
+
+  // ═══════════════════════════════════════════════
+  // 5. TABS LOGIC
+  // ═══════════════════════════════════════════════
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabContents = document.querySelectorAll('.tab-content');
+
+  tabBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      // Remove active from all
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+
+      // Add active to clicked
+      this.classList.add('active');
+      var targetId = this.getAttribute('data-target');
+      document.getElementById(targetId).classList.add('active');
+    });
+  });
+
+  // Initialize
+  document.getElementById('year').textContent = new Date().getFullYear();
+  if (window.lucide) lucide.createIcons();
+})();
+</script>
+</body>
+        </html>
