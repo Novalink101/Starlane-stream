@@ -12,11 +12,21 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
   :root { 
-    --red: #E50914; --bg: #ffffff; --surface: #f9fafb; --text: #111827; 
-    --text-muted: #6b7280; --border: #e5e7eb; --success: #10B981; --warning: #F59E0B; 
+    --red: #E50914; 
+    --bg: #ffffff; 
+    --surface: #f9fafb; 
+    --text: #111827; 
+    --text-muted: #6b7280; 
+    --border: #e5e7eb; 
+    --success: #10B981; 
+    --warning: #F59E0B; 
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.5; min-height: 100vh; }
+  body { 
+    background: var(--bg); color: var(--text); 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    line-height: 1.5; min-height: 100vh; 
+  }
   a { text-decoration: none; color: inherit; }
   .hidden { display: none !important; }
 
@@ -28,26 +38,27 @@
   .logo b { font-weight: 900; font-size: 20px; color: #111827; }
   .logo b span { color: var(--red); }
   .badge-test { background: #e0f2fe; color: #0284c7; font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; margin-left: 10px; }
-  .btn-nav { font-weight: 700; font-size: 14px; color: var(--text-muted); }
+  .btn-nav { font-weight: 700; font-size: 14px; color: var(--text-muted); transition: 0.2s; }
+  .btn-nav:hover { color: var(--text); }
 
   /* Layout */
   .container { max-width: 1200px; margin: 40px auto; padding: 0 24px; }
-  .page-header { margin-bottom: 32px; }
+  .page-header { margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; }
   .page-title { font-size: 32px; font-weight: 900; letter-spacing: -1px; margin-bottom: 8px; }
   .page-sub { font-size: 16px; color: var(--text-muted); }
 
   /* Selector */
   .selector-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; align-items: center; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
   .selector-box label { font-size: 14px; font-weight: 800; color: var(--text); }
-  .selector-box select { flex: 1; min-width: 250px; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); font-size: 15px; font-family: inherit; font-weight: 700; background: #fff; outline: none; }
-  .selector-box select:focus { border-color: var(--red); }
+  .selector-box select { flex: 1; min-width: 250px; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); font-size: 15px; font-family: inherit; font-weight: 700; background: #fff; outline: none; cursor: pointer; }
+  .selector-box select:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(229,9,20,0.1); }
 
   /* Dashboard Grid */
   .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
   @media (max-width: 900px) { .dashboard { grid-template-columns: 1fr; } }
 
   .test-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
-  .test-card h3 { font-size: 16px; font-weight: 900; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+  .test-card h3 { font-size: 16px; font-weight: 900; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
   
   /* Status Indicators */
   .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
@@ -56,25 +67,27 @@
   .dot-yellow { background: var(--warning); box-shadow: 0 0 10px rgba(245,158,11,0.4); }
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
 
-  .data-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .data-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
   .data-row:last-child { border-bottom: none; }
   .data-row .label { color: var(--text-muted); font-weight: 600; }
-  .data-row .value { font-weight: 800; font-family: monospace; text-align: right; }
+  .data-row .value { font-weight: 800; font-family: monospace; text-align: right; font-size: 15px; }
 
   /* Video Tester */
-  .video-test-box { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; margin-top: 12px; }
+  .video-test-box { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; margin-top: 12px; border: 1px solid var(--border); }
   .video-test-box video { width: 100%; height: 100%; object-fit: contain; }
-  .video-test-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); color: #fff; font-size: 13px; font-weight: 700; }
+  .video-test-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); color: #fff; font-size: 13px; font-weight: 700; text-align: center; padding: 20px; }
 
   /* Log Window */
-  .log-window { background: #111827; color: #10B981; border-radius: 16px; padding: 20px; font-family: monospace; font-size: 12px; height: 200px; overflow-y: auto; line-height: 1.6; }
+  .log-window { background: #111827; color: #10B981; border-radius: 16px; padding: 20px; font-family: monospace; font-size: 12px; height: 220px; overflow-y: auto; line-height: 1.6; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); }
   .log-window .log-error { color: #EF4444; }
   .log-window .log-warn { color: #F59E0B; }
   .log-window .log-info { color: #38BDF8; }
 
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 14px; cursor: pointer; border: none; transition: 0.2s; }
-  .btn-primary { background: var(--red); color: #fff; }
+  .btn-primary { background: var(--red); color: #fff; box-shadow: 0 4px 12px rgba(229,9,20,0.2); }
+  .btn-primary:hover { background: var(--red-hover); transform: translateY(-2px); }
   .btn-ghost { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: #fff; border-color: var(--text); }
 </style>
 </head>
 <body>
@@ -86,14 +99,19 @@
       <b>STAR<span>LANE</span></b>
       <span class="badge-test">Diagnostics</span>
     </a>
-    <a href="admin.html" class="btn-nav">Back to Admin</a>
+    <a href="admin.html" class="btn-nav">Back to Dashboard</a>
   </div>
 </nav>
 
 <div class="container">
   <div class="page-header">
-    <h1 class="page-title">Stream Diagnostic Test</h1>
-    <p class="page-sub">Monitor the entire pipeline. See exactly what is working and what is broken.</p>
+    <div>
+      <h1 class="page-title">Stream Diagnostic Test</h1>
+      <p class="page-sub">Monitor the pipeline in real-time. Find out exactly what is broken.</p>
+    </div>
+    <div style="display:flex; gap:12px;">
+      <button class="btn btn-ghost" onclick="refreshTest()"><i data-lucide="refresh-cw" size="16"></i> Refresh</button>
+    </div>
   </div>
 
   <!-- Event Selector -->
@@ -102,7 +120,6 @@
     <select id="event-selector">
       <option value="">Loading events...</option>
     </select>
-    <button class="btn btn-primary" onclick="refreshConnection()">Restart Test</button>
   </div>
 
   <div id="test-dashboard" class="hidden">
@@ -112,10 +129,6 @@
       <!-- Card 1: Firebase & Camera -->
       <div class="test-card">
         <h3>1. Camera & Database <span id="status-firebase" class="status-dot dot-yellow"></span></h3>
-        <div class="data-row">
-          <span class="label">Event Name</span>
-          <span class="value" id="val-event-name">-</span>
-        </div>
         <div class="data-row">
           <span class="label">Broadcast Status</span>
           <span class="value" id="val-broadcast-status">-</span>
@@ -132,6 +145,10 @@
           <span class="label">Last Chunk Received</span>
           <span class="value" id="val-last-chunk">-</span>
         </div>
+        <div class="data-row">
+          <span class="label">Ad Loop Active</span>
+          <span class="value" id="val-ads">-</span>
+        </div>
       </div>
 
       <!-- Card 2: Cloudinary & Buffer -->
@@ -147,15 +164,15 @@
         </div>
         <div class="data-row">
           <span class="label">Latest Video URL</span>
-          <span class="value" id="val-latest-url" style="font-size:10px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">-</span>
+          <span class="value" id="val-latest-url" style="font-size:10px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-muted);">-</span>
         </div>
         
         <!-- Raw Video Tester -->
         <div style="margin-top:16px;">
-          <label style="font-size:12px; font-weight:800; color:var(--text-muted);">Test Latest Chunk (Raw Cloudinary)</label>
+          <label style="font-size:12px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Raw Cloudinary Playback Test</label>
           <div class="video-test-box" id="raw-video-box">
-            <video id="raw-video" autoplay muted loop playsinline></video>
-            <div class="video-test-overlay" id="raw-video-overlay">Waiting for first chunk...</div>
+            <video id="raw-video" autoplay muted loop playsinline controls></video>
+            <div class="video-test-overlay" id="raw-video-overlay">Waiting for first chunk from Cloudinary...</div>
           </div>
         </div>
       </div>
@@ -177,8 +194,8 @@
   var db = firebase.firestore();
 
   var currentListener = null;
-  var lastChunkTime = null;
   var lastPlayedUrl = null;
+  var lastLogState = "";
 
   // --- LOGGING SYSTEM ---
   function log(msg, type = 'info') {
@@ -208,13 +225,21 @@
     if (urlEvent) {
       sel.value = urlEvent;
       startTest();
+    } else {
+      var storedEvent = localStorage.getItem('starlane_activeEvent');
+      if (storedEvent && Array.from(sel.options).some(o => o.value === storedEvent)) {
+        sel.value = storedEvent;
+        startTest();
+      }
     }
 
     sel.addEventListener('change', startTest);
   });
 
-  function refreshConnection() {
+  function refreshTest() {
     if (currentListener) currentListener();
+    lastPlayedUrl = null;
+    lastLogState = "";
     startTest();
   }
 
@@ -240,9 +265,8 @@
 
       var data = doc.data();
       
-      // 1. Update Basic Info
+      // 1. Update Firebase Status
       document.getElementById('status-firebase').className = 'status-dot dot-green';
-      document.getElementById('val-event-name').textContent = data.title || 'Untitled';
       
       var isBroadcasting = data.streamUrl === 'broadcasting';
       var activeCam = data.activeCamera || 'none';
@@ -250,6 +274,9 @@
       document.getElementById('val-broadcast-status').textContent = isBroadcasting ? 'BROADCASTING' : 'OFFLINE';
       document.getElementById('val-broadcast-status').style.color = isBroadcasting ? 'var(--success)' : 'var(--text-muted)';
       document.getElementById('val-active-cam').textContent = activeCam.toUpperCase();
+      
+      document.getElementById('val-ads').textContent = data.forceAds ? 'YES (Viewers seeing ads)' : 'NO (Viewers see live)';
+      document.getElementById('val-ads').style.color = data.forceAds ? 'var(--warning)' : 'var(--text-muted)';
 
       // 2. Camera Lock Status
       if (data.camStatus && data.camStatus[activeCam]) {
@@ -258,25 +285,27 @@
         document.getElementById('val-cam-lock').textContent = `Device ${lock.deviceId} (${age}s ago)`;
         if (age > 30) {
           document.getElementById('val-cam-lock').style.color = 'var(--warning)';
-          log("Warning: Camera lock is stale (over 30s old). Phone might be disconnected.", 'warn');
+          if (lastLogState !== 'stale_lock') log("Warning: Camera lock is stale (over 30s old). Phone might be disconnected.", 'warn');
+          lastLogState = 'stale_lock';
         } else {
           document.getElementById('val-cam-lock').style.color = 'var(--success)';
         }
       } else {
-        document.getElementById('val-cam-lock').textContent = 'No Lock Found';
-        document.getElementById('val-cam-lock').style.color = 'var(--text-muted)';
+        document.getElementById('val-cam-lock').textContent = 'No Lock Found (Phone not connected)';
+        document.getElementById('val-cam-lock').style.color = 'var(--red)';
       }
 
       // 3. Last Chunk Time
       if (data.lastChunkAt) {
-        lastChunkTime = data.lastChunkAt.toDate();
+        var lastChunkTime = data.lastChunkAt.toDate();
         var secondsAgo = Math.round((Date.now() - lastChunkTime.getTime()) / 1000);
         document.getElementById('val-last-chunk').textContent = secondsAgo + "s ago";
         
         if (secondsAgo > 10) {
           document.getElementById('val-last-chunk').style.color = 'var(--red)';
           document.getElementById('status-cloudinary').className = 'status-dot dot-red';
-          log("Error: Last chunk received over 10 seconds ago. Stream is stalling.", 'error');
+          if (lastLogState !== 'stalled_chunk') log("Error: Last chunk received over 10 seconds ago. Stream is stalling.", 'error');
+          lastLogState = 'stalled_chunk';
         } else {
           document.getElementById('val-last-chunk').style.color = 'var(--success)';
           document.getElementById('status-cloudinary').className = 'status-dot dot-green';
@@ -297,7 +326,7 @@
         bufferStatus.textContent = 'Empty (0 chunks)';
         bufferStatus.style.color = 'var(--red)';
       } else if (count < 20) {
-        bufferStatus.textContent = `Buffering... (${count}/20)`;
+        bufferStatus.textContent = `Building Buffer... (${count}/20)`;
         bufferStatus.style.color = 'var(--warning)';
       } else {
         bufferStatus.textContent = 'READY TO PLAY (20+)';
@@ -309,7 +338,7 @@
         var latestUrl = history[count - 1].url;
         document.getElementById('val-latest-url').textContent = latestUrl;
         
-        // Only load if it's a new URL to prevent infinite reloading
+        // Only load if it's a new URL
         if (latestUrl !== lastPlayedUrl) {
           lastPlayedUrl = latestUrl;
           log("New chunk received from Cloudinary. Testing playback...", 'info');
@@ -317,15 +346,18 @@
           var vid = document.getElementById('raw-video');
           var overlay = document.getElementById('raw-video-overlay');
           
+          // Fallback if autoplay is blocked
+          vid.muted = true; 
           vid.src = latestUrl;
           vid.load();
+          
           vid.play().then(function() {
             overlay.style.display = 'none';
-            log("Cloudinary Video Test: Success. The chunk plays perfectly.", 'info');
           }).catch(function(err) {
             overlay.style.display = 'flex';
-            overlay.textContent = "Playback Failed: " + err.message;
-            log("Cloudinary Video Test: Failed to play. " + err.message, 'error');
+            overlay.textContent = "Playback Failed. Tap to retry.";
+            overlay.onclick = function() { vid.play(); this.style.display = 'none'; };
+            log("Cloudinary Video Test: Failed to autoplay. Browser blocked it. " + err.message, 'error');
           });
         }
       }
