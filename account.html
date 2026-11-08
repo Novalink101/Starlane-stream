@@ -53,9 +53,9 @@
 
   /* Profile Card */
   .profile-card { background: #fff; border: 1px solid var(--border); border-radius: 24px; padding: 40px; display: flex; align-items: center; gap: 24px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); margin-bottom: 40px; }
-  .avatar { width: 80px; height: 80px; border-radius: 50%; background: #fee2e2; color: var(--red); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; }
+  .avatar { width: 80px; height: 80px; border-radius: 50%; background: #fee2e2; color: var(--red); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; flex-shrink: 0; }
   .profile-info h2 { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
-  .profile-info p { font-size: 15px; color: var(--text-muted); font-weight: 500; margin-bottom: 12px; }
+  .profile-info p { font-size: 15px; color: var(--text-muted); font-weight: 500; margin-bottom: 16px; }
   .btn-signout { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; background: #fee2e2; color: var(--red); font-weight: 700; font-size: 13px; border: 1px solid #fecaca; cursor: pointer; transition: 0.2s; }
   .btn-signout:hover { background: var(--red); color: #fff; border-color: var(--red); }
 
@@ -65,19 +65,26 @@
   
   .event-list { display: flex; flex-direction: column; gap: 16px; }
   .event-item { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-  .event-item:hover { border-color: var(--red); box-shadow: 0 4px 12px rgba(229,9,20,0.05); }
+  .event-item:hover { border-color: var(--red); box-shadow: 0 4px 12px rgba(229,9,20,0.05); transform: translateY(-2px); }
   .event-info h4 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
   .event-info p { font-size: 14px; color: var(--text-muted); font-weight: 500; }
   
-  .btn-watch { padding: 10px 20px; border-radius: 10px; background: var(--red); color: #fff; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+  .btn-watch { padding: 10px 20px; border-radius: 10px; background: var(--red); color: #fff; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; border: none; cursor: pointer; }
   .btn-watch:hover { background: var(--red-hover); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(229,9,20,0.3); }
 
+  /* Empty States */
   .empty-state { text-align: center; padding: 60px 20px; background: #fff; border: 1px dashed var(--border); border-radius: 20px; color: var(--text-muted); }
   .empty-state i { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; }
   .empty-state h3 { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
   
   .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: spin .8s linear infinite; margin: 40px auto; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 600px) {
+    .profile-card { flex-direction: column; text-align: center; padding: 32px 24px; }
+    .event-item { flex-direction: column; text-align: center; gap: 16px; }
+    .btn-watch { width: 100%; justify-content: center; }
+  }
 </style>
 </head>
 <body>
@@ -102,6 +109,7 @@
 <main class="container">
   <div id="loading" class="spinner"></div>
 
+  <!-- LOGGED IN VIEW -->
   <div id="content" class="hidden">
     <h1 class="page-title">My Account</h1>
 
@@ -126,6 +134,7 @@
     </div>
   </div>
 
+  <!-- LOGGED OUT VIEW -->
   <div id="not-logged-in" class="hidden empty-state">
     <i data-lucide="lock"></i>
     <h3>You are not signed in</h3>
@@ -166,8 +175,9 @@
       document.getElementById('user-name').textContent = name;
       document.getElementById('user-email').textContent = user.email;
       
-      // Generate Initials
-      var initials = name.split(' ').map(function(n){ return n[0]; }).join('').substring(0, 2).toUpperCase();
+      // Generate Initials safely
+      var initials = name.trim().split(/\s+/).map(function(n){ return n[0]; }).join('').substring(0, 2).toUpperCase();
+      if (!initials) initials = "?";
       document.getElementById('avatar-initials').textContent = initials;
 
       // Load unlocked passes from Firestore
@@ -177,45 +187,57 @@
 
         if (snap.empty) {
           streamContainer.innerHTML = `
-            <div class="empty-state">
+            <div class="empty-state" style="grid-column: 1 / -1;">
               <i data-lucide="ticket"></i>
               <h3>No unlocked streams</h3>
               <p>You haven't purchased any Pay-Per-View passes yet.</p>
-              <a href="index.html" class="btn-watch" style="margin-top: 16px;">Browse Events <i data-lucide="arrow-right" size="16"></i></a>
+              <a href="browse.html" class="btn-watch" style="margin-top: 16px;">Browse Events <i data-lucide="arrow-right" size="16"></i></a>
             </div>
           `;
           if (window.lucide) lucide.createIcons();
           return;
         }
 
-        // If they have passes, fetch the event details for each pass
+        // Fetch event details for each pass
         var promises = [];
         snap.forEach(function(doc) {
+          // We use doc.id (the streamId) to fetch the actual event data
           promises.push(db.collection('streams').doc(doc.id).get());
         });
 
         Promise.all(promises).then(function(eventDocs) {
           streamContainer.innerHTML = '';
+          var validEventsFound = 0;
+
           eventDocs.forEach(function(eventDoc) {
-            if (eventDoc.exists) {
-              var data = eventDoc.data();
-              var id = eventDoc.id;
-              
-              var div = document.createElement('div');
-              div.className = 'event-item';
-              div.innerHTML = `
-                <div class="event-info">
-                  <h4>${data.title || 'Untitled Event'}</h4>
-                  <p>${data.startDate || ''} · ${data.startTime || ''}</p>
-                </div>
-                <a href="watch.html?id=${id}" class="btn-watch">Watch Now <i data-lucide="play" size="14"></i></a>
-              `;
-              streamContainer.appendChild(div);
-            }
+            // If the event was deleted by the admin, skip it
+            if (!eventDoc.exists) return;
+            
+            validEventsFound++;
+            var data = eventDoc.data();
+            var id = eventDoc.id;
+            
+            var div = document.createElement('div');
+            div.className = 'event-item';
+            div.innerHTML = `
+              <div class="event-info">
+                <h4>${data.title || 'Untitled Event'}</h4>
+                <p>${data.startDate || 'Date TBA'} · ${data.startTime || ''}</p>
+              </div>
+              <a href="watch.html?id=${id}" class="btn-watch">Watch Now <i data-lucide="play" size="14"></i></a>
+            `;
+            streamContainer.appendChild(div);
           });
           
-          if (streamContainer.innerHTML === '') {
-             streamContainer.innerHTML = '<p style="color: var(--text-muted);">Your unlocked events are no longer available.</p>';
+          // If they had passes, but all the events were deleted
+          if (validEventsFound === 0) {
+             streamContainer.innerHTML = `
+               <div class="empty-state" style="grid-column: 1 / -1;">
+                 <i data-lucide="video-off"></i>
+                 <h3>Events Unavailable</h3>
+                 <p>Your unlocked events are no longer available on the platform.</p>
+               </div>
+             `;
           }
           if (window.lucide) lucide.createIcons();
         });
@@ -225,9 +247,11 @@
 
     // Sign out action
     document.getElementById('btn-signout').addEventListener('click', function() {
-      auth.signOut().then(function() {
-        window.location.href = 'index.html';
-      });
+      if(confirm("Are you sure you want to sign out?")) {
+        auth.signOut().then(function() {
+          window.location.href = 'index.html';
+        });
+      }
     });
   });
 })();
