@@ -2,15 +2,15 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
-const cloudinary = require('cloudinary').v2;
-const multer = require('multer');
 const path = require('path');
 
 const app = express();
 
+// 1. Middleware
 app.use(cors());
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '10mb' }));
 
+// 2. Firebase Admin Initialization
 let db = null;
 try {
   const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
@@ -26,21 +26,17 @@ try {
   console.error("❌ Firebase Admin Error:", error.message);
 }
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
+// ==========================================
+// API ROUTES
+// ==========================================
 
-const upload = multer({ 
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 } 
-});
-
+// --- [ YOCO PAYMENT: CREATE CHECKOUT ] ---
 app.post('/api/create-yoco-checkout', async (req, res) => {
   try {
     const { checkoutId, userId, userEmail, streamId, price, returnUrl } = req.body;
-    if (!checkoutId || !userId || !streamId || !price) return res.status(400).json({ error: 'Missing fields' });
+    if (!checkoutId || !userId || !streamId || !price) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
 
     const yocoRes = await fetch('https://payments.yoco.com/api/checkouts', {
       method: 'POST',
@@ -49,7 +45,7 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
         'Authorization': `Bearer ${process.env.YOCO_SECRET_KEY}`
       },
       body: JSON.stringify({
-        amount: Math.round(price * 100),
+        amount: Math.round(price * 100), // Convert Rands to cents
         currency: 'ZAR',
         cancelUrl: returnUrl || 'https://starlane-stream-api.onrender.com/index.html',
         successUrl: returnUrl || 'https://starlane-stream-api.onrender.com/index.html',
@@ -57,17 +53,23 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
         metadata: { checkoutId, userId, streamId, userEmail }
       })
     });
+
     const yocoData = await yocoRes.json();
-    if (!yocoRes.ok) throw new Error(yocoData.message || 'Yoco rejected');
+    if (!yocoRes.ok) throw new Error(yocoData.message || 'Yoco rejected the request');
+
     res.json({ redirectUrl: yocoData.redirectUrl });
   } catch (err) {
+    console.error('[Yoco Checkout Error]', err);
     res.status(500).json({ error: err.message });
   }
 });
 
+// --- [ YOCO PAYMENT: WEBHOOK ] ---
+// IMPORTANT: Add this URL to your Yoco Dashboard: https://starlane-stream-api.onrender.com/api/yoco-webhook
 app.post('/api/yoco-webhook', async (req, res) => {
   try {
-    if (!db) return res.status(500).json({ error: 'DB not initialized' });
+    if (!db) return res.status(500).json({ error: 'Database not initialized' });
+    
     const event = req.body;
     if (event.type !== 'payment.succeeded') return res.status(200).json({ received: true });
 
@@ -75,6 +77,7 @@ app.post('/api/yoco-webhook', async (req, res) => {
     const { checkoutId, userId, streamId } = meta;
 
     if (userId && streamId) {
+      // 1. Mark purchase as paid
       if (checkoutId) {
         await db.collection('purchases').doc(checkoutId).update({
           status: 'paid',
@@ -82,55 +85,20 @@ app.post('/api/yoco-webhook', async (req, res) => {
           yocoPaymentId: event.payload.id
         }).catch(e => console.log('Purchase doc not found'));
       }
+
+      // 2. Grant the pass
       await db.collection('users').doc(userId).collection('passes').doc(streamId).set({
-        streamId, status: 'approved', purchasedAt: admin.firestore.FieldValue.serverTimestamp(), checkoutId
+        streamId: streamId,
+        status: 'approved',
+        purchasedAt: admin.firestore.FieldValue.serverTimestamp(),
+        checkoutId: checkoutId
       }, { merge: true });
-      console.log(`✅ Pass granted for ${userId}`);
+
+      console.log(`✅ [Webhook] Pass granted for User ${userId} to Stream ${streamId}`);
     }
     res.status(200).json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// --- [ CLOUDINARY CAMERA UPLOAD WITH HISTORY BUFFER ] ---
-app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
-  try {
-    if (!db) return res.status(500).json({ error: 'DB not initialized' });
-    const { eventId, camId } = req.body;
-    if (!req.file) return res.status(400).json({ error: 'No video chunk' });
-
-    const streamRef = db.collection('streams').doc(eventId);
-    const streamDoc = await streamRef.get();
-    
-    if (!streamDoc.exists) return res.status(404).json({ error: 'Stream not found' });
-    const streamData = streamDoc.data();
-    
-    if (streamData.killedAt) {
-      return res.status(423).json({ error: 'Stream killed' });
-    }
-
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { resource_type: 'video', folder: `starlane/${eventId}`, public_id: `${camId}_${Date.now()}` },
-      async (error, result) => {
-        if (error) return res.status(500).json({ error: 'Cloudinary failed' });
-        
-        // Build a rolling history of the last 50 chunks (100 seconds)
-        let history = streamData.camHistory && streamData.camHistory[camId] ? streamData.camHistory[camId] : [];
-        history.push({ url: result.secure_url, time: Date.now() });
-        if (history.length > 50) history = history.slice(history.length - 50);
-
-        await streamRef.update({
-          [`camHistory.${camId}`]: history, // The array for the delayed player
-          [`cams.${camId}`]: result.secure_url, // Keep for fallback
-          lastChunkAt: admin.firestore.FieldValue.serverTimestamp()
-        });
-        
-        res.json({ success: true, url: result.secure_url });
-      }
-    );
-    uploadStream.end(req.file.buffer);
-  } catch (err) {
+    console.error('[Webhook Error]', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -138,8 +106,22 @@ app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
 // ==========================================
 // STATIC FRONTEND HOSTING (WITH CACHING)
 // ==========================================
-app.use(express.static(__dirname, { maxAge: '1d', etag: true }));
-app.get('*', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
+// Serves HTML files from the current folder and caches them in the browser for 1 day.
+// This completely fixes the "hell slow" loading issue.
+app.use(express.static(__dirname, {
+  maxAge: '1d',
+  etag: true
+}));
 
+// Fallback: If a user goes to the main URL, load index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// ==========================================
+// START SERVER
+// ==========================================
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => { console.log(`🚀 Server running on port ${PORT}`); });
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
