@@ -13,22 +13,15 @@
   :root { --red: #E50914; --bg: #0a0a0f; --surface: #1a1a24; --text: #fff; --border: rgba(255,255,255,0.1); }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { background: #000; color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; height: 100vh; width: 100vw; overflow: hidden; position: relative; }
-  
   .hidden { display: none !important; }
-
-  /* Video */
   #preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-
-  /* Overlay Controls */
   .overlay-wrapper { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 20%, transparent 70%, rgba(0,0,0,0.9) 100%); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
   .overlay-wrapper.show { opacity: 1; pointer-events: auto; }
-
   .top-bar { padding: 30px 20px; display: flex; justify-content: space-between; align-items: flex-start; }
   .status { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 20px; backdrop-filter: blur(8px); }
   .status .dot { width: 8px; height: 8px; border-radius: 50%; background: #555; }
   .status.live .dot { background: var(--red); box-shadow: 0 0 10px var(--red); animation: pulse 1s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-
   .bottom-controls { padding: 20px 20px 40px 20px; display: flex; flex-direction: column; gap: 20px; }
   .control-group { background: rgba(0,0,0,0.6); backdrop-filter: blur(12px); padding: 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); }
   .control-group label { display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.7); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
@@ -37,130 +30,82 @@
   .btn { width: 100%; padding: 18px; border-radius: 16px; font-size: 16px; font-weight: 900; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
   .btn-stop { background: #fff; color: #000; }
   .btn-stop:active { transform: scale(0.98); }
-
-  /* Setup Screens */
   .setup-screen { position: absolute; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; overflow-y: auto; }
   .setup-screen h2 { font-size: 24px; font-weight: 900; margin-bottom: 8px; color: #fff; }
   .setup-screen p { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 24px; }
-  
-  /* Selection Grid */
   .select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 400px; margin-bottom: 24px; }
   .select-btn { padding: 24px; border-radius: 16px; background: var(--surface); border: 2px solid var(--border); color: #fff; font-size: 18px; font-weight: 900; cursor: pointer; transition: 0.2s; }
   .select-btn:hover, .select-btn:active { border-color: var(--red); background: rgba(229,9,20,0.1); }
-  
   .event-list { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 12px; max-height: 50vh; overflow-y: auto; margin-bottom: 24px; }
   .event-btn { padding: 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: #fff; text-align: left; cursor: pointer; }
   .event-btn h4 { font-size: 16px; margin-bottom: 4px; }
   .event-btn p { font-size: 12px; color: rgba(255,255,255,0.5); margin: 0; }
+  .ads-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; width: 100%; max-width: 300px; }
+  .ads-row div { text-align: left; }
+  .ads-row label { font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 4px; display: block; text-transform: uppercase; font-weight: 800; }
+  .ads-row input { width: 100%; padding: 12px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); color: #fff; font-size: 14px; }
 </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- SCREENS -->
 <div class="setup-screen" id="login-screen">
-  <div style="width: 56px; height: 56px; background: rgba(229,9,20,0.15); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-    <i data-lucide="lock" style="color: var(--red); width: 28px; height: 28px;"></i>
-  </div>
-  <h2>Admin Login</h2>
-  <p>Sign in to access your camera broadcast slots.</p>
-  <button class="btn" id="btn-login" style="background: var(--red); color: #fff; max-width: 300px;">
-    <i data-lucide="log-in"></i> Sign In
-  </button>
+  <div style="width: 56px; height: 56px; background: rgba(229,9,20,0.15); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;"><i data-lucide="lock" style="color: var(--red); width: 28px; height: 28px;"></i></div>
+  <h2>Admin Login</h2><p>Sign in to access your camera broadcast slots.</p>
+  <button class="btn" id="btn-login" style="background: var(--red); color: #fff; max-width: 300px;"><i data-lucide="log-in"></i> Sign In</button>
 </div>
 
-<!-- CAMERA SELECTION SCREEN -->
 <div class="setup-screen hidden" id="camera-screen">
-  <h2>Select Camera Slot</h2>
-  <p>Which angle is this phone covering?</p>
-  <div class="select-grid" id="cam-select-grid">
-    <!-- Buttons injected via JS -->
-  </div>
+  <h2>Select Camera Slot</h2><p>Which angle is this phone covering?</p>
+  <div class="select-grid" id="cam-select-grid"></div>
 </div>
 
-<!-- EVENT SELECTION SCREEN -->
 <div class="setup-screen hidden" id="event-screen">
-  <h2>Select Event</h2>
-  <p>Which stream are you broadcasting to?</p>
-  <div class="event-list" id="event-select-list">
-    <!-- Events injected via JS -->
-  </div>
-  <button class="btn" id="btn-back-cam" style="background: transparent; color: rgba(255,255,255,0.5); border: 1px solid var(--border); max-width: 300px; margin-top: 10px;">
-    Back to Cameras
-  </button>
+  <h2>Select Event</h2><p>Which stream are you broadcasting to?</p>
+  <div class="event-list" id="event-select-list"></div>
+  <button class="btn" id="btn-back-cam" style="background: transparent; color: rgba(255,255,255,0.5); border: 1px solid var(--border); max-width: 300px; margin-top: 10px;">Back to Cameras</button>
 </div>
 
-<!-- AD SETTINGS SCREEN -->
 <div class="setup-screen hidden" id="ad-screen">
-  <div style="width: 56px; height: 56px; background: rgba(229,9,20,0.15); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-    <i data-lucide="play-circle" style="color: var(--red); width: 28px; height: 28px;"></i>
+  <div style="width: 56px; height: 56px; background: rgba(229,9,20,0.15); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;"><i data-lucide="play-circle" style="color: var(--red); width: 28px; height: 28px;"></i></div>
+  <h2>Pre-Show Ads</h2><p>Set the ad timer before the stream starts.</p>
+  <div class="ads-row">
+    <div><label>Pre-Show (Mins)</label><input type="number" id="ads-time" value="5" /></div>
+    <div><label>Ad Length (Secs)</label><input type="number" id="ads-duration" value="30" /></div>
   </div>
-  <h2>Pre-Show Ads</h2>
-  <p>Set the ad timer before the stream starts.</p>
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 300px; margin-bottom: 24px;">
-    <div style="text-align:left;">
-      <label style="font-size:10px; color:gray; font-weight:800; text-transform:uppercase;">Pre-Show (Mins)</label>
-      <input type="number" id="ads-time" value="5" style="width:100%; padding:12px; border-radius:8px; background:var(--surface); border:1px solid var(--border); color:#fff;" />
-    </div>
-    <div style="text-align:left;">
-      <label style="font-size:10px; color:gray; font-weight:800; text-transform:uppercase;">Ad Length (Secs)</label>
-      <input type="number" id="ads-duration" value="30" style="width:100%; padding:12px; border-radius:8px; background:var(--surface); border:1px solid var(--border); color:#fff;" />
-    </div>
-  </div>
-  <button class="btn" id="btn-start-stream" style="background: var(--red); color: #fff; max-width: 300px;">
-    <i data-lucide="video"></i> Turn On Camera & Go Live
-  </button>
+  <button class="btn" id="btn-start-stream" style="background: var(--red); color: #fff; max-width: 300px;"><i data-lucide="video"></i> Go Live in HD</button>
 </div>
 
-<!-- FULL SCREEN CAMERA -->
+<!-- CAMERA -->
 <video id="preview" autoplay playsinline muted class="hidden"></video>
 
-<!-- CONTROLS OVERLAY -->
+<!-- OVERLAY -->
 <div class="overlay-wrapper hidden" id="overlay">
   <div class="top-bar">
-    <div class="status" id="status-indicator">
-      <div class="dot"></div> <span id="status-text">OFFLINE</span>
-    </div>
+    <div class="status" id="status-indicator"><div class="dot"></div> <span id="status-text">OFFLINE</span></div>
   </div>
   <div class="bottom-controls">
-    <div class="control-group">
-      <label>Zoom <span id="zoom-val">1.0x</span></label>
-      <input type="range" id="zoom-slider" class="slider" min="1" max="5" step="0.1" value="1" />
-    </div>
-    <div class="control-group">
-      <label>Brightness <span id="bright-val">100%</span></label>
-      <input type="range" id="bright-slider" class="slider" min="0.5" max="1.5" step="0.1" value="1" />
-    </div>
-    <button class="btn btn-stop" id="btn-stop">
-      <i data-lucide="square"></i> STOP BROADCAST
-    </button>
+    <div class="control-group"><label>Zoom <span id="zoom-val">1.0x</span></label><input type="range" id="zoom-slider" class="slider" min="1" max="5" step="0.1" value="1" /></div>
+    <div class="control-group"><label>Brightness <span id="bright-val">100%</span></label><input type="range" id="bright-slider" class="slider" min="0.5" max="1.5" step="0.1" value="1" /></div>
+    <button class="btn btn-stop" id="btn-stop"><i data-lucide="square"></i> STOP BROADCAST</button>
   </div>
 </div>
 
 <script>
-  var firebaseConfig = {
-    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
-    authDomain: "starlane-stream.firebaseapp.com",
-    projectId: "starlane-stream",
-    storageBucket: "starlane-stream.firebasestorage.app",
-    messagingSenderId: "115625325145",
-    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
-  };
+  var firebaseConfig = { apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk", authDomain: "starlane-stream.firebaseapp.com", projectId: "starlane-stream", storageBucket: "starlane-stream.firebasestorage.app", messagingSenderId: "115625325145", appId: "1:115625325145:web:b14025df503bbe2b7d7748" };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var db = firebase.firestore();
   var auth = firebase.auth();
 
   var video = document.getElementById('preview');
   var overlay = document.getElementById('overlay');
-  
   var stream = null;
   var mediaRecorder = null;
   var isStreaming = false;
-  
   var selectedCamId = null;
   var selectedEventId = null;
   var selectedEventName = null;
 
-  // 1. AUTHENTICATION
   auth.onAuthStateChanged(function(user) {
     if (user) {
       document.getElementById('login-screen').classList.add('hidden');
@@ -176,7 +121,6 @@
     window.location.href = 'auth.html?redirect=' + encodeURIComponent('broadcast.html');
   });
 
-  // 2. RENDER CAMERA BUTTONS
   function renderCameraButtons() {
     var grid = document.getElementById('cam-select-grid');
     grid.innerHTML = '';
@@ -194,17 +138,12 @@
     });
   }
 
-  // 3. LOAD EVENTS
   function loadEvents() {
     var list = document.getElementById('event-select-list');
     list.innerHTML = '<p style="text-align:center; color:gray;">Loading events...</p>';
-    
     db.collection('streams').where('active', '==', true).get().then(function(snap) {
       list.innerHTML = '';
-      if (snap.empty) {
-        list.innerHTML = '<p style="text-align:center; color:gray;">No active events found. Create one in Event Studio.</p>';
-        return;
-      }
+      if (snap.empty) { list.innerHTML = '<p style="text-align:center; color:gray;">No active events found.</p>'; return; }
       snap.forEach(function(doc) {
         var data = doc.data();
         var btn = document.createElement('button');
@@ -226,14 +165,19 @@
     document.getElementById('camera-screen').classList.remove('hidden');
   });
 
-  // 4. START STREAM
   document.getElementById('btn-start-stream').addEventListener('click', async function() {
     var adsTime = parseInt(document.getElementById('ads-time').value) || 0;
     var adsDuration = parseInt(document.getElementById('ads-duration').value) || 0;
 
     try {
+      // HD VIDEO + STEREO AUDIO
+      var constraints = {
+        video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, sampleRate: 44100, channelCount: 2 }
+      };
+      
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: true });
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
       } catch (e) {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: true });
       }
@@ -252,18 +196,14 @@
       document.getElementById('status-indicator').classList.add('live');
       document.getElementById('status-text').textContent = 'LIVE: ' + selectedEventName;
       
-      // Show overlay briefly
       overlay.classList.add('show');
       setTimeout(function() { overlay.classList.remove('show'); }, 3000);
-
       startRecording();
-
     } catch (err) {
       alert("Camera Error: " + err.message);
     }
   });
 
-  // Double tap to toggle controls
   var lastTap = 0;
   document.body.addEventListener('click', function(e) {
     var currentTime = new Date().getTime();
@@ -275,7 +215,6 @@
     lastTap = currentTime;
   });
 
-  // Zoom & Brightness
   document.getElementById('zoom-slider').addEventListener('input', function() {
     if (stream) {
       var track = stream.getVideoTracks()[0];
@@ -298,7 +237,6 @@
     }
   });
 
-  // Stop Broadcast
   document.getElementById('btn-stop').addEventListener('click', async function() {
     if (confirm("Stop broadcasting immediately?")) {
       isStreaming = false;
@@ -309,11 +247,12 @@
     }
   });
 
-  // Recording Loop
   function startRecording() {
     isStreaming = true;
-    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8,opus' });
-    
+    var options = { mimeType: 'video/webm;codecs=vp8,opus', videoBitsPerSecond: 5000000, audioBitsPerSecond: 128000 };
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) { options = {}; }
+
+    mediaRecorder = new MediaRecorder(stream, options);
     mediaRecorder.ondataavailable = async (e) => {
       if (e.data.size > 0 && isStreaming) {
         const formData = new FormData();
@@ -321,17 +260,13 @@
         formData.append('eventId', selectedEventId);
         formData.append('camId', selectedCamId);
         try {
-          await fetch('https://starlane-stream-api.onrender.com/api/upload-chunk', {
-            method: 'POST',
-            body: formData
-          });
-        } catch (err) { console.error("Upload failed", err); }
+          await fetch('https://starlane-stream-api.onrender.com/api/upload-chunk', { method: 'POST', body: formData });
+        } catch (err) { console.error(err); }
       }
     };
-
     mediaRecorder.onstop = () => { if (isStreaming) startRecording(); };
     mediaRecorder.start();
-    setTimeout(() => { if (mediaRecorder.state === 'recording') mediaRecorder.stop(); }, 5000);
+    setTimeout(() => { if (mediaRecorder.state === 'recording') mediaRecorder.stop(); }, 2000);
   }
 
   if (window.lucide) lucide.createIcons();
