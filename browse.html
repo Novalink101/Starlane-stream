@@ -2,165 +2,193 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#ffffff" />
-<meta name="color-scheme" content="light" />
-<title>Browse Events · Starlane Stream</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#030407" />
+<title>Browse Products · FORESTBASE</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
 <style>
   :root { 
-    --red: #E50914; --red-hover: #FF3B4E;
-    --bg: #ffffff; --surface: #f9fafb; 
-    --text: #111827; --text-muted: #6b7280; --border: #e5e7eb;
+    --ink-black: #030407;
+    --silver-glass: #AAB0C4;
+    --bright-lime: #A3FF12;
+    
+    --surface: #FFFFFF;
+    --surface-2: #F1F3F7;
+    --border: #E2E5EB;
+    --text: #111827;
+    --text-muted: #6B7280;
+    
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { 
-    background: var(--bg); color: var(--text); 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-    line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden;
-    position: relative; min-height: 100vh; display: flex; flex-direction: column;
+    background: #FAFBFC; 
+    color: var(--text); 
+    font-family: var(--font-body); 
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
   }
   a { text-decoration: none; color: inherit; }
-  .hidden { display: none !important; }
-  main { flex: 1; }
 
-  /* Starfield */
-  .starfield { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: #ffffff; overflow: hidden; }
-  .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(229,9,20,.15), transparent 100%), radial-gradient(1px 1px at 85% 15%, rgba(0,0,0,.08), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
-  @keyframes drift { 0% { transform: translateY(0) translateX(0); } 100% { transform: translateY(-200px) translateX(-100px); } }
+  /* ── HEADER (Matches Index) ── */
+  .header-wrapper{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+  .nav-top{max-width:1300px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  .nav-brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--ink-black);letter-spacing:-0.03em;}
+  .nav-brand svg{width:28px;height:34px;}
 
-  /* Navbar */
-  .nav { border-bottom: 1px solid var(--border); padding: 16px 0; position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); z-index: 50; }
-  .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
-  .logo { display: flex; align-items: center; gap: 12px; }
-  .logo svg { width: 32px; height: 38px; filter: drop-shadow(0 4px 6px rgba(229,9,20,0.2)); }
-  .logo b { font-weight: 900; font-size: 22px; letter-spacing: -0.5px; color: #111827; }
-  .logo b span { color: var(--red); }
-  .btn-nav { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-muted); transition: 0.2s; }
-  .btn-nav:hover { color: var(--text); }
+  .nav-search{flex:1;max-width:600px;position:relative;display:flex;}
+  .nav-search input{width:100%;padding:12px 20px 12px 48px;border-radius:999px;border:2px solid transparent;background:var(--surface-2);font-size:14px;font-weight:500;transition:all .2s;}
+  .nav-search input:focus{outline:none;border-color:var(--bright-lime);background:#fff;box-shadow:0 0 0 4px rgba(163,255,18,.2);}
+  .nav-search svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--silver-glass);width:20px;height:20px;}
 
-  /* Page Header & Filters */
-  .page-head { max-width: 1200px; margin: 0 auto; padding: 40px 24px 20px; width: 100%; }
-  .page-title { font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; letter-spacing: -1px; margin-bottom: 24px; }
+  .nav-actions{display:flex;gap:12px;align-items:center;}
+  .btn-icon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--surface-2);color:var(--ink-black);transition:0.2s;}
+  .btn-icon:hover{background:var(--border);}
   
-  .filter-bar { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 32px; }
-  .search-box { flex: 1; min-width: 250px; position: relative; }
-  .search-box svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); }
-  .search-box input { width: 100%; padding: 14px 16px 14px 48px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; font-family: inherit; background: var(--surface); transition: 0.2s; }
-  .search-box input:focus { outline: none; border-color: var(--red); background: #fff; box-shadow: 0 0 0 3px rgba(229,9,20,0.1); }
-  
-  .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tab { padding: 12px 20px; border-radius: 50px; font-size: 14px; font-weight: 700; color: var(--text-muted); background: #fff; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; white-space: nowrap; }
-  .tab:hover { border-color: var(--text); color: var(--text); }
-  .tab.active { background: var(--red); color: #fff; border-color: var(--red); box-shadow: 0 4px 12px rgba(229,9,20,0.2); }
+  .cart-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--ink-black);color:#fff;transition:all .2s;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
+  .cart-btn:hover{background:#1F222C;transform:scale(1.05);}
+  .cart-badge{position:absolute;top:-4px;right:-4px;background:var(--bright-lime);color:var(--ink-black);font-size:11px;font-weight:900;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;border:2px solid #fff;}
 
-  /* Event Grid */
-  .events-container { max-width: 1200px; margin: 0 auto; padding: 0 24px 80px; width: 100%; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
-  
-  .card { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; display: flex; flex-direction: column; width: 100%; }
-  .card:hover { transform: translateY(-6px); box-shadow: 0 24px 48px -12px rgba(229,9,20,0.15); border-color: rgba(229,9,20,0.2); }
-  .card-img { width: 100%; aspect-ratio: 16/9; background: var(--surface); object-fit: cover; border-bottom: 1px solid var(--border); }
-  .card-content { padding: 20px; flex: 1; display: flex; flex-direction: column; }
-  
-  .badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; background: #fee2e2; color: var(--red); margin-bottom: 12px; align-self: flex-start; text-transform: uppercase; letter-spacing: 0.5px; }
-  .badge.free { background: #dcfce7; color: #16a34a; }
-  .badge.live { background: #E50914; color: #fff; animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
-  
-  .card-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; line-height: 1.3; color: #111827; }
-  .card-date { font-size: 13px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 6px; margin-bottom: 20px; }
-  .card-footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .price { font-size: 20px; font-weight: 900; color: #111827; white-space: nowrap; }
-  .price span { font-size: 13px; color: var(--text-muted); font-weight: 600; }
-  
-  .btn-watch { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 16px; border-radius: 10px; background: var(--surface); color: var(--text); font-weight: 800; font-size: 13px; border: 1px solid var(--border); transition: all 0.2s; white-space: nowrap; flex: 1; max-width: 150px; }
-  .btn-watch:hover { background: var(--text); color: #fff; border-color: var(--text); }
-  .btn-buy { background: var(--red); color: #fff; border-color: var(--red); box-shadow: 0 4px 12px rgba(229,9,20,0.2); }
-  .btn-buy:hover { background: var(--red-hover); border-color: var(--red-hover); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(229,9,20,0.3); }
+  /* ── LAYOUT ── */
+  .container { max-width: 1300px; margin: 0 auto; padding: 32px 20px; width: 100%; flex: 1; display: grid; grid-template-columns: 240px 1fr; gap: 32px; align-items: start; }
+  @media (max-width: 860px) { .container { grid-template-columns: 1fr; } }
 
-  .empty-state { text-align: center; padding: 80px 20px; color: var(--text-muted); }
-  .empty-state svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; }
-  .empty-state h3 { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+  /* Sidebar Filters */
+  .filters { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; position: sticky; top: 100px; }
+  .filter-group { margin-bottom: 28px; }
+  .filter-group:last-child { margin-bottom: 0; }
+  .filter-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 14px; color: var(--ink-black); }
+  .filter-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .filter-list label { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-muted); cursor: pointer; transition: 0.2s; }
+  .filter-list label:hover { color: var(--ink-black); }
+  .filter-list input[type="checkbox"] { accent-color: var(--bright-lime); width: 16px; height: 16px; cursor: pointer; }
 
-  .spinner { width: 30px; height: 30px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  
-  @media (max-width: 768px) {
-    .page-head { padding: 30px 16px 20px; }
-    .events-container { padding: 0 16px 60px; }
-    .grid { grid-template-columns: 1fr; gap: 20px; }
-    .filter-bar { flex-direction: column; }
-    .btn-watch { max-width: none; width: 100%; }
-    .card-footer { flex-direction: column; align-items: stretch; gap: 12px; }
-    .price { text-align: center; }
-  }
+  /* Main Content */
+  .catalog-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+  .catalog-title { font-family: var(--font-display); font-size: 24px; font-weight: 700; }
+  .catalog-title span { color: var(--text-muted); font-size: 14px; font-weight: 400; margin-left: 8px; }
+  .sort-select { padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border); background: #fff; font-family: var(--font-body); font-size: 14px; font-weight: 500; cursor: pointer; outline: none; }
+  .sort-select:focus { border-color: var(--bright-lime); }
+
+  /* Product Grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+  .card-item { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: transform .3s, box-shadow .3s, border-color .3s; display: flex; flex-direction: column; }
+  .card-item:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); border-color: var(--bright-lime); }
+  .card-img { aspect-ratio: 1/1; background: var(--surface-2) center/cover no-repeat; position: relative; }
+  .card-badge { position: absolute; top: 12px; left: 12px; background: var(--ink-black); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  .card-badge.sale { background: var(--bright-lime); color: var(--ink-black); }
+
+  .card-body { padding: 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .card-title { font-size: 14px; font-weight: 600; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-rating { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-muted); }
+  .card-rating svg { width: 12px; height: 12px; color: #FBBF24; fill: #FBBF24; }
+  .card-foot { margin-top: auto; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .card-foot .price { font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--ink-black); }
+  .card-foot .price del { font-size: 12px; color: #94A3B8; font-weight: 500; margin-right: 4px; }
+
+  .btn-add { background: var(--ink-black); color: #fff; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s; }
+  .btn-add:hover { background: var(--bright-lime); color: var(--ink-black); }
+
+  /* Footer */
+  .footer{background:var(--ink-black);color:var(--silver-glass);padding:40px 20px;text-align:center;font-size:13px;margin-top:auto;}
 </style>
 </head>
 <body>
 
-<div class="starfield"><div class="stars-1"></div></div>
-
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="index.html" class="logo">
-      <svg viewBox="0 0 60 74" aria-hidden="true">
-        <defs>
-          <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#E50914"/><stop offset="100%" stop-color="#FF5566"/>
-          </linearGradient>
-        </defs>
-        <path d="M10 60 Q 22 32 44 20" stroke="url(#starGrad)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.9"/>
-        <path d="M16 62 Q 26 40 46 26" stroke="url(#starGrad)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
-        <circle cx="46" cy="18" r="5" fill="#fff"/>
-        <circle cx="46" cy="18" r="2.5" fill="#E50914"/>
+<!-- HEADER -->
+<header class="header-wrapper">
+  <div class="nav-top">
+    <a href="index.html" class="nav-brand">
+      <svg viewBox="0 0 60 74">
+        <path d="M30 4 L54 46 H6 Z" fill="#030407" />
+        <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
+        <path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" />
+        <path d="M20 56 H40 V60 H20 Z" fill="#030407" />
       </svg>
-      <b>STAR<span>LANE</span></b>
+      FORESTBASE
     </a>
-    <a href="index.html" class="btn-nav"><i data-lucide="home" size="16"></i> Back to Home</a>
-  </div>
-</nav>
+    
+    <div class="nav-search">
+      <i data-lucide="search"></i>
+      <input type="text" placeholder="Search the forest..." />
+    </div>
 
-<main>
-  <div class="page-head">
-    <h1 class="page-title">Browse Events</h1>
-    
-    <div class="filter-bar">
-      <div class="search-box">
-        <i data-lucide="search"></i>
-        <input type="text" id="search-input" placeholder="Search events by title..." />
-      </div>
-      
-      <div class="tabs">
-        <button class="tab active" data-filter="all">All Events</button>
-        <button class="tab" data-filter="live">Live Now</button>
-        <button class="tab" data-filter="upcoming">Upcoming</button>
-        <button class="tab" data-filter="free">Free Only</button>
-      </div>
+    <div class="nav-actions">
+      <a href="login.html" class="btn-icon" id="user-btn">
+        <i data-lucide="user" id="user-icon" style="width:20px; height:20px;"></i>
+      </a>
+      <button class="cart-btn">
+        <i data-lucide="shopping-bag" style="width:20px; height:20px;"></i>
+        <span class="cart-badge">3</span>
+      </button>
     </div>
   </div>
+</header>
 
-  <div class="events-container">
-    <div id="loading" style="text-align:center; padding: 40px;">
-      <div class="spinner"></div>
+<div class="container">
+  
+  <!-- SIDEBAR -->
+  <aside class="filters">
+    <div class="filter-group">
+      <div class="filter-title">Category</div>
+      <ul class="filter-list">
+        <li><label><input type="checkbox" checked> All Products</label></li>
+        <li><label><input type="checkbox"> Electronics</label></li>
+        <li><label><input type="checkbox"> Future Tech</label></li>
+        <li><label><input type="checkbox"> Mystery Drops</label></li>
+        <li><label><input type="checkbox"> Accessories</label></li>
+      </ul>
     </div>
     
-    <div id="event-grid" class="grid hidden"></div>
-    
-    <div id="empty-state" class="empty-state hidden">
-      <i data-lucide="search-x"></i>
-      <h3>No events found</h3>
-      <p>Try adjusting your search or filters.</p>
+    <div class="filter-group">
+      <div class="filter-title">Price Range</div>
+      <ul class="filter-list">
+        <li><label><input type="checkbox"> Under R 1,000</label></li>
+        <li><label><input type="checkbox"> R 1,000 - R 5,000</label></li>
+        <li><label><input type="checkbox"> R 5,000+</label></li>
+      </ul>
     </div>
-  </div>
-</main>
+  </aside>
+
+  <!-- MAIN CATALOG -->
+  <main>
+    <div class="catalog-header">
+      <h1 class="catalog-title">All Products <span id="product-count">(24 items)</span></h1>
+      <select class="sort-select">
+        <option>Sort by: Featured</option>
+        <option>Price: Low to High</option>
+        <option>Price: High to Low</option>
+        <option>Newest Arrivals</option>
+      </select>
+    </div>
+
+    <div class="grid" id="productsGrid">
+      <!-- Products Injected by JS -->
+    </div>
+  </main>
+
+</div>
+
+<footer class="footer">
+  © <span id="year"></span> FORESTBASE. All rights reserved. Deep in the forest there's always a mystery.
+</footer>
 
 <script>
 (function(){
+  // ═══════════════════════════════════════════════
+  // 1. FIREBASE AUTH (Header state)
+  // ═══════════════════════════════════════════════
   var firebaseConfig = {
     apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
     authDomain: "starlane-stream.firebaseapp.com",
@@ -170,138 +198,85 @@
     appId: "1:115625325145:web:b14025df503bbe2b7d7748"
   };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-  var db = firebase.firestore();
-  
-  var allEvents = [];
-  var currentFilter = 'all';
-  var searchQuery = '';
+  var auth = firebase.auth();
 
-  function formatDate(dateStr, timeStr) {
-    if (!dateStr) return 'Date TBA';
-    try {
-      var d = new Date(dateStr + 'T' + (timeStr || '00:00'));
-      return d.toLocaleDateString('en-ZA', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    } catch(e) { return dateStr; }
-  }
-
-  // FIXED: Accurate Live Status Check
-  function computeStatus(event) {
-    // If a camera is locked or streaming, it's definitely live
-    if (event.streamUrl === 'broadcasting' || event.activeCamera) {
-      return 'live';
+  auth.onAuthStateChanged(function(user) {
+    var userBtn = document.getElementById('user-btn');
+    var userIcon = document.getElementById('user-icon');
+    if (user) {
+      userBtn.href = "account.html";
+      userIcon.setAttribute('data-lucide', 'user-check');
+    } else {
+      userBtn.href = "login.html";
+      userIcon.setAttribute('data-lucide', 'user');
     }
-    
-    // Otherwise check if the scheduled time has passed
-    var start = new Date(event.startDate + 'T' + (event.startTime || '00:00')).getTime();
-    if (isNaN(start)) return 'upcoming';
-    
-    return Date.now() >= start ? 'live' : 'upcoming';
-  }
+    if (window.lucide) lucide.createIcons();
+  });
 
-  function renderEvents() {
-    var grid = document.getElementById('event-grid');
-    var empty = document.getElementById('empty-state');
-    
-    var filtered = allEvents.slice();
+  // ═══════════════════════════════════════════════
+  // 2. MOCK PRODUCT DATA (Replace with Firestore)
+  // ═══════════════════════════════════════════════
+  var products = [
+    { name: 'Aether Noise-Canceling Headphones', price: 3499, old: 4200, rating: 4.8, reviews: 124, img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=400&auto=format&fit=crop', badge: 'Mystery Drop' },
+    { name: 'Obsidian Smart Watch Series X', price: 2899, old: null, rating: 4.6, reviews: 89, img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400&auto=format&fit=crop', badge: null },
+    { name: 'Neon Runner Sneakers V2', price: 1599, old: 2100, rating: 4.9, reviews: 312, img: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?q=80&w=400&auto=format&fit=crop', badge: 'Sale' },
+    { name: 'Lumina VR Headset Pro', price: 8500, old: null, rating: 5.0, reviews: 42, img: 'https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?q=80&w=400&auto=format&fit=crop', badge: 'New' },
+    { name: 'Titanium Everyday Carry Kit', price: 899, old: 1100, rating: 4.7, reviews: 205, img: 'https://images.unsplash.com/photo-1581605405669-fcdf81165afa?q=80&w=400&auto=format&fit=crop', badge: null },
+    { name: 'The Forest Mystery Box', price: 499, old: null, rating: 4.9, reviews: 999, img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=400&auto=format&fit=crop', badge: 'Trending' },
+    { name: 'Cyberpunk LED Desk Mat', price: 399, old: 599, rating: 4.4, reviews: 67, img: 'https://images.unsplash.com/photo-1616422285623-13ff0162193c?q=80&w=400&auto=format&fit=crop', badge: 'Sale' },
+    { name: 'Holographic Display Cube', price: 12500, old: null, rating: 4.2, reviews: 15, img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=400&auto=format&fit=crop', badge: null }
+  ];
 
-    // Apply Search
-    if (searchQuery) {
-      var q = searchQuery.toLowerCase();
-      filtered = filtered.filter(function(e) { return (e.title || '').toLowerCase().includes(q); });
-    }
+  function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
-    // Apply Tabs
-    if (currentFilter === 'live') {
-      filtered = filtered.filter(function(e) { return computeStatus(e) === 'live'; });
-    } else if (currentFilter === 'upcoming') {
-      filtered = filtered.filter(function(e) { return computeStatus(e) === 'upcoming'; });
-    } else if (currentFilter === 'free') {
-      filtered = filtered.filter(function(e) { return !e.ppvPrice || e.ppvPrice === 0; });
-    }
-
-    if (filtered.length === 0) {
-      grid.classList.add('hidden');
-      empty.classList.remove('hidden');
-      return;
-    }
-
-    empty.classList.add('hidden');
-    grid.classList.remove('hidden');
+  // ═══════════════════════════════════════════════
+  // 3. RENDER PRODUCTS
+  // ═══════════════════════════════════════════════
+  function renderProducts() {
+    var grid = document.getElementById('productsGrid');
+    document.getElementById('product-count').textContent = `(${products.length} items)`;
     grid.innerHTML = '';
 
-    filtered.forEach(function(event) {
-      var id = event.id;
-      var title = event.title || 'Untitled Event';
-      var dateStr = formatDate(event.startDate, event.startTime);
-      var poster = event.posterUrl || 'https://images.unsplash.com/photo-1540039155732-684736882207?q=80&w=800&auto=format&fit=crop';
-      var status = computeStatus(event);
-      
-      var price = event.ppvPrice || 0;
-      var isPaid = price > 0;
-      
-      var badgeHTML = '';
-      if (status === 'live') {
-        badgeHTML = '<span class="badge live">LIVE NOW</span>';
-      } else if (isPaid) {
-        badgeHTML = '<span class="badge paid">Paid Stream</span>';
-      } else {
-        badgeHTML = '<span class="badge free">Free to watch</span>';
-      }
-
-      var priceHTML = isPaid ? '<div class="price">R' + price + '</div>' : '<div class="price">R0 <span>Free</span></div>';
-      var actionBtn = isPaid 
-        ? '<a href="watch.html?id=' + id + '" class="btn-watch btn-buy">Get Access <i data-lucide="ticket" size="16"></i></a>'
-        : '<a href="watch.html?id=' + id + '" class="btn-watch">Watch Now <i data-lucide="play" size="16"></i></a>';
-
+    products.forEach(function(p) {
       var card = document.createElement('div');
-      card.className = 'card';
+      card.className = 'card-item';
+
+      var badgeHTML = p.badge ? `<span class="card-badge ${p.badge==='Sale'?'sale':''}">${p.badge}</span>` : '';
+      var priceHTML = p.old ? `<del>${money(p.old)}</del> ${money(p.price)}` : money(p.price);
+
       card.innerHTML = `
-        <img src="${poster}" alt="${title}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1540039155732-684736882207?q=80&w=800&auto=format&fit=crop'">
-        <div class="card-content">
+        <div class="card-img" style="background-image:url('${p.img}')">
           ${badgeHTML}
-          <h3 class="card-title">${title}</h3>
-          <div class="card-date"><i data-lucide="clock" size="14"></i> ${dateStr}</div>
-          <div class="card-footer">
-            ${priceHTML}
-            ${actionBtn}
+        </div>
+        <div class="card-body">
+          <div class="card-title">${p.name}</div>
+          <div class="card-rating">
+            <i data-lucide="star"></i> ${p.rating} <span>(${p.reviews})</span>
+          </div>
+          <div class="card-foot">
+            <span class="price">${priceHTML}</span>
+            <button class="btn-add" onclick="alert('Added to cart!')">Add</button>
           </div>
         </div>
       `;
+      
+      // Make the whole card clickable to product.html
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', function(e) {
+        if(e.target.tagName !== 'BUTTON') {
+          window.location.href = 'product.html'; // We will build this next
+        }
+      });
+
       grid.appendChild(card);
     });
     
     if (window.lucide) lucide.createIcons();
   }
 
-  // Load Data
-  db.collection('streams').where('active', '==', true).get()
-    .then(function(snap) {
-      document.getElementById('loading').classList.add('hidden');
-      snap.forEach(function(doc) {
-        var data = doc.data();
-        data.id = doc.id;
-        allEvents.push(data);
-      });
-      renderEvents();
-    });
-
-  // Search Listener
-  document.getElementById('search-input').addEventListener('input', function(e) {
-    searchQuery = e.target.value;
-    renderEvents();
-  });
-
-  // Tab Listeners
-  document.querySelectorAll('.tab').forEach(function(tab) {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-      this.classList.add('active');
-      currentFilter = this.dataset.filter;
-      renderEvents();
-    });
-  });
-
-  if (window.lucide) lucide.createIcons();
+  // Initialize
+  document.getElementById('year').textContent = new Date().getFullYear();
+  renderProducts();
 })();
 </script>
 </body>
