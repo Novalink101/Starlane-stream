@@ -15,17 +15,15 @@ app.use(express.json({ limit: '50mb' }));
 // 2. Firebase Admin Initialization
 try {
   const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-  // Fix newlines in private key (Render sometimes escapes them)
   if (serviceAccount.private_key) {
     serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
   }
-  
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
   console.log("✅ Firebase Admin Initialized");
 } catch (error) {
-  console.error("❌ Firebase Admin Error: Make sure FIREBASE_SERVICE_ACCOUNT is set correctly.", error.message);
+  console.error("❌ Firebase Admin Error:", error.message);
 }
 
 const db = admin.firestore();
@@ -37,24 +35,20 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// 4. Multer Setup (For handling video chunks in memory)
+// 4. Multer Setup
 const upload = multer({ 
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit per chunk
+  limits: { fileSize: 10 * 1024 * 1024 }
 });
 
 // ==========================================
 // API ROUTES
 // ==========================================
 
-// --- [ YOCO PAYMENT: CREATE CHECKOUT ] ---
 app.post('/api/create-yoco-checkout', async (req, res) => {
   try {
     const { checkoutId, userId, userEmail, streamId, price, returnUrl } = req.body;
-
-    if (!checkoutId || !userId || !streamId || !price) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
+    if (!checkoutId || !userId || !streamId || !price) return res.status(400).json({ error: 'Missing fields' });
 
     const yocoRes = await fetch('https://payments.yoco.com/api/checkouts', {
       method: 'POST',
@@ -63,7 +57,7 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
         'Authorization': `Bearer ${process.env.YOCO_SECRET_KEY}`
       },
       body: JSON.stringify({
-        amount: Math.round(price * 100), // Convert Rands to cents
+        amount: Math.round(price * 100),
         currency: 'ZAR',
         cancelUrl: returnUrl || 'https://starlane-stream.onrender.com/index.html',
         successUrl: returnUrl || 'https://starlane-stream.onrender.com/index.html',
@@ -71,138 +65,89 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
         metadata: { checkoutId, userId, streamId, userEmail }
       })
     });
-
     const yocoData = await yocoRes.json();
-
-    if (!yocoRes.ok) {
-      throw new Error(yocoData.message || 'Yoco rejected the request');
-    }
-
+    if (!yocoRes.ok) throw new Error(yocoData.message || 'Yoco rejected');
     res.json({ redirectUrl: yocoData.redirectUrl });
-
   } catch (err) {
-    console.error('[Yoco Checkout Error]', err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// --- [ YOCO PAYMENT: WEBHOOK ] ---
 app.post('/api/yoco-webhook', async (req, res) => {
   try {
     const event = req.body;
-
-    if (event.type !== 'payment.succeeded') {
-      return res.status(200).json({ received: true, ignored: true });
-    }
+    if (event.type !== 'payment.succeeded') return res.status(200).json({ received: true });
 
     const meta = event.payload.metadata || {};
     const { checkoutId, userId, streamId } = meta;
 
-    if (!userId || !streamId) {
-      console.error('[Webhook] Missing metadata in payload');
-      return res.status(400).json({ error: 'Missing metadata' });
+    if (userId && streamId) {
+      if (checkoutId) {
+        await db.collection('purchases').doc(checkoutId).update({
+          status: 'paid',
+          paidAt: admin.firestore.FieldValue.serverTimestamp(),
+          yocoPaymentId: event.payload.id
+        }).catch(e => console.log('Purchase doc not found'));
+      }
+      await db.collection('users').doc(userId).collection('passes').doc(streamId).set({
+        streamId, status: 'approved', purchasedAt: admin.firestore.FieldValue.serverTimestamp(), checkoutId
+      }, { merge: true });
+      console.log(`✅ Pass granted for ${userId}`);
     }
-
-    // 1. Mark purchase as paid
-    if (checkoutId) {
-      await db.collection('purchases').doc(checkoutId).update({
-        status: 'paid',
-        paidAt: admin.firestore.FieldValue.serverTimestamp(),
-        yocoPaymentId: event.payload.id
-      }).catch(e => console.log('Purchase doc not found, skipping update.'));
-    }
-
-    // 2. GRANT THE PASS
-    await db.collection('users').doc(userId).collection('passes').doc(streamId).set({
-      streamId: streamId,
-      status: 'approved',
-      purchasedAt: admin.firestore.FieldValue.serverTimestamp(),
-      checkoutId: checkoutId
-    }, { merge: true });
-
-    console.log(`✅ [Webhook] Pass granted for User ${userId} to Stream ${streamId}`);
     res.status(200).json({ success: true });
-
   } catch (err) {
-    console.error('[Webhook Error]', err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// --- [ NOVALINK TICKET BRIDGE ] ---
 app.post('/api/verify-stream', async (req, res) => {
   try {
-    const { ticketCode, streamId } = req.body;
-    
-    if (!ticketCode) return res.status(400).json({ error: 'No ticket code provided' });
-
-    if (ticketCode.startsWith('NOVA-')) {
-      res.json({ valid: true, message: 'Ticket verified successfully' });
-    } else {
-      res.status(401).json({ valid: false, error: 'Invalid ticket code' });
-    }
+    const { ticketCode } = req.body;
+    if (!ticketCode) return res.status(400).json({ error: 'No ticket code' });
+    if (ticketCode.startsWith('NOVA-')) res.json({ valid: true });
+    else res.status(401).json({ valid: false, error: 'Invalid ticket' });
   } catch (err) {
-    console.error('[Novalink Error]', err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// --- [ CLOUDINARY CAMERA UPLOAD ] ---
 app.post('/api/upload-chunk', upload.single('video'), async (req, res) => {
   try {
     const { eventId, camId } = req.body;
-    
-    if (!req.file) {
-      return res.status(400).json({ error: 'No video chunk provided' });
-    }
+    if (!req.file) return res.status(400).json({ error: 'No video chunk' });
 
     const streamDoc = await db.collection('streams').doc(eventId).get();
-    if (streamDoc.exists) {
-      const streamData = streamDoc.data();
-      if (streamData.killedAt) {
-        return res.status(423).json({ error: 'Stream has been killed by Director' });
-      }
+    if (streamDoc.exists && streamDoc.data().killedAt) {
+      return res.status(423).json({ error: 'Stream killed' });
     }
 
     const uploadStream = cloudinary.uploader.upload_stream(
-      { 
-        resource_type: 'video',
-        folder: `starlane/${eventId}`,
-        public_id: `${camId}_${Date.now()}`
-      },
+      { resource_type: 'video', folder: `starlane/${eventId}`, public_id: `${camId}_${Date.now()}` },
       async (error, result) => {
-        if (error) {
-          console.error('[Cloudinary Upload Error]', error);
-          return res.status(500).json({ error: 'Cloudinary upload failed' });
-        }
-
+        if (error) return res.status(500).json({ error: 'Cloudinary failed' });
         const updatePath = `cams.${camId}`;
         await db.collection('streams').doc(eventId).update({
           [updatePath]: result.secure_url,
           lastChunkAt: admin.firestore.FieldValue.serverTimestamp()
         });
-
         res.json({ success: true, url: result.secure_url });
       }
     );
-
     uploadStream.end(req.file.buffer);
-
   } catch (err) {
-    console.error('[Upload Route Error]', err);
     res.status(500).json({ error: err.message });
   }
 });
 
 // ==========================================
-// STATIC FRONTEND HOSTING
+// STATIC FRONTEND HOSTING (ROOT DIRECTORY)
 // ==========================================
-// This serves your HTML files from the 'public' folder.
-app.use(express.static(path.join(__dirname, 'public')));
+// This tells Express: "Look in the exact same folder as server.js for HTML files"
+app.use(express.static(__dirname));
 
-// Catch-all route: Any URL that isn't an API route or a file in 'public' sends the user to index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// Fallback: If a user goes to the main URL, load index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // ==========================================
