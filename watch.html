@@ -54,13 +54,11 @@
   .cam-offline p { font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; }
 
   /* Ad Overlay */
-  .ad-container { position: absolute; inset: 0; z-index: 45; background: #000; display: flex; flex-direction: column; cursor: pointer; }
+  .ad-container { position: absolute; inset: 0; z-index: 45; background: #000; display: flex; flex-direction: column; }
   .ad-container.hidden { display: none; }
   .ad-media { flex: 1; width: 100%; height: 100%; object-fit: contain; background: #000; }
   .ad-topbar { position: absolute; top: 0; left: 0; right: 0; padding: 16px; display: flex; justify-content: space-between; align-items: flex-start; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); z-index: 46; }
   .ad-label { background: #F59E0B; color: #000; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
-  .ad-bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: rgba(255,255,255,0.2); z-index: 46; }
-  .ad-progress { height: 100%; background: #F59E0B; width: 0%; transition: width 0.1s linear; }
 
   /* Waiting Overlay */
   .fullscreen-overlay { position: absolute; inset: 0; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0a0a0f; }
@@ -98,16 +96,20 @@
 </div>
 
 <div id="screen-player" class="hidden" style="width:100%; display:flex; justify-content:center;">
-  <div class="player-container">
+  <div class="player-container" id="player-container">
     
     <div id="view-single" class="cam-box">
-      <video id="video-single" playsinline autoplay muted preload="auto"></video>
+      <!-- We use two video tags here for the seamless buffer -->
+      <video id="video-single-a" playsinline autoplay muted preload="auto"></video>
+      <video id="video-single-b" playsinline autoplay muted preload="auto" style="display:none;"></video>
+      
       <div class="cam-offline" id="offline-single">
         <svg viewBox="0 0 60 74"><path d="M10 60 Q 22 32 44 20" stroke="#E50914" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="46" cy="18" r="5" fill="#fff"/></svg>
         <p>Camera Offline</p>
       </div>
     </div>
 
+    <!-- 2-WAY AND 4-WAY SPLIT LOGIC REMAINS THE SAME -->
     <div id="view-2way" class="cam-grid grid-2 hidden">
       <div class="cam-box">
         <video id="video-cam1-2" playsinline autoplay muted preload="auto"></video>
@@ -140,13 +142,8 @@
 
     <!-- AD OVERLAY -->
     <div class="ad-container hidden" id="ad-overlay">
-      <div class="ad-topbar">
-        <div class="ad-label">Sponsored</div>
-      </div>
+      <div class="ad-topbar"><div class="ad-label">Sponsored</div></div>
       <div id="ad-media-container" style="flex:1; display:flex; align-items:center; justify-content:center;"></div>
-      <div class="ad-bottom-bar">
-        <div class="ad-progress" id="ad-progress"></div>
-      </div>
     </div>
 
     <!-- WAITING OVERLAY -->
@@ -197,29 +194,18 @@
   }
 
   var streamId = new URLSearchParams(window.location.search).get('id');
-  if (!streamId) {
-    showScreen('paywall');
-    document.getElementById('paywall-msg').textContent = "This link is missing the event ID.";
-    return;
-  }
+  if (!streamId) return showPaywall("Missing ID");
 
   auth.onAuthStateChanged(function(user) {
     db.collection('streams').doc(streamId).get().then(function(doc) {
       if (!doc.exists) return showPaywall("Event not found.");
-      
       var streamData = doc.data();
-      var price = streamData.ppvPrice || 0;
-      
-      if (price === 0) return startPlayer();
-
+      if (streamData.ppvPrice === 0) return startPlayer();
       if (user) {
-        db.collection('users').doc(user.uid).collection('passes').doc(streamId).get().then(function(passDoc) {
-          if (passDoc.exists) startPlayer();
-          else showPaywall(price);
+        db.collection('users').doc(user.uid).collection('passes').doc(streamId).get().then(function(p) {
+          if (p.exists) startPlayer(); else showPaywall(streamData.ppvPrice);
         });
-      } else {
-        showPaywall(price);
-      }
+      } else showPaywall(streamData.ppvPrice);
     });
   });
 
@@ -232,6 +218,44 @@
     if (window.lucide) lucide.createIcons();
   }
 
+  // Seamless Swapper for Camera 1
+  var isPlayingA = true;
+  var lastUrlSingle = null;
+
+  function updateSingleCam(url, camName) {
+    if (!url || url === 'broadcasting') {
+      document.getElementById('offline-single').classList.remove('hidden');
+      document.getElementById('offline-single').querySelector('p').textContent = camName;
+      return;
+    }
+
+    document.getElementById('offline-single').classList.add('hidden');
+
+    if (url !== lastUrlSingle) {
+      lastUrlSingle = url;
+      
+      var activeVid = isPlayingA ? document.getElementById('video-single-a') : document.getElementById('video-single-b');
+      var hiddenVid = isPlayingA ? document.getElementById('video-single-b') : document.getElementById('video-single-a');
+      
+      // Load the new chunk into the hidden video
+      hiddenVid.src = url;
+      hiddenVid.load();
+      
+      hiddenVid.play().then(function() {
+        // Once it's playing, show it and hide the old one
+        hiddenVid.style.display = 'block';
+        activeVid.style.display = 'none';
+        activeVid.pause();
+        
+        // Flip the switch
+        isPlayingA = !isPlayingA;
+        
+        // Ensure we stay at the live edge
+        hiddenVid.currentTime = hiddenVid.duration;
+      }).catch(function(){});
+    }
+  }
+
   function updateCamBox(videoId, offlineId, url, camName) {
     var vid = document.getElementById(videoId);
     var offline = document.getElementById(offlineId);
@@ -240,11 +264,11 @@
       if (vid.src !== url) {
         vid.src = url;
         vid.play().catch(()=>{});
+        vid.currentTime = vid.duration; // Stay live
       }
     } else {
       offline.classList.remove('hidden');
       vid.src = '';
-      // Set the custom cam name
       offline.querySelector('p').textContent = camName;
     }
   }
@@ -252,7 +276,6 @@
   var currentAds = [];
   var adTimeout = null;
 
-  // Load Ads on start
   db.collection('ads').get().then(function(snap) {
     snap.forEach(function(doc) { currentAds.push(doc.data()); });
   });
@@ -260,10 +283,8 @@
   function playNextAd() {
     var adOverlay = document.getElementById('ad-overlay');
     var adMedia = document.getElementById('ad-media-container');
-    var adProgress = document.getElementById('ad-progress');
     
     if (currentAds.length === 0) {
-      // No ads, show waiting screen
       adOverlay.classList.add('hidden');
       document.getElementById('waiting-overlay').classList.remove('hidden');
       return;
@@ -277,7 +298,6 @@
     
     var timeLeft = ad.duration || 30;
     var timeElapsed = 0;
-    adProgress.style.width = '0%';
 
     var mediaEl;
     if (ad.type === 'video') {
@@ -298,8 +318,6 @@
     clearInterval(adTimeout);
     adTimeout = setInterval(function() {
       timeElapsed++;
-      var percent = (timeElapsed / timeLeft) * 100;
-      adProgress.style.width = percent + '%';
       if (timeElapsed >= timeLeft) {
         clearInterval(adTimeout);
         playNextAd();
@@ -310,8 +328,6 @@
   function startPlayer() {
     showScreen('player');
     
-    var lastCamState = null;
-
     setInterval(function() {
       db.collection('streams').doc(streamId).get().then(function(doc) {
         if (!doc.exists) return;
@@ -320,19 +336,11 @@
         var activeCam = data.activeCamera || 'cam1';
         var camNames = data.camNames || { cam1: 'CAM 1', cam2: 'CAM 2', cam3: 'CAM 3', cam4: 'CAM 4' };
 
-        // ── KILL SWITCH LOGIC ──
-        // If the active camera is null OR the stream URL is gone, the director killed it.
-        if (!activeCam || data.streamUrl === null) {
-          if (lastCamState !== 'killed') {
-            lastCamState = 'killed';
-            playNextAd(); // Fire the ads!
-          }
+        if (data.forceAds === true) {
+          playNextAd();
           return;
         }
 
-        lastCamState = activeCam;
-        
-        // Hide ads if we are live again
         document.getElementById('ad-overlay').classList.add('hidden');
         document.getElementById('waiting-overlay').classList.add('hidden');
 
@@ -350,14 +358,14 @@
           updateCamBox('video-cam2-2', 'offline-cam2-2', cams.cam2, camNames.cam2);
         } else {
           views.single.classList.remove('hidden');
-          updateCamBox('video-single', 'offline-single', cams[activeCam], camNames[activeCam] || 'Camera Offline');
+          updateSingleCam(cams[activeCam], camNames[activeCam] || 'Camera Offline');
         }
       });
-    }, 2500);
+    }, 1000); // Poll every 1 second now
   }
 
   if (window.lucide) lucide.createIcons();
 })();
 </script>
 </body>
-        </html>
+</html>
