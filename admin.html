@@ -11,56 +11,52 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
-  :root { --red: #E50914; --bg: #ffffff; --surface: #f9fafb; --text: #111827; --text-muted: #6b7280; --border: #e5e7eb; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
-  a { text-decoration: none; color: inherit; }
-  .hidden { display: none !important; }
-  
-  .nav { border-bottom: 1px solid var(--border); padding: 16px 0; background: #fff; }
-  .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
-  .logo { display: flex; align-items: center; gap: 12px; }
-  .logo svg { width: 28px; height: 34px; }
-  .logo b { font-weight: 900; font-size: 20px; color: #111827; }
-  .logo b span { color: var(--red); }
-  .badge-admin { background: #fee2e2; color: var(--red); font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; margin-left: 10px; }
-  
-  .container { max-width: 1200px; margin: 60px auto; padding: 0 24px; flex: 1; }
-  .page-title { font-size: 32px; font-weight: 900; letter-spacing: -1px; margin-bottom: 12px; }
-  .page-sub { font-size: 16px; color: var(--text-muted); margin-bottom: 40px; }
+  :root { --red:#E50914; --bg:#fff; --surface:#f9fafb; --text:#111827; --text-muted:#6b7280; --border:#e5e7eb; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; min-height:100vh; display:flex; flex-direction:column; }
+  a { text-decoration:none; color:inherit; }
+  .hidden { display:none !important; }
+  .nav { border-bottom:1px solid var(--border); padding:16px 0; background:#fff; }
+  .nav-inner { max-width:1200px; margin:0 auto; padding:0 24px; display:flex; justify-content:space-between; align-items:center; }
+  .logo { display:flex; align-items:center; gap:12px; }
+  .logo svg { width:28px; height:34px; }
+  .logo b { font-weight:900; font-size:20px; color:#111827; }
+  .logo b span { color:var(--red); }
+  .badge-admin { background:#fee2e2; color:var(--red); font-size:10px; font-weight:900; padding:4px 10px; border-radius:20px; text-transform:uppercase; margin-left:10px; }
+  .container { max-width:1200px; margin:40px auto; padding:0 24px; flex:1; }
+  .page-title { font-size:32px; font-weight:900; letter-spacing:-1px; margin-bottom:12px; }
+  .page-sub { font-size:16px; color:var(--text-muted); margin-bottom:32px; }
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
-  
-  .card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; transition: 0.3s; display: flex; flex-direction: column; gap: 16px; }
-  .card:hover { border-color: var(--red); box-shadow: 0 10px 30px -10px rgba(229,9,20,0.15); transform: translateY(-4px); }
-  
-  .card-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .card-icon svg { width: 28px; height: 28px; }
-  
-  .icon-red { background: #fee2e2; color: var(--red); }
-  .icon-green { background: #dcfce7; color: #16a34a; }
-  .icon-blue { background: #e0f2fe; color: #0284c7; }
-  .icon-purple { background: #f3e8ff; color: #9333ea; }
-  .icon-dark { background: #f3f4f6; color: #111827; }
-  
-  .card h3 { font-size: 20px; font-weight: 800; }
-  .card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
-  
-  .card-link { margin-top: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; cursor: pointer; background: none; border: none; padding: 0; text-align: left; }
-  
-  .event-selector { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-  .event-selector select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-size: 14px; font-family: inherit; cursor: pointer; }
-  .event-selector select:focus { outline: none; border-color: var(--red); }
-  
-  .btn-action { width: 100%; padding: 12px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.2s; border: 1px solid; text-align: center; display: block; margin-top: 8px; }
-  .btn-green { background: #f0fdf4; border-color: #16a34a; color: #16a34a; }
-  .btn-green:hover { background: #16a34a; color: #fff; }
-  .btn-purple { background: #eef2ff; border-color: #4f46e5; color: #4f46e5; }
-  .btn-purple:hover { background: #4f46e5; color: #fff; }
-  .btn-dark { background: #f3f4f6; border-color: #111827; color: #111827; }
-  .btn-dark:hover { background: #111827; color: #fff; }
+  /* Active Event Banner */
+  .active-banner { background:linear-gradient(135deg,var(--red),#FF5566); color:#fff; border-radius:20px; padding:32px; display:flex; justify-content:space-between; align-items:center; gap:20px; margin-bottom:32px; flex-wrap:wrap; box-shadow:0 10px 30px -10px rgba(229,9,20,0.4); }
+  .active-banner h3 { font-size:24px; font-weight:900; margin-bottom:8px; }
+  .active-banner p { font-size:14px; opacity:.9; }
+  .banner-actions { display:flex; gap:12px; flex-wrap:wrap; }
+  .btn-launch { background:#fff; color:var(--red); font-size:14px; font-weight:900; padding:14px 24px; border-radius:12px; border:none; cursor:pointer; display:flex; align-items:center; gap:8px; transition:.2s; }
+  .btn-launch:hover { transform:translateY(-2px); box-shadow:0 10px 20px rgba(0,0,0,.15); }
+  .btn-launch.outline { background:transparent; color:#fff; border:2px solid rgba(255,255,255,0.4); }
+  .btn-launch.outline:hover { background:rgba(255,255,255,0.1); }
 
-  @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .container { margin: 30px auto; } }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:24px; }
+  .card { background:#fff; border:1px solid var(--border); border-radius:20px; padding:32px; transition:.3s; display:flex; flex-direction:column; gap:16px; }
+  .card:hover { border-color:var(--red); box-shadow:0 10px 30px -10px rgba(229,9,20,0.15); transform:translateY(-4px); }
+  .card-icon { width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .card-icon svg { width:28px; height:28px; }
+  .icon-red { background:#fee2e2; color:var(--red); }
+  .icon-blue { background:#e0f2fe; color:#0284c7; }
+  .icon-green { background:#dcfce7; color:#16a34a; }
+  .icon-purple { background:#f3e8ff; color:#9333ea; }
+  .icon-dark { background:#f3f4f6; color:#111827; }
+  .card h3 { font-size:20px; font-weight:800; }
+  .card p { font-size:14px; color:var(--text-muted); line-height:1.6; }
+  .card-link { margin-top:auto; display:inline-flex; align-items:center; gap:8px; font-size:14px; font-weight:800; cursor:pointer; background:none; border:none; padding:0; text-align:left; }
+  
+  .event-selector { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+  .event-selector select { width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); font-size:14px; font-family:inherit; cursor:pointer; }
+  .event-selector select:focus { outline:none; border-color:var(--red); }
+  .btn-action { width:100%; padding:12px; border-radius:10px; font-weight:800; font-size:13px; cursor:pointer; transition:.2s; border:1px solid; text-align:center; display:block; margin-top:8px; }
+  
+  @media (max-width:768px) { .grid { grid-template-columns:1fr; } .container { margin:24px auto; } .active-banner { flex-direction:column; text-align:center; } .banner-actions { width:100%; justify-content:center; } }
 </style>
 </head>
 <body>
@@ -78,145 +74,133 @@
 
 <main class="container">
   <h1 class="page-title">Command Center</h1>
-  <p class="page-sub">Manage your streams, ad campaigns, and broadcast directly from your phone.</p>
+  <p class="page-sub">Select your live event below, then launch the tools you need.</p>
+
+  <!-- Event Selection & Quick Launch -->
+  <div class="active-banner" id="quick-launch-banner" style="display:none;">
+    <div>
+      <h3 id="golive-event-name">No event selected</h3>
+      <p>Use the buttons to instantly open the Camera, Director, or Viewer.</p>
+    </div>
+    <div class="banner-actions">
+      <button class="btn-launch" onclick="launchTool('broadcast')">
+        <i data-lucide="camera" size="18"></i> Camera App
+      </button>
+      <button class="btn-launch" onclick="launchTool('director')">
+        <i data-lucide="sliders" size="18"></i> Director
+      </button>
+      <button class="btn-launch outline" onclick="launchTool('watch')">
+        <i data-lucide="play" size="18"></i> Watch Stream
+      </button>
+    </div>
+  </div>
+
+  <div class="active-banner" id="select-banner">
+    <div>
+      <h3>Select an Event to manage</h3>
+      <p>You must pick an event before launching the tools.</p>
+    </div>
+    <select id="active-event-select" style="padding:14px; border-radius:12px; border:none; font-weight:800; font-size:16px; min-width:250px;">
+      <option value="">Loading events...</option>
+    </select>
+  </div>
 
   <div class="grid">
-    
-    <!-- 1. Event Studio -->
+
     <a href="event-studio.html" class="card">
       <div class="card-icon icon-red"><i data-lucide="video"></i></div>
       <h3>Event Studio</h3>
       <p>Create live events, upload posters, set prices, and manage the private PINs.</p>
-      <span class="card-link" style="color: var(--red);">Open Studio <i data-lucide="arrow-right" size="16"></i></span>
+      <span class="card-link" style="color:var(--red);">Open Studio <i data-lucide="arrow-right" size="16"></i></span>
     </a>
 
-    <!-- 2. Ads Manager -->
     <a href="admin-ads.html" class="card">
       <div class="card-icon icon-blue"><i data-lucide="megaphone"></i></div>
       <h3>Ads Manager</h3>
       <p>Upload video and image ads. Track clicks and views across all streams.</p>
-      <span class="card-link" style="color: #0284c7;">Manage Ads <i data-lucide="arrow-right" size="16"></i></span>
+      <span class="card-link" style="color:#0284c7;">Manage Ads <i data-lucide="arrow-right" size="16"></i></span>
     </a>
 
-    <!-- 3. Broadcast (Phone Camera App) -->
-    <div class="card">
-      <div class="card-icon icon-green"><i data-lucide="camera"></i></div>
-      <h3>Camera App</h3>
-      <p>Open this app on all your phones. Log in and assign each phone to a camera slot.</p>
-      
-      <button onclick="copyCameraAppLink()" class="btn-action btn-green" style="margin-top:auto;">
-        📱 Open Camera App
-      </button>
-    </div>
-
-    <!-- 4. Director (Multi-Cam Switcher) -->
-    <div class="card">
-      <div class="card-icon icon-purple"><i data-lucide="sliders"></i></div>
-      <h3>Director Studio</h3>
-      <p>Switch between cameras or split screen on your tablet.</p>
-      
-      <div class="event-selector">
-        <select id="director-event-select">
-          <option value="">Loading events...</option>
-        </select>
-        <button onclick="generateLink('director')" class="btn-action btn-purple">Open Director</button>
-      </div>
-    </div>
-
-    <!-- 5. TV Receiver (For the Venue Screen) -->
     <div class="card">
       <div class="card-icon icon-dark"><i data-lucide="monitor-play"></i></div>
       <h3>TV Receiver</h3>
-      <p>Open this on the laptop connected to the venue's TV or projector.</p>
-      
-      <div class="event-selector">
-        <select id="receiver-event-select">
-          <option value="">Loading events...</option>
-        </select>
-        <button onclick="generateReceiverLink()" class="btn-action btn-dark">📺 Open TV Screen</button>
-      </div>
+      <p>Open on the laptop connected to the venue's TV or projector.</p>
+      <button onclick="launchTool('receiver')" class="btn-action" style="background:#f3f4f6; border-color:#111827; color:#111827;">📺 Open TV Screen</button>
     </div>
 
   </div>
 </main>
 
 <script>
-  var firebaseConfig = {
-    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
-    authDomain: "starlane-stream.firebaseapp.com",
-    projectId: "starlane-stream",
-    storageBucket: "starlane-stream.firebasestorage.app",
-    messagingSenderId: "115625325145",
-    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
-  };
+  var firebaseConfig = { apiKey:"AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk", authDomain:"starlane-stream.firebaseapp.com", projectId:"starlane-stream", storageBucket:"starlane-stream.firebasestorage.app", messagingSenderId:"115625325145", appId:"1:115625325145:web:b14025df503bbe2b7d7748" };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var db = firebase.firestore();
   var auth = firebase.auth();
-  var ADMIN_EMAILS = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
+  var ADMIN_EMAILS = ['nylnathan340@gmail.com','customerservicesnovalink@gmail.com'];
 
   auth.onAuthStateChanged(function(user) {
     if (!user || !ADMIN_EMAILS.includes(user.email.toLowerCase())) {
       window.location.href = 'index.html';
     } else {
-      loadEventsDropdowns();
+      loadEvents();
     }
   });
 
-  function loadEventsDropdowns() {
+  function loadEvents() {
+    var select = document.getElementById('active-event-select');
     db.collection('streams').orderBy('createdAt', 'desc').get().then(function(snap) {
-      var dSelect = document.getElementById('director-event-select');
-      var rSelect = document.getElementById('receiver-event-select');
-      
-      dSelect.innerHTML = '';
-      rSelect.innerHTML = '';
-
+      select.innerHTML = '<option value="">-- Select an Event --</option>';
       if (snap.empty) {
-        dSelect.innerHTML = '<option value="">No events found</option>';
-        rSelect.innerHTML = '<option value="">No events found</option>';
+        select.innerHTML = '<option value="">No events found</option>';
         return;
       }
 
       snap.forEach(function(doc) {
         var data = doc.data();
-        var title = data.title || 'Untitled';
-        var date = data.startDate || 'No date';
-        
-        var optionHTML = `<option value="${doc.id}">${title} (${date})</option>`;
-        dSelect.insertAdjacentHTML('beforeend', optionHTML);
-        rSelect.insertAdjacentHTML('beforeend', optionHTML);
+        var opt = document.createElement('option');
+        opt.value = doc.id;
+        opt.textContent = (data.title || 'Untitled') + ' — ' + (data.startDate || '');
+        select.appendChild(opt);
+      });
+
+      // Restore last used event
+      var lastId = localStorage.getItem('starlane_activeEvent');
+      if (lastId && Array.from(select.options).some(o => o.value === lastId)) {
+        select.value = lastId;
+        updateBanner();
+      }
+
+      select.addEventListener('change', function() {
+        localStorage.setItem('starlane_activeEvent', select.value);
+        updateBanner();
       });
     });
   }
 
-  function copyCameraAppLink() {
-    var url = window.location.origin + '/broadcast.html';
-    navigator.clipboard.writeText(url).then(function() {
-      prompt("Camera App link copied! Open this on all 4 phones and log in:\n\n", url);
-    }).catch(function() {
-      prompt("Copy this link and open it on all 4 phones:\n\n", url);
-    });
+  function updateBanner() {
+    var select = document.getElementById('active-event-select');
+    var eventId = select.value;
+    
+    if (!eventId) {
+      document.getElementById('select-banner').style.display = 'flex';
+      document.getElementById('quick-launch-banner').style.display = 'none';
+    } else {
+      document.getElementById('select-banner').style.display = 'none';
+      document.getElementById('quick-launch-banner').style.display = 'flex';
+      document.getElementById('golive-event-name').textContent = select.options[select.selectedIndex].textContent;
+    }
   }
 
-  function generateLink(type) {
-    var eventId = document.getElementById('director-event-select').value;
-    if (!eventId) return alert("Please select an event first.");
-    var url = window.location.origin + '/director.html?event=' + eventId;
-    navigator.clipboard.writeText(url).then(function() {
-      prompt("Director link copied! Open this on your tablet:\n\n", url);
-    }).catch(function() {
-      prompt("Copy this link and open it on your tablet:\n\n", url);
-    });
-  }
-
-  function generateReceiverLink() {
-    var eventId = document.getElementById('receiver-event-select').value;
-    if (!eventId) return alert("Please select an event first.");
-    var url = window.location.origin + '/receiver.html?id=' + eventId;
-    navigator.clipboard.writeText(url).then(function() {
-      prompt("TV Receiver link copied! Open this on the laptop plugged into your TV:\n\n", url);
-    }).catch(function() {
-      prompt("Copy this link and open it on the laptop:\n\n", url);
-    });
+  function launchTool(tool) {
+    var eventId = localStorage.getItem('starlane_activeEvent');
+    if (!eventId) return alert("Please select an event from the dropdown first.");
+    
+    var base = window.location.origin;
+    
+    if (tool === 'broadcast') window.open(base + '/broadcast.html', '_blank');
+    if (tool === 'director') window.open(base + '/director.html?event=' + eventId, '_blank');
+    if (tool === 'watch') window.open(base + '/watch.html?id=' + eventId, '_blank');
+    if (tool === 'receiver') window.open(base + '/receiver.html?id=' + eventId, '_blank');
   }
 
   if (window.lucide) lucide.createIcons();
