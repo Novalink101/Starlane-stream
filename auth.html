@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#ffffff" />
-<meta name="color-scheme" content="light" /> <!-- FORCES LIGHT MODE -->
+<meta name="color-scheme" content="light" />
 <title>Sign In · Starlane Stream</title>
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -34,7 +34,7 @@
   a { text-decoration: none; color: inherit; }
   .hidden { display: none !important; }
 
-  /* ── MOVING STARFIELD BACKGROUND (WHITE) ── */
+  /* Starfield */
   .starfield { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: #ffffff; overflow: hidden; }
   .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(229,9,20,.15), transparent 100%), radial-gradient(1px 1px at 85% 15%, rgba(0,0,0,.08), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
   .stars-2 { position: absolute; inset: -50%; background-image: radial-gradient(1px 1px at 20% 30%, rgba(229,9,20,.3), transparent 100%), radial-gradient(2px 2px at 60% 10%, rgba(0,0,0,.15), transparent 100%); background-size: 300px 300px; animation: drift 20s linear infinite reverse; }
@@ -60,7 +60,7 @@
   .auth-title { font-size: 24px; font-weight: 900; text-align: center; letter-spacing: -0.5px; margin-bottom: 8px; color: #111827; }
   .auth-sub { font-size: 14px; color: var(--text-muted); text-align: center; margin-bottom: 32px; font-weight: 500; }
 
-  /* Tabs - PURE WHITE */
+  /* Tabs */
   .tabs { display: flex; background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin-bottom: 24px; }
   .tabs button { flex: 1; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 800; color: var(--text-muted); background: transparent; border: none; cursor: pointer; transition: 0.2s; font-family: inherit; }
   .tabs button.active { background: #f3f4f6; color: #111827; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
@@ -68,13 +68,11 @@
   /* Form */
   .form-group { margin-bottom: 16px; }
   .form-group label { display: block; font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-  
-  /* Inputs - PURE WHITE */
   .form-group input { 
     width: 100%; padding: 14px 16px; 
     border: 1px solid var(--border); border-radius: 12px; 
     font-size: 15px; font-family: inherit; 
-    background: #ffffff; color: #111827; /* Pure white background */
+    background: #ffffff; color: #111827; 
     transition: 0.2s; 
   }
   .form-group input:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 3px rgba(229,9,20,0.1); }
@@ -84,7 +82,6 @@
   .btn-primary:hover { background: var(--red-hover); transform: translateY(-2px); }
   .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
   
-  /* Google Button - PURE WHITE */
   .btn-google { background: #ffffff; color: #111827; border: 1px solid var(--border); margin-top: 12px; }
   .btn-google:hover { background: #f9fafb; }
 
@@ -97,7 +94,7 @@
   .forgot-link { display: block; text-align: right; font-size: 13px; font-weight: 700; color: var(--text-muted); margin-top: -8px; margin-bottom: 16px; cursor: pointer; }
   .forgot-link:hover { color: var(--red); }
   
-  /* Toast - WHITE with dark text */
+  /* Toast */
   #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #ffffff; color: #111827; padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 14px; opacity: 0; transition: 0.3s; z-index: 100; pointer-events: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 1px solid var(--border); }
   #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 </style>
@@ -234,10 +231,12 @@
     if (isSignup) {
       auth.createUserWithEmailAndPassword(email, pw)
         .then(function(cred) {
+          // Save the name FIRST, then redirect
           return cred.user.updateProfile({ displayName: name });
         })
         .then(function() {
           showToast('Account created successfully!');
+          // Give Firebase a second to sync the profile before redirecting
           setTimeout(function() { window.location.href = redirectUrl; }, 1000);
         })
         .catch(function(err) {
@@ -288,12 +287,16 @@
     setMode(true);
   }
 
+  // If they are already logged in when they hit this page, send them to the redirect URL immediately
+  var initialAuthCheck = true;
   auth.onAuthStateChanged(function(user) {
-    if (user) {
+    if (initialAuthCheck && user) {
       window.location.href = redirectUrl;
     }
+    initialAuthCheck = false;
   });
 
+  if (window.lucide) lucide.createIcons();
 })();
 </script>
 </body>
