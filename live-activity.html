@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#030407" />
+<title>Live Activity · FORESTBASE</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+  :root { 
+    --ink-black: #030407; --silver-glass: #AAB0C4; --bright-lime: #A3FF12;
+    --surface: #FFFFFF; --surface-2: #F1F3F7; --border: #E2E5EB;
+    --text: #111827; --text-muted: #6B7280; --danger: #DC2626; --success: #059669; --warning: #D97706;
+    --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', sans-serif; --mono: ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #FAFBFC; color: var(--text); font-family: var(--font-body); min-height: 100vh; }
+  
+  .header { background: var(--ink-black); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+  .nav-brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: #fff; }
+  .nav-brand svg { width: 28px; height: 34px; }
+  
+  .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+  
+  .page-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+  .page-title { font-family: var(--font-display); font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .live-dot { width: 10px; height: 10px; background: var(--success); border-radius: 50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+  .log-box { background: #fff; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+  .log-item { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; gap: 16px; align-items: flex-start; animation: slideIn 0.3s ease; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .log-time { font-family: var(--mono); font-size: 13px; color: var(--text-muted); min-width: 90px; }
+  .log-status { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; min-width: 80px; text-align: center; }
+  .status-pending { background: #FEF3C7; color: #D97706; }
+  .status-paid { background: rgba(5,150,105,0.15); color: var(--success); }
+  .status-shipped { background: #DBEAFE; color: #2563EB; }
+  
+  .log-info { flex: 1; }
+  .log-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .log-desc { font-size: 13px; color: var(--text-muted); }
+  .log-price { font-family: var(--mono); font-size: 16px; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html" class="nav-brand">
+    <svg viewBox="0 0 60 74"><path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" /><path d="M30 22 L44 46 H16 Z" fill="#A3FF12" /><path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" /><path d="M20 56 H40 V60 H20 Z" fill="#030407" /></svg>
+    FORESTBASE
+  </a>
+</div>
+
+<div class="container">
+  <div class="page-header">
+    <h1 class="page-title"><span class="live-dot"></span> Live Transaction Log</h1>
+  </div>
+  <div class="log-box" id="log-container">
+    <div style="padding: 40px; text-align: center; color: var(--text-muted);">Waiting for orders...</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var firebaseConfig = {
+    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+    authDomain: "starlane-stream.firebaseapp.com",
+    projectId: "starlane-stream",
+    storageBucket: "starlane-stream.firebasestorage.app",
+    messagingSenderId: "115625325145",
+    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var db = firebase.firestore();
+
+  var container = document.getElementById('log-container');
+
+  // Listen to the database in real-time
+  db.collection('orders').orderBy('createdAt', 'desc').limit(15).onSnapshot(function(snapshot) {
+    if (snapshot.empty) {
+      container.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-muted);">No orders yet. Start the R 2.00 test.</div>';
+      return;
+    }
+
+    container.innerHTML = '';
+    
+    snapshot.forEach(function(doc) {
+      var order = doc.data();
+      var date = order.createdAt ? order.createdAt.toDate().toLocaleTimeString('en-ZA') : 'Just now';
+      var statusClass = 'status-' + (order.status || 'pending');
+      
+      var itemNames = order.items.map(function(i) { return i.name; }).join(', ');
+      
+      var div = document.createElement('div');
+      div.className = 'log-item';
+      div.innerHTML = `
+        <div class="log-time">${date}</div>
+        <div class="log-status ${statusClass}">${order.status || 'pending'}</div>
+        <div class="log-info">
+          <div class="log-title">${order.buyerEmail}</div>
+          <div class="log-desc">Order #${doc.id.slice(0,8).toUpperCase()} · ${itemNames}</div>
+        </div>
+        <div class="log-price">R ${parseFloat(order.total).toFixed(2)}</div>
+      `;
+      container.appendChild(div);
+    });
+  }, function(error) {
+    container.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--danger);">Error connecting to database: ' + error.message + '</div>';
+  });
+})();
+</script>
+</body>
+</html>
