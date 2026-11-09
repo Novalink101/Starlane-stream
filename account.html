@@ -25,6 +25,8 @@
     --border: #E2E5EB;
     --text: #111827;
     --text-muted: #6B7280;
+    --danger: #DC2626;
+    --success: #059669;
     
     --font-display: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', system-ui, sans-serif;
@@ -61,6 +63,7 @@
   .avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--ink-black); color: var(--bright-lime); font-family: var(--font-display); font-size: 32px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
   .user-name { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--ink-black); margin-bottom: 4px; }
   .user-email { font-size: 13px; color: var(--text-muted); }
+  .admin-badge { display: inline-block; background: rgba(220,38,38,0.1); color: var(--danger); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
   
   .nav-menu { padding: 12px; display: flex; flex-direction: column; gap: 4px; }
   .nav-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--text-muted); transition: all 0.2s; cursor: pointer; }
@@ -78,7 +81,15 @@
   .tab-content.active { display: block; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* Orders */
+  /* ADMIN STATS GRID */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 32px; }
+  .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+  .stat-title { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .stat-value { font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--ink-black); }
+  .stat-trend { font-size: 13px; color: var(--success); font-weight: 600; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+  .stat-trend svg { width: 14px; height: 14px; }
+
+  /* Orders List */
   .order-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 16px; }
   .order-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
   .order-id { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--ink-black); }
@@ -145,9 +156,10 @@
         <div class="avatar" id="user-avatar">?</div>
         <div class="user-name" id="user-name">Loading...</div>
         <div class="user-email" id="user-email">...</div>
+        <div class="admin-badge" id="admin-badge" style="display:none;">Administrator</div>
       </div>
       
-      <div class="nav-menu">
+      <div class="nav-menu" id="user-menu">
         <div class="nav-item active" data-target="tab-orders">
           <i data-lucide="package"></i> My Orders
         </div>
@@ -161,10 +173,26 @@
           <i data-lucide="log-out"></i> Sign Out
         </div>
       </div>
+
+      <div class="nav-menu" id="admin-menu" style="display:none;">
+        <div class="nav-item active" data-target="tab-admin-stats">
+          <i data-lucide="bar-chart-2"></i> Financial Overview
+        </div>
+        <div class="nav-item" data-target="tab-admin-orders">
+          <i data-lucide="list"></i> Platform Orders
+        </div>
+        <div class="nav-item" data-target="tab-settings">
+          <i data-lucide="settings"></i> Account Settings
+        </div>
+        <div class="nav-item" id="signout-btn-admin" style="color: #DC2626; margin-top: 12px;">
+          <i data-lucide="log-out"></i> Sign Out
+        </div>
+      </div>
     </aside>
 
     <main class="content-area">
       
+      <!-- USER TABS -->
       <div id="tab-orders" class="tab-content active">
         <h1 class="page-title">Order History</h1>
         <p class="page-sub">Track your recent purchases and view order details.</p>
@@ -182,6 +210,37 @@
         </div>
       </div>
 
+      <!-- ADMIN TABS -->
+      <div id="tab-admin-stats" class="tab-content">
+        <h1 class="page-title">Platform Financials</h1>
+        <p class="page-sub">Live overview of all transactions on FORESTBASE.</p>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-title">Total Revenue</div>
+            <div class="stat-value" id="stat-revenue">R 0.00</div>
+            <div class="stat-trend"><i data-lucide="trending-up"></i> Paid & Shipped Orders</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">Total Orders</div>
+            <div class="stat-value" id="stat-orders">0</div>
+            <div class="stat-trend" style="color: var(--text-muted);">All time</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">Pending Orders</div>
+            <div class="stat-value" id="stat-pending" style="color: #D97706;">0</div>
+            <div class="stat-trend" style="color: #D97706;">Awaiting payment/ship</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-admin-orders" class="tab-content">
+        <h1 class="page-title">All Platform Orders</h1>
+        <p class="page-sub">Master list of every order placed on the platform.</p>
+        <div id="admin-orders-container"></div>
+      </div>
+
+      <!-- SHARED TAB: SETTINGS -->
       <div id="tab-settings" class="tab-content">
         <h1 class="page-title">Account Settings</h1>
         <p class="page-sub">Manage your personal information and security.</p>
@@ -222,34 +281,117 @@
   var auth = firebase.auth();
   var db = firebase.firestore();
 
+  var ADMIN_EMAILS = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
   var currentUser = null;
-  function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function money(v){ return 'R ' + parseFloat(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function refreshIcons(){if(window.lucide)lucide.createIcons();}
 
+  // --- AUTH & ROLE GUARD ---
   auth.onAuthStateChanged(function(user) {
-    if (user) {
-      currentUser = user;
-      var name = user.displayName || user.email.split('@')[0];
-      var email = user.email || '';
-      
-      document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
-      document.getElementById('user-name').textContent = name;
-      document.getElementById('user-email').textContent = email;
-      document.getElementById('settings-name').value = name;
-      document.getElementById('settings-email').value = email;
-
-      var loader = document.getElementById('loader');
-      loader.style.opacity = '0';
-      setTimeout(function() { loader.style.display = 'none'; }, 400);
-
-      loadOrders(user.uid);
-    } else {
+    if (!user) {
       window.location.href = 'login.html?redirect=account.html';
+      return;
     }
+
+    currentUser = user;
+    var isAdmin = ADMIN_EMAILS.includes(user.email);
+    var name = user.displayName || user.email.split('@')[0];
+    
+    // Set profile UI
+    document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('user-name').textContent = name;
+    document.getElementById('user-email').textContent = user.email;
+    document.getElementById('settings-name').value = name;
+    document.getElementById('settings-email').value = user.email;
+
+    // Configure Menu based on Role
+    if (isAdmin) {
+      document.getElementById('admin-badge').style.display = 'inline-block';
+      document.getElementById('user-menu').style.display = 'none';
+      document.getElementById('admin-menu').style.display = 'flex';
+      
+      // Load Admin Data
+      loadAdminStats();
+      loadAdminOrders();
+    } else {
+      document.getElementById('admin-badge').style.display = 'none';
+      document.getElementById('user-menu').style.display = 'flex';
+      document.getElementById('admin-menu').style.display = 'none';
+      
+      // Load User Data
+      loadUserOrders(user.uid);
+    }
+
+    // Hide Loader
+    var loader = document.getElementById('loader');
+    loader.style.opacity = '0';
+    setTimeout(function() { loader.style.display = 'none'; }, 400);
   });
 
-  function loadOrders(userId) {
-    var container = document.getElementById('orders-container');
+  // --- ADMIN DATA LOGIC ---
+  function loadAdminStats() {
+    db.collection('orders').get().then(function(snapshot) {
+      var totalRevenue = 0;
+      var pendingCount = 0;
+      
+      snapshot.forEach(function(doc) {
+        var order = doc.data();
+        if (order.status === 'paid' || order.status === 'shipped') {
+          totalRevenue += parseFloat(order.total || 0);
+        }
+        if (order.status === 'pending') {
+          pendingCount++;
+        }
+      });
 
+      document.getElementById('stat-revenue').textContent = money(totalRevenue);
+      document.getElementById('stat-orders').textContent = snapshot.size;
+      document.getElementById('stat-pending').textContent = pendingCount;
+    });
+  }
+
+  function loadAdminOrders() {
+    var container = document.getElementById('admin-orders-container');
+    db.collection('orders').orderBy('createdAt', 'desc').limit(20).get().then(function(snapshot) {
+      if(snapshot.empty) {
+        container.innerHTML = '<div class="empty-state"><h3>No orders yet</h3><p>The platform has not received any orders.</p></div>';
+        return;
+      }
+      
+      container.innerHTML = '';
+      snapshot.forEach(function(doc) {
+        var order = doc.data();
+        var dateStr = order.createdAt ? order.createdAt.toDate().toLocaleDateString('en-ZA') : 'Just now';
+        var statusClass = order.status === 'paid' ? 'status-paid' : (order.status === 'shipped' ? 'status-shipped' : 'status-pending');
+        
+        container.innerHTML += `
+          <div class="order-card">
+            <div class="order-header">
+              <div>
+                <div class="order-id">Order #${doc.id.slice(0, 8).toUpperCase()}</div>
+                <div class="order-date">${order.buyerEmail} · ${dateStr}</div>
+              </div>
+              <div class="order-status ${statusClass}">${order.status || 'pending'}</div>
+            </div>
+            <div class="order-items-list">
+              <div class="order-item">
+                <div class="order-details">
+                  <h4>Total Transaction</h4>
+                  <p>${order.items.length} items purchased</p>
+                </div>
+                <div class="order-total">${money(order.total)}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      refreshIcons();
+    });
+  }
+
+  // --- USER DATA LOGIC ---
+  function loadUserOrders(userId) {
+    var container = document.getElementById('orders-container');
     db.collection('orders')
       .where('buyerId', '==', userId)
       .orderBy('createdAt', 'desc')
@@ -260,101 +402,77 @@
             <div class="empty-state">
               <i data-lucide="package"></i>
               <h3>No orders yet</h3>
-              <p>You haven't uncovered any mysteries yet. When you make a purchase, it will appear here.</p>
+              <p>You haven't uncovered any mysteries yet.</p>
               <a href="browse.html" class="btn btn-primary" style="background:var(--bright-lime); color:var(--ink-black);">Start Shopping</a>
             </div>
           `;
-          if (window.lucide) lucide.createIcons();
+          refreshIcons();
           return;
         }
 
         container.innerHTML = '';
         snapshot.forEach(function(doc) {
           var order = doc.data();
-          var dateStr = "Just now";
-          if (order.createdAt) {
-            var d = order.createdAt.toDate();
-            dateStr = d.toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
-          }
-
-          var statusClass = 'status-pending';
-          if (order.status === 'paid') statusClass = 'status-paid';
-          if (order.status === 'shipped') statusClass = 'status-shipped';
+          var dateStr = order.createdAt ? order.createdAt.toDate().toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Just now';
+          var statusClass = order.status === 'paid' ? 'status-paid' : (order.status === 'shipped' ? 'status-shipped' : 'status-pending');
 
           var itemsHTML = '';
-          if (order.items && Array.isArray(order.items)) {
-            order.items.forEach(function(item) {
-              itemsHTML += `
-                <div class="order-item">
-                  <div class="order-img" style="background-image:url('${item.imageUrl}')"></div>
-                  <div class="order-details">
-                    <h4>${item.name}</h4>
-                    <p>Qty: ${item.quantity}</p>
-                  </div>
-                  <div class="order-total">${money(item.price * item.quantity)}</div>
+          order.items.forEach(function(item) {
+            itemsHTML += `
+              <div class="order-item">
+                <div class="order-img" style="background-image:url('${item.imageUrl}')"></div>
+                <div class="order-details">
+                  <h4>${item.name}</h4>
+                  <p>Qty: ${item.quantity}</p>
                 </div>
-              `;
-            });
-          }
-
-          var card = document.createElement('div');
-          card.className = 'order-card';
-          card.innerHTML = `
-            <div class="order-header">
-              <div>
-                <div class="order-id">Order #${doc.id.slice(0, 8).toUpperCase()}</div>
-                <div class="order-date">${dateStr}</div>
+                <div class="order-total">${money(item.price * item.quantity)}</div>
               </div>
-              <div class="order-status ${statusClass}">${order.status || 'Pending'}</div>
-            </div>
-            <div class="order-items-list">
-              ${itemsHTML}
+            `;
+          });
+
+          container.innerHTML += `
+            <div class="order-card">
+              <div class="order-header">
+                <div>
+                  <div class="order-id">Order #${doc.id.slice(0, 8).toUpperCase()}</div>
+                  <div class="order-date">${dateStr}</div>
+                </div>
+                <div class="order-status ${statusClass}">${order.status || 'pending'}</div>
+              </div>
+              <div class="order-items-list">${itemsHTML}</div>
             </div>
           `;
-          container.appendChild(card);
         });
-        
-        if (window.lucide) lucide.createIcons();
-      })
-      .catch(function(error) {
-        console.error("Error loading orders: ", error);
-        
-        // Check if the error is a missing index error
-        if (error.code === 'failed-precondition') {
-          container.innerHTML = `
-            <div class="empty-state">
-              <i data-lucide="database"></i>
-              <h3>Database Indexing</h3>
-              <p>Your order history is being indexed. Please wait a moment and refresh the page.</p>
-            </div>
-          `;
-        } else {
-          container.innerHTML = `<p style="color:red; padding: 20px; text-align: center;">Failed to load orders. Please try again later.</p>`;
-        }
-        if (window.lucide) lucide.createIcons();
+        refreshIcons();
       });
   }
 
+  // --- UI LOGIC (TABS & SIGN OUT) ---
   var navItems = document.querySelectorAll('.nav-item[data-target]');
   var tabContents = document.querySelectorAll('.tab-content');
 
   navItems.forEach(function(item) {
     item.addEventListener('click', function() {
-      navItems.forEach(function(nav) { nav.classList.remove('active'); });
-      tabContents.forEach(function(content) { content.classList.remove('active'); });
+      // Remove active from ALL nav items (both user and admin menus)
+      document.querySelectorAll('.nav-item[data-target]').forEach(nav => nav.classList.remove('active'));
+      tabContents.forEach(content => content.classList.remove('active'));
+      
       this.classList.add('active');
       document.getElementById(this.getAttribute('data-target')).classList.add('active');
     });
   });
 
-  document.getElementById('signout-btn').addEventListener('click', function() {
+  function handleSignOut() {
     if(confirm('Are you sure you want to sign out?')) {
       auth.signOut().then(function() { window.location.href = 'index.html'; });
     }
-  });
+  }
+
+  document.getElementById('signout-btn').addEventListener('click', handleSignOut);
+  document.getElementById('signout-btn-admin').addEventListener('click', handleSignOut);
 
   if (window.lucide) lucide.createIcons();
 })();
 </script>
 </body>
-</html>
+              </html>
