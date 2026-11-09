@@ -3,17 +3,36 @@ const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 const path = require('path');
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
 
 const app = express();
+
+// 1. Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
+// 2. Configure Multer (For secure image uploads)
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
+
+// 3. Configure Cloudinary (Using Render Environment Variables)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// 4. Firebase Admin Initialization
 let db = null;
 try {
   const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
   if (serviceAccount.private_key) {
     serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
   }
+  
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
@@ -22,6 +41,36 @@ try {
 } catch (error) {
   console.error("❌ Firebase Admin Error:", error.message);
 }
+
+// ==========================================
+// API ROUTES
+// ==========================================
+
+// --- [ CLOUDINARY IMAGE UPLOAD ] ---
+app.post('/api/upload-image', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' });
+    }
+
+    // Convert file buffer to base64 for Cloudinary
+    const b64 = Buffer.from(req.file.buffer).toString('base64');
+    const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: 'forestbase_products',
+      resource_type: 'auto'
+    });
+
+    // Return the secure URL to the frontend
+    res.json({ success: true, url: result.secure_url });
+
+  } catch (error) {
+    console.error('[Cloudinary Upload Error]', error);
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
 
 // --- [ YOCO PAYMENT: CREATE CHECKOUT ] ---
 app.post('/api/create-yoco-checkout', async (req, res) => {
@@ -83,11 +132,10 @@ app.post('/api/yoco-webhook', async (req, res) => {
 });
 
 // ==========================================
-// STATIC FRONTEND HOSTING (CRUCIAL FOR LOGIN.HTML)
+// STATIC FRONTEND HOSTING
 // ==========================================
 app.use(express.static(__dirname, { maxAge: '1d', etag: true }));
 
-// Fallback for SPA (Only triggers if the file doesn't exist)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
