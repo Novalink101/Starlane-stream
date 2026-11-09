@@ -14,9 +14,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-<!-- 🔥 RAW LEAFLET (No API Key, completely free) -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- 🔥 GOOGLE MAPS API (RESTORED) -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDI_C25zBDgfadfvIuAoaVh-VZ7VAzzhX4&libraries=places"></script>
 
 <style>
   :root { 
@@ -50,13 +49,9 @@
   .form-group input { width: 100%; padding: 16px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; background: var(--surface-2); transition: 0.2s; }
   .form-group input:focus { outline: none; border-color: var(--bright-lime); background: #fff; box-shadow: 0 0 0 4px rgba(163,255,18,.15); }
   
-  /* Map Layout & Search */
-  .map-search-wrap { display: flex; gap: 8px; margin-bottom: 16px; }
-  .btn-locate { background: var(--ink-black); color: var(--bright-lime); border: none; padding: 0 16px; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; white-space: nowrap; }
-  .btn-locate:hover { background: #1F222C; }
-  .btn-locate svg { width: 18px; height: 18px; }
-  #delivery-map { height: 300px; border-radius: 12px; border: 1px solid var(--border); z-index: 1; }
-  .map-note { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-top: 16px; }
+  #delivery-map { height: 300px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 16px; z-index: 1; }
+  .map-note { font-size: 13px; color: var(--text-muted); display: flex; align-items: flex-start; gap: 6px; background: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px dashed var(--border); }
+  .map-note svg { flex-shrink: 0; margin-top: 2px; }
   
   .payment-option { border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px; background: rgba(163,255,18,0.03); border-color: var(--bright-lime); box-shadow: 0 0 0 2px var(--bright-lime); }
   .payment-option input { accent-color: var(--ink-black); width: 20px; height: 20px; }
@@ -137,14 +132,9 @@
         <h2 class="section-title"><i data-lucide="map-pin"></i> Delivery Location</h2>
         
         <div class="form-group">
-          <label>Search Address</label>
-          <div class="map-search-wrap">
-            <input type="text" id="search-input" placeholder="Type your address..." style="padding: 16px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; background: var(--surface-2); flex: 1;" />
-            <button type="button" class="btn-locate" onclick="triggerLiveLocation()">
-              <i data-lucide="crosshair"></i> Live GPS
-            </button>
-          </div>
-          <input type="hidden" id="checkout-address" />
+          <label>Full Delivery Address</label>
+          <!-- 🔥 This is now a standard text input. They can type whatever they want. -->
+          <input type="text" id="checkout-address" placeholder="Type your full address (e.g. 123 Main St, City, Zip)" required />
         </div>
 
         <div id="delivery-map"></div>
@@ -152,7 +142,10 @@
         <input type="hidden" id="checkout-lat" />
         <input type="hidden" id="checkout-lng" />
 
-        <p class="map-note"><i data-lucide="info" style="width:16px; height:16px;"></i> Drag the pin to your exact house. The address will update automatically.</p>
+        <p class="map-note">
+          <i data-lucide="info" style="width:16px; height:16px;"></i> 
+          <span><strong>Important:</strong> Drag the pin to your exact house. If the map is not working, you can still type your full address above and proceed to payment.</span>
+        </p>
       </div>
 
       <div class="checkout-section">
@@ -184,9 +177,9 @@
   var firebaseConfig = { apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk", authDomain: "starlane-stream.firebaseapp.com", projectId: "starlane-stream", storageBucket: "starlane-stream.firebasestorage.app", messagingSenderId: "115625325145", appId: "1:115625325145:web:b14025df503bbe2b7d7748" };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var auth = firebase.auth(); var db = firebase.firestore();
-  var currentUser = null; var globalTotal = 0; var hasSelectedLocation = false; var calculatedEDD = null;
+  var currentUser = null; var globalTotal = 0; var calculatedEDD = null;
 
-  var map, marker;
+  var map, marker, geocoder, autocomplete;
 
   function money(v){ return 'R ' + parseFloat(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function refreshIcons(){if(window.lucide)lucide.createIcons();}
@@ -212,100 +205,63 @@
     }
   });
 
-  // 🔥 REVERSE GEOCODE (Convert Lat/Lng to Address)
-  function reverseGeocode(lat, lng) {
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        if (data && data.display_name) {
-          document.getElementById('search-input').value = data.display_name;
-          document.getElementById('checkout-address').value = data.display_name;
-        }
-      })
-      .catch(function(err) { console.log('Geocoding error', err); });
-  }
-
-  // 🔥 FORWARD GEOCODE (Convert Address to Lat/Lng)
-  window.searchAddress = function() {
-    var query = document.getElementById('search-input').value;
-    if (!query) return;
-
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        if (data && data.length > 0) {
-          var lat = parseFloat(data[0].lat);
-          var lng = parseFloat(data[0].lon);
-          map.setView([lat, lng], 16);
-          marker.setLatLng([lat, lng]);
-          
-          document.getElementById('checkout-lat').value = lat;
-          document.getElementById('checkout-lng').value = lng;
-          document.getElementById('checkout-address').value = data[0].display_name;
-          hasSelectedLocation = true;
-          showToast('Address found! Drag pin to exact spot.', 'check-circle');
-        } else {
-          showToast('Address not found. Try a broader search.', 'alert-circle');
-        }
-      });
-  };
-
-  // Enter key to search
-  document.getElementById('search-input').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') { e.preventDefault(); searchAddress(); }
-  });
-
-  // 🔥 LIVE GPS LOCATION
-  window.triggerLiveLocation = function() {
-    if (!navigator.geolocation) {
-      showToast('Geolocation is not supported by your browser.', 'alert-circle');
-      return;
-    }
-    
-    showToast('Locating you...', 'map-pin');
-    
-    navigator.geolocation.getCurrentPosition(function(position) {
-      var lat = position.coords.latitude;
-      var lng = position.coords.longitude;
-      
-      map.setView([lat, lng], 16);
-      marker.setLatLng([lat, lng]);
-      
-      document.getElementById('checkout-lat').value = lat;
-      document.getElementById('checkout-lng').value = lng;
-      hasSelectedLocation = true;
-      
-      reverseGeocode(lat, lng);
-      showToast('Location found!', 'check-circle');
-    }, function(error) {
-      showToast('Could not get location. Please check permissions.', 'alert-circle');
-    }, { enableHighAccuracy: true });
-  };
-
-  // 🔥 INITIALIZE MAP (Leaflet)
+  // 🔥 INITIALIZE GOOGLE MAPS (With Free-Text Fallback)
   function initMap() {
-    var defaultCenter = [-26.2041, 28.0473]; // Johannesburg
+    try {
+      var defaultCenter = { lat: -26.2041, lng: 28.0473 }; // Johannesburg
 
-    map = L.map('delivery-map').setView(defaultCenter, 12);
-    
-    // Load OpenStreetMap tiles (Free, no API key)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap'
-    }).addTo(map);
+      map = new google.maps.Map(document.getElementById('delivery-map'), {
+        center: defaultCenter,
+        zoom: 12,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        gestureHandling: 'greedy'
+      });
 
-    marker = L.marker(defaultCenter, { draggable: true }).addTo(map);
+      geocoder = new google.maps.Geocoder();
 
-    marker.on('dragend', function() {
-      var position = marker.getLatLng();
-      document.getElementById('checkout-lat').value = position.lat;
-      document.getElementById('checkout-lng').value = position.lng;
-      hasSelectedLocation = true;
-      reverseGeocode(position.lat, position.lng);
-    });
+      marker = new google.maps.Marker({
+        map: map,
+        position: defaultCenter,
+        draggable: true,
+        title: 'Drag to your exact location'
+      });
 
-    // Trigger live location automatically on load
-    triggerLiveLocation();
+      marker.addListener('dragend', function() {
+        var position = marker.getPosition();
+        document.getElementById('checkout-lat').value = position.lat();
+        document.getElementById('checkout-lng').value = position.lng();
+
+        geocoder.geocode({ location: position }, function(results, status) {
+          if (status === 'OK' && results[0]) {
+            document.getElementById('checkout-address').value = results[0].formatted_address;
+          }
+        });
+      });
+
+      var input = document.getElementById('checkout-address');
+      autocomplete = new google.maps.places.Autocomplete(input);
+      autocomplete.bindTo('bounds', map);
+
+      autocomplete.addListener('place_changed', function() {
+        var place = autocomplete.getPlace();
+        if (!place.geometry || !place.geometry.location) {
+          // If they just typed and hit enter without selecting, do nothing. Let them use the text.
+          return; 
+        }
+
+        map.setCenter(place.geometry.location);
+        map.setZoom(16);
+        marker.setPosition(place.geometry.location);
+
+        document.getElementById('checkout-lat').value = place.geometry.location.lat();
+        document.getElementById('checkout-lng').value = place.geometry.location.lng();
+        document.getElementById('checkout-address').value = place.formatted_address;
+      });
+    } catch (error) {
+      console.error("Google Maps failed to load", error);
+    }
   }
 
   function calculateEDD(cart) {
@@ -397,11 +353,21 @@
 
   window.processPayment = function() {
     if (!currentUser) { showToast('Please sign in.', 'alert-circle'); window.location.href = 'login.html?redirect=checkout.html'; return; }
-    var address = document.getElementById('checkout-address').value; var lat = document.getElementById('checkout-lat').value; var lng = document.getElementById('checkout-lng').value; var phone = document.getElementById('checkout-phone').value;
     
-    if (!hasSelectedLocation || !lat || !lng) { showToast('Please search your address or drop a pin on the map.', 'alert-circle'); return; }
-    if (!phone) { showToast('Please enter your phone number.', 'alert-circle'); return; }
-    if (!address) { showToast('Please wait for the address to load, or drag the pin.', 'alert-circle'); return; }
+    var address = document.getElementById('checkout-address').value;
+    var lat = document.getElementById('checkout-lat').value || null;
+    var lng = document.getElementById('checkout-lng').value || null;
+    var phone = document.getElementById('checkout-phone').value;
+    
+    // 🔥 FALLBACK: Only check if the text address is filled in. We don't care if lat/lng are null.
+    if (!address || address.trim().length < 5) { 
+      showToast('Please type your full delivery address.', 'alert-circle'); 
+      return; 
+    }
+    if (!phone) { 
+      showToast('Please enter your phone number.', 'alert-circle'); 
+      return; 
+    }
     
     var btn = document.getElementById('pay-btn'); btn.disabled = true; 
     btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;border-color:rgba(3,4,7,0.3);border-top-color:#030407;margin-right:8px;"></div> Processing...';
