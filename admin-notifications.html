@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#030407" />
-<title>Send Notifications · FORESTBASE Admin</title>
+<title>Broadcast Notifications · FORESTBASE Admin</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,8 +18,8 @@
   :root { 
     --ink-black: #030407; --silver-glass: #AAB0C4; --bright-lime: #A3FF12;
     --surface: #FFFFFF; --surface-2: #F1F3F7; --border: #E2E5EB;
-    --text: #111827; --text-muted: #6B7280;
-    --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', sans-serif;
+    --text: #111827; --text-muted: #6B7280; --danger: #DC2626;
+    --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', sans-serif; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #FAFBFC; color: var(--text); font-family: var(--font-body); display: flex; min-height: 100vh; }
@@ -29,68 +29,115 @@
   .spinner { width: 40px; height: 40px; border: 3px solid rgba(163,255,18,0.2); border-top-color: var(--bright-lime); border-radius: 50%; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .sidebar { width: 260px; background: var(--ink-black); padding: 24px; position: fixed; height: 100vh; }
+  .dashboard-wrapper { display: flex; width: 100%; }
+  .sidebar { width: 260px; background: var(--ink-black); color: #fff; padding: 24px; display: flex; flex-direction: column; position: fixed; height: 100vh; border-right: 1px solid rgba(255,255,255,0.1); }
   .nav-brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: #fff; margin-bottom: 40px; }
+  .nav-brand svg { width: 28px; height: 34px; }
   .nav-brand span { color: var(--bright-lime); }
-  .nav-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--silver-glass); transition: 0.2s; margin-bottom: 8px; }
-  .nav-item:hover, .nav-item.active { background: var(--bright-lime); color: var(--ink-black); }
-
-  .main-content { margin-left: 260px; flex: 1; padding: 40px; }
-  .panel { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 32px; max-width: 600px; margin: 0 auto; }
-  .panel-title { font-family: var(--font-display); font-size: 24px; font-weight: 700; margin-bottom: 8px; }
-  .panel-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
   
-  .form-group { margin-bottom: 20px; }
-  .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
-  .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); font-family: var(--font-body); }
-  .form-group textarea { min-height: 120px; resize: vertical; }
-  .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--bright-lime); background: #fff; }
+  .nav-menu { display: flex; flex-direction: column; gap: 8px; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--silver-glass); transition: 0.2s; cursor: pointer; }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+  .nav-item.active { background: var(--bright-lime); color: var(--ink-black); }
+  .nav-item svg { width: 18px; height: 18px; }
+  .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 24px; }
 
-  .btn-submit { background: var(--bright-lime); color: var(--ink-black); border: none; padding: 16px 32px; border-radius: 10px; font-family: var(--font-display); font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; transition: 0.2s; }
-  .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(163,255,18,0.3); }
+  .main-content { margin-left: 260px; flex: 1; padding: 40px; width: calc(100% - 260px); display: flex; justify-content: center; align-items: flex-start; }
+  @media (max-width: 900px) { 
+    .dashboard-wrapper { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: relative; padding: 16px; flex-direction: row; align-items: center; justify-content: space-between; }
+    .nav-brand { margin-bottom: 0; }
+    .nav-menu { flex-direction: row; overflow-x: auto; }
+    .nav-item { white-space: nowrap; padding: 10px 14px; }
+    .sidebar-bottom { display: none; }
+    .main-content { margin-left: 0; width: 100%; padding: 20px; }
+  }
+
+  .panel { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 40px; max-width: 650px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+  .panel-header { margin-bottom: 32px; border-bottom: 1px solid var(--border); padding-bottom: 24px; }
+  .panel-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; display: flex; align-items: center; gap: 12px; color: var(--ink-black); }
+  .panel-title svg { color: var(--bright-lime); width: 28px; height: 28px; }
+  .panel-sub { color: var(--text-muted); font-size: 15px; margin-top: 8px; }
+
+  .form-group { margin-bottom: 24px; }
+  .form-group label { display: block; font-size: 14px; font-weight: 600; color: var(--ink-black); margin-bottom: 10px; }
+  .form-group input, .form-group textarea, .form-group select { 
+    width: 100%; padding: 16px; border: 1px solid var(--border); border-radius: 10px; 
+    background: var(--surface-2); font-family: var(--font-body); font-size: 15px; transition: 0.2s;
+  }
+  .form-group textarea { min-height: 140px; resize: vertical; }
+  .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--bright-lime); background: #fff; box-shadow: 0 0 0 3px rgba(163,255,18,0.15); }
+
+  .btn-submit { 
+    width: 100%; background: var(--bright-lime); color: var(--ink-black); border: none; 
+    padding: 18px; border-radius: 12px; font-family: var(--font-display); font-size: 18px; font-weight: 700; 
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s;
+    box-shadow: 0 8px 24px rgba(163,255,18,0.3);
+  }
+  .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(163,255,18,0.5); }
+  .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
 </style>
 </head>
 <body>
 
-<div id="loader"><div class="spinner"></div> Authenticating...</div>
+<div id="loader">
+  <div class="spinner"></div>
+  Authenticating Admin...
+</div>
 
-<aside class="sidebar" id="sidebar" style="display: none;">
-  <a href="index.html" class="nav-brand">FOREST<span>BASE</span></a>
-  <a href="admin.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Command Center</a>
-  <div class="nav-item active"><i data-lucide="bell"></i> Send Notifications</div>
-</aside>
+<div class="dashboard-wrapper" id="dashboard" style="display: none;">
+  
+  <aside class="sidebar">
+    <a href="index.html" class="nav-brand">
+      <svg viewBox="0 0 60 74"><path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" /><path d="M30 22 L44 46 H16 Z" fill="#A3FF12" /><path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" /><path d="M20 56 H40 V60 H20 Z" fill="#030407" /></svg>
+      FOREST<span>BASE</span>
+    </a>
 
-<main class="main-content" id="main" style="display: none;">
-  <div class="panel">
-    <h2 class="panel-title">Broadcast Notification</h2>
-    <p class="panel-sub">Send a real-time message to all users currently on the platform.</p>
+    <div class="nav-menu">
+      <a href="admin.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Command Center</a>
+      <div class="nav-item active"><i data-lucide="bell"></i> Broadcast Notifications</div>
+      <a href="index.html" class="nav-item"><i data-lucide="store"></i> View Storefront</a>
+    </div>
 
-    <form id="notif-form">
-      <div class="form-group">
-        <label>Notification Type</label>
-        <select id="notif-type">
-          <option value="info">General Info</option>
-          <option value="success">Success / Update</option>
-          <option value="warning">Warning / Alert</option>
-        </select>
+    <div class="sidebar-bottom">
+      <a href="#" id="admin-signout" class="nav-item" style="color: #F87171;"><i data-lucide="log-out"></i> Secure Sign Out</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="panel">
+      <div class="panel-header">
+        <h1 class="panel-title"><i data-lucide="megaphone"></i> Broadcast Message</h1>
+        <p class="panel-sub">Send a real-time notification to all users currently on the platform.</p>
       </div>
 
-      <div class="form-group">
-        <label>Title</label>
-        <input type="text" id="notif-title" placeholder="e.g. Welcome to the Forest!" required />
-      </div>
+      <form id="notif-form">
+        <div class="form-group">
+          <label>Notification Type</label>
+          <select id="notif-type">
+            <option value="info">General Info (Lime)</option>
+            <option value="warning">Warning / Alert (Red)</option>
+            <option value="update">Platform Update (Blue)</option>
+          </select>
+        </div>
 
-      <div class="form-group">
-        <label>Message</label>
-        <textarea id="notif-message" placeholder="Type your message here..." required></textarea>
-      </div>
+        <div class="form-group">
+          <label>Notification Title</label>
+          <input type="text" id="notif-title" placeholder="e.g. Welcome to the Forest!" required />
+        </div>
 
-      <button type="submit" class="btn-submit" id="submit-btn">
-        <i data-lucide="send"></i> Broadcast to All Users
-      </button>
-    </form>
-  </div>
-</main>
+        <div class="form-group">
+          <label>Message Body</label>
+          <textarea id="notif-message" placeholder="Type your message here..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submit-btn">
+          <i data-lucide="send"></i> Broadcast to All Users
+        </button>
+      </form>
+    </div>
+  </main>
+</div>
 
 <script>
 (function(){
@@ -105,16 +152,19 @@
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var auth = firebase.auth();
   var db = firebase.firestore();
+
   var ADMIN_EMAILS = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
 
   auth.onAuthStateChanged(function(user) {
     if (user && ADMIN_EMAILS.includes(user.email)) {
-      document.getElementById('loader').style.display = 'none';
-      document.getElementById('sidebar').style.display = 'block';
-      document.getElementById('main').style.display = 'block';
-      if(window.lucide) lucide.createIcons();
+      document.getElementById('loader').style.opacity = '0';
+      setTimeout(function() {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'flex';
+        if (window.lucide) lucide.createIcons();
+      }, 400);
     } else {
-      window.location.href = 'login.html';
+      window.location.href = 'login.html?redirect=admin-notifications.html';
     }
   });
 
@@ -122,7 +172,7 @@
     e.preventDefault();
     var btn = document.getElementById('submit-btn');
     btn.disabled = true;
-    btn.innerHTML = 'Sending...';
+    btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;border-top-color:#030407;border-color:rgba(3,4,7,0.2);border-top-color:#030407;border-radius:50%;border-style:solid;"></div> Sending...';
 
     db.collection('global_notifications').add({
       title: document.getElementById('notif-title').value,
@@ -130,19 +180,33 @@
       type: document.getElementById('notif-type').value,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     }).then(function() {
-      btn.innerHTML = 'Sent Successfully!';
+      btn.innerHTML = '<i data-lucide="check-circle"></i> Sent Successfully!';
       btn.style.background = '#059669';
       btn.style.color = '#fff';
+      if (window.lucide) lucide.createIcons();
+      
       document.getElementById('notif-form').reset();
+      
       setTimeout(function() {
         btn.disabled = false;
         btn.innerHTML = '<i data-lucide="send"></i> Broadcast to All Users';
         btn.style.background = 'var(--bright-lime)';
         btn.style.color = 'var(--ink-black)';
-        if(window.lucide) lucide.createIcons();
-      }, 2500);
+        if (window.lucide) lucide.createIcons();
+      }, 3000);
+    }).catch(function(error) {
+      alert('Error sending: ' + error.message);
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="send"></i> Broadcast to All Users';
+      if (window.lucide) lucide.createIcons();
     });
   });
+
+  document.getElementById('admin-signout').addEventListener('click', function(e) {
+    e.preventDefault();
+    auth.signOut().then(function() { window.location.href = 'login.html'; });
+  });
+
 })();
 </script>
 </body>
