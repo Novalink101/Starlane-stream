@@ -15,44 +15,23 @@
 
 <style>
   :root { 
-    --ink-black: #030407;
-    --silver-glass: #AAB0C4;
-    --bright-lime: #A3FF12;
-    
-    --surface: #FFFFFF;
-    --surface-2: #F1F3F7;
-    --border: #E2E5EB;
-    --text: #111827;
-    --text-muted: #6B7280;
-    --danger: #DC2626;
-    
-    --font-display: 'Space Grotesk', sans-serif;
-    --font-body: 'Inter', system-ui, sans-serif;
-    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --ink-black: #030407; --silver-glass: #AAB0C4; --bright-lime: #A3FF12;
+    --surface: #FFFFFF; --surface-2: #F1F3F7; --border: #E2E5EB;
+    --text: #111827; --text-muted: #6B7280; --danger: #DC2626;
+    --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', system-ui, sans-serif; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { 
-    background: #FAFBFC; 
-    color: var(--text); 
-    font-family: var(--font-body); 
-    -webkit-font-smoothing: antialiased;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
+  body { background: #FAFBFC; color: var(--text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; min-height: 100vh; }
   a { text-decoration: none; color: inherit; }
 
-  /* HEADER */
   .header-wrapper{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
   .nav-top{max-width:1300px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
   .nav-brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--ink-black);letter-spacing:-0.03em;}
   .nav-brand svg{width:28px;height:34px;}
-  
   .nav-search-form{flex:1;max-width:600px;position:relative;display:flex;}
   .nav-search-form input{width:100%;padding:12px 20px 12px 48px;border-radius:999px;border:2px solid transparent;background:var(--surface-2);font-size:14px;font-weight:500;transition:all .2s;}
   .nav-search-form input:focus{outline:none;border-color:var(--bright-lime);background:#fff;box-shadow:0 0 0 4px rgba(163,255,18,.2);}
   .nav-search-form svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--silver-glass);width:20px;height:20px;}
-
   .nav-actions{display:flex;gap:12px;align-items:center;}
   .btn-icon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--surface-2);color:var(--ink-black);transition:0.2s;}
   .btn-icon:hover{background:var(--border);}
@@ -60,98 +39,40 @@
   .cart-btn:hover{background:#1F222C;transform:scale(1.05);}
   .cart-badge{position:absolute;top:-4px;right:-4px;background:var(--bright-lime);color:var(--ink-black);font-size:11px;font-weight:900;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;border:2px solid #fff;}
 
-  /* LAYOUT */
   .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; width: 100%; flex: 1; }
-  
   .page-header { margin-bottom: 32px; }
   .page-title { font-family: var(--font-display); font-size: 32px; font-weight: 700; color: var(--ink-black); }
-
   .cart-layout { display: grid; grid-template-columns: 1fr 400px; gap: 48px; align-items: start; }
   @media (max-width: 900px) { .cart-layout { grid-template-columns: 1fr; gap: 32px; } }
 
-  /* CART ITEMS */
   .cart-items { display: flex; flex-direction: column; gap: 16px; }
-  
-  .cart-item {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 20px;
-    transition: box-shadow 0.2s;
-  }
+  .cart-item { display: flex; align-items: center; gap: 20px; background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 20px; transition: box-shadow 0.2s; }
   .cart-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-  
-  .item-img {
-    width: 100px; height: 100px;
-    border-radius: 12px;
-    background: var(--surface-2) center/cover;
-    flex-shrink: 0;
-  }
-  
+  .item-img { width: 100px; height: 100px; border-radius: 12px; background: var(--surface-2) center/cover; flex-shrink: 0; }
   .item-details { flex: 1; }
   .item-title { font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--ink-black); margin-bottom: 4px; }
-  .item-category { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+  .item-size { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
   .item-price { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--ink-black); }
-
-  .item-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 16px;
-  }
-
-  .qty-controls {
-    display: flex;
-    align-items: center;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-    background: var(--bg);
-  }
-  .qty-btn {
-    padding: 8px 12px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 600;
-    transition: 0.2s;
-  }
+  .item-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 16px; }
+  .qty-controls { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg); }
+  .qty-btn { padding: 8px 12px; background: transparent; border: none; cursor: pointer; font-size: 16px; font-weight: 600; transition: 0.2s; }
   .qty-btn:hover { background: var(--border); }
   .qty-val { padding: 0 12px; font-family: var(--mono); font-size: 14px; font-weight: 700; min-width: 40px; text-align: center; }
-
-  .btn-remove {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 13px; font-weight: 600; color: var(--text-muted);
-    background: none; border: none; cursor: pointer; transition: 0.2s;
-  }
+  .btn-remove { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-muted); background: none; border: none; cursor: pointer; transition: 0.2s; }
   .btn-remove:hover { color: var(--danger); }
   .btn-remove svg { width: 16px; height: 16px; }
 
-  /* SUMMARY */
   .summary-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; position: sticky; top: 100px; box-shadow: 0 12px 30px rgba(0,0,0,0.04); }
   .summary-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
-  
   .totals { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
   .total-row { display: flex; justify-content: space-between; font-size: 15px; color: var(--text-muted); }
   .total-row.grand-total { font-size: 24px; font-weight: 700; color: var(--ink-black); border-top: 1px solid var(--border); padding-top: 16px; margin-top: 8px; font-family: var(--font-display); }
   .total-row.grand-total span:last-child { color: var(--ink-black); font-family: var(--mono); }
-
-  .btn-checkout {
-    width: 100%; padding: 18px; border-radius: 12px; font-size: 16px; font-weight: 700;
-    cursor: pointer; transition: all 0.2s; border: none; font-family: var(--font-display);
-    background: var(--bright-lime); color: var(--ink-black);
-    box-shadow: 0 8px 24px rgba(163,255,18,0.3); display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
+  .btn-checkout { width: 100%; padding: 18px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; border: none; font-family: var(--font-display); background: var(--bright-lime); color: var(--ink-black); box-shadow: 0 8px 24px rgba(163,255,18,0.3); display: flex; align-items: center; justify-content: center; gap: 8px; }
   .btn-checkout:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(163,255,18,0.5); }
   .btn-checkout:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-
   .secure-note { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: #059669; margin-top: 16px; font-weight: 500; }
 
-  /* EMPTY STATE */
   #empty-cart { display: none; text-align: center; padding: 80px 20px; background: #fff; border: 1px dashed var(--border); border-radius: 20px; }
   #empty-cart svg { width: 64px; height: 64px; color: var(--silver-glass); margin: 0 auto 24px; }
   #empty-cart h2 { font-family: var(--font-display); font-size: 28px; margin-bottom: 12px; }
@@ -162,37 +83,19 @@
 
 <header class="header-wrapper">
   <div class="nav-top">
-    <a href="index.html" class="nav-brand">
-      <svg viewBox="0 0 60 74">
-        <path d="M30 4 L54 46 H6 Z" fill="#030407" />
-        <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
-        <path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" />
-        <path d="M20 56 H40 V60 H20 Z" fill="#030407" />
-      </svg>
-      FORESTBASE
-    </a>
-    
+    <a href="index.html" class="nav-brand"><svg viewBox="0 0 60 74"><path d="M30 4 L54 46 H6 Z" fill="#030407" /><path d="M30 22 L44 46 H16 Z" fill="#A3FF12" /><path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" /><path d="M20 56 H40 V60 H20 Z" fill="#030407" /></svg>FORESTBASE</a>
     <form class="nav-search-form" onsubmit="event.preventDefault(); window.location.href='browse.html?search=' + encodeURIComponent(document.getElementById('search-bar').value);">
-      <i data-lucide="search"></i>
-      <input type="text" id="search-bar" placeholder="Search the forest..." />
+      <i data-lucide="search"></i><input type="text" id="search-bar" placeholder="Search the forest..." />
     </form>
-
     <div class="nav-actions">
-      <a href="login.html" class="btn-icon" id="user-btn">
-        <i data-lucide="user" id="user-icon" style="width:20px; height:20px;"></i>
-      </a>
-      <a href="cart.html" class="cart-btn">
-        <i data-lucide="shopping-bag" style="width:20px; height:20px;"></i>
-        <span class="cart-badge" id="cart-count">0</span>
-      </a>
+      <a href="login.html" class="btn-icon" id="user-btn"><i data-lucide="user" id="user-icon" style="width:20px; height:20px;"></i></a>
+      <a href="cart.html" class="cart-btn"><i data-lucide="shopping-bag" style="width:20px; height:20px;"></i><span class="cart-badge" id="cart-count">0</span></a>
     </div>
   </div>
 </header>
 
 <div class="container">
-  <div class="page-header">
-    <h1 class="page-title">Your Cart</h1>
-  </div>
+  <div class="page-header"><h1 class="page-title">Your Cart</h1></div>
 
   <div id="empty-cart">
     <i data-lucide="shopping-bag"></i>
@@ -207,45 +110,20 @@
     <div class="summary-card">
       <h2 class="summary-title">Order Summary</h2>
       <div class="totals">
-        <div class="total-row">
-          <span>Subtotal</span>
-          <span id="summary-subtotal">R 0.00</span>
-        </div>
-        <div class="total-row">
-          <span>Shipping</span>
-          <span style="color: #059669; font-weight: 600;">Free</span>
-        </div>
-        <div class="total-row">
-          <span>Tax (VAT)</span>
-          <span>Included</span>
-        </div>
-        <div class="total-row grand-total">
-          <span>Total</span>
-          <span id="summary-total">R 0.00</span>
-        </div>
+        <div class="total-row"><span>Subtotal</span><span id="summary-subtotal">R 0.00</span></div>
+        <div class="total-row"><span>Shipping</span><span style="color: #059669; font-weight: 600;">Free</span></div>
+        <div class="total-row"><span>Tax (VAT)</span><span>Included</span></div>
+        <div class="total-row grand-total"><span>Total</span><span id="summary-total">R 0.00</span></div>
       </div>
-
-      <a href="checkout.html" class="btn-checkout" id="checkout-btn">
-        Proceed to Checkout <i data-lucide="arrow-right" style="width:18px;"></i>
-      </a>
-      
-      <div class="secure-note">
-        <i data-lucide="shield-check" style="width:16px;"></i> Secure 256-bit SSL Checkout
-      </div>
+      <a href="checkout.html" class="btn-checkout" id="checkout-btn">Proceed to Checkout <i data-lucide="arrow-right" style="width:18px;"></i></a>
+      <div class="secure-note"><i data-lucide="shield-check" style="width:16px;"></i> Secure 256-bit SSL Checkout</div>
     </div>
   </div>
 </div>
 
 <script>
 (function(){
-  var firebaseConfig = {
-    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
-    authDomain: "starlane-stream.firebaseapp.com",
-    projectId: "starlane-stream",
-    storageBucket: "starlane-stream.firebasestorage.app",
-    messagingSenderId: "115625325145",
-    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
-  };
+  var firebaseConfig = { apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk", authDomain: "starlane-stream.firebaseapp.com", projectId: "starlane-stream", storageBucket: "starlane-stream.firebasestorage.app", messagingSenderId: "115625325145", appId: "1:115625325145:web:b14025df503bbe2b7d7748" };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var auth = firebase.auth();
 
@@ -253,56 +131,34 @@
   function refreshIcons(){if(window.lucide)lucide.createIcons();}
 
   auth.onAuthStateChanged(function(user) {
-    var userBtn = document.getElementById('user-btn');
-    var userIcon = document.getElementById('user-icon');
-    if (user) {
-      userBtn.href = "account.html";
-      userIcon.setAttribute('data-lucide', 'user-check');
-      userIcon.style.color = 'var(--bright-lime)';
-    } else {
-      userBtn.href = "login.html";
-      userIcon.setAttribute('data-lucide', 'user');
-      userIcon.style.color = 'var(--ink-black)';
-    }
+    var userBtn = document.getElementById('user-btn'); var userIcon = document.getElementById('user-icon');
+    if (user) { userBtn.href = "account.html"; userIcon.setAttribute('data-lucide', 'user-check'); userIcon.style.color = 'var(--bright-lime)'; }
+    else { userBtn.href = "login.html"; userIcon.setAttribute('data-lucide', 'user'); userIcon.style.color = 'var(--ink-black)'; }
     refreshIcons();
   });
 
   function renderCart() {
     var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
-    var container = document.getElementById('cart-items-container');
-    var layout = document.getElementById('cart-layout');
-    var emptyState = document.getElementById('empty-cart');
+    var container = document.getElementById('cart-items-container'); var layout = document.getElementById('cart-layout'); var emptyState = document.getElementById('empty-cart');
 
-    if (cart.length === 0) {
-      layout.style.display = 'none';
-      emptyState.style.display = 'block';
-      document.getElementById('cart-count').textContent = '0';
-      refreshIcons();
-      return;
-    }
+    if (cart.length === 0) { layout.style.display = 'none'; emptyState.style.display = 'block'; document.getElementById('cart-count').textContent = '0'; refreshIcons(); return; }
 
-    layout.style.display = 'grid';
-    emptyState.style.display = 'none';
-    container.innerHTML = '';
+    layout.style.display = 'grid'; emptyState.style.display = 'none'; container.innerHTML = '';
 
-    var totalItems = 0;
-    var subtotal = 0;
+    var totalItems = 0; var subtotal = 0;
 
     cart.forEach(function(item, index) {
-      var itemTotal = item.price * item.quantity;
-      totalItems += item.quantity;
-      subtotal += itemTotal;
-
-      // Ensure we use the cover image if the older imageUrl is missing
+      var itemTotal = item.price * item.quantity; totalItems += item.quantity; subtotal += itemTotal;
       var displayImg = item.imageUrl || item.imageCover || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop';
 
       var div = document.createElement('div');
       div.className = 'cart-item';
+      // 🔥 DISPLAY SIZE
       div.innerHTML = `
         <div class="item-img" style="background-image:url('${displayImg}')"></div>
         <div class="item-details">
           <div class="item-title">${item.name}</div>
-          <div class="item-category">Product</div>
+          ${item.size ? `<div class="item-size">Size: ${item.size}</div>` : ''}
           <div class="item-price">${money(item.price)}</div>
         </div>
         <div class="item-actions">
@@ -311,9 +167,7 @@
             <span class="qty-val">${item.quantity}</span>
             <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
           </div>
-          <button class="btn-remove" onclick="removeItem(${index})">
-            <i data-lucide="trash-2"></i> Remove
-          </button>
+          <button class="btn-remove" onclick="removeItem(${index})"><i data-lucide="trash-2"></i> Remove</button>
         </div>
       `;
       container.appendChild(div);
@@ -322,7 +176,6 @@
     document.getElementById('cart-count').textContent = totalItems;
     document.getElementById('summary-subtotal').textContent = money(subtotal);
     document.getElementById('summary-total').textContent = money(subtotal);
-    
     refreshIcons();
   }
 
@@ -339,15 +192,10 @@
 
   window.removeItem = function(index) {
     var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
-    cart.splice(index, 1);
-    localStorage.setItem('forestbase_cart', JSON.stringify(cart));
-    renderCart();
+    cart.splice(index, 1); localStorage.setItem('forestbase_cart', JSON.stringify(cart)); renderCart();
   };
 
-  document.addEventListener('DOMContentLoaded', function() {
-    renderCart();
-    refreshIcons();
-  });
+  document.addEventListener('DOMContentLoaded', function() { renderCart(); refreshIcons(); });
 })();
 </script>
 </body>
