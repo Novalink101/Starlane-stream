@@ -11,6 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<!-- Using stable Firebase SDK version -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 
@@ -295,7 +296,7 @@
   tabLogin.addEventListener('click', function() { setMode(false); });
   tabSignup.addEventListener('click', function() { setMode(true); });
 
-  // FORM SUBMIT
+  // EMAIL / PASSWORD SIGN IN
   form.addEventListener('submit', function(e) {
     e.preventDefault();
     var email = document.getElementById('email-input').value;
@@ -312,7 +313,7 @@
         })
         .then(function() {
           showToast('Account created successfully!');
-          window.location.replace(redirectUrl); // Replaces history so back button doesn't loop
+          window.location.replace(redirectUrl);
         })
         .catch(function(err) {
           showToast(err.message);
@@ -333,25 +334,27 @@
     }
   });
 
-  // GOOGLE AUTH
+  // GOOGLE AUTH (FIXED: Uses Popup instead of Redirect to avoid sessionStorage errors)
   document.getElementById('google-btn').addEventListener('click', function() {
     var provider = new firebase.auth.GoogleAuthProvider();
-    var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    if (isMobile) {
-      auth.signInWithRedirect(provider).catch(function(err) {
-        showToast("Google Login Error: " + err.message);
-      });
-    } else {
-      auth.signInWithPopup(provider)
-        .then(function() {
-          showToast('Signed in with Google!');
-          window.location.replace(redirectUrl);
-        })
-        .catch(function(err) {
+    
+    // We use Popup for ALL devices. It is much more reliable on modern mobile browsers.
+    auth.signInWithPopup(provider)
+      .then(function(result) {
+        showToast('Signed in with Google!');
+        window.location.replace(redirectUrl);
+      })
+      .catch(function(err) {
+        console.error("Google Auth Error:", err);
+        // Handle the case where the browser blocks popups
+        if (err.code === 'auth/popup-blocked') {
+          showToast('Please allow popups for this website to sign in with Google.');
+        } else if (err.code === 'auth/cancelled-popup-request') {
+          // User closed the popup, ignore
+        } else {
           showToast(err.message);
-        });
-    }
+        }
+      });
   });
 
   // FORGOT PASSWORD
@@ -369,19 +372,7 @@
     setMode(true);
   }
 
-  // GOOGLE REDIRECT RESULT (Crucial for mobile popups)
-  auth.getRedirectResult().then(function(result) {
-    if (result.user) {
-      window.location.replace(redirectUrl);
-    }
-  }).catch(function(error) {
-    if (error.code === 'auth/unauthorized-domain') {
-      showToast("Firebase Error: You must add " + window.location.hostname + " to Firebase Authorized Domains.");
-    }
-  });
-
-  // If the user is ALREADY logged in when they arrive at this page, redirect them immediately.
-  // We use a tiny timeout to let the page render first.
+  // If the user is ALREADY logged in when they arrive, send them to the store
   setTimeout(function() {
     if (auth.currentUser) {
       window.location.replace(redirectUrl);
