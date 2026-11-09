@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Database Test · FORESTBASE</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  body { font-family: sans-serif; background: #FAFBFC; padding: 40px 20px; color: #111827; }
+  .card { background: #fff; border: 1px solid #E2E5EB; border-radius: 12px; padding: 24px; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+  h1 { font-size: 20px; margin-top: 0; }
+  .status-box { background: #F1F3F7; padding: 16px; border-radius: 8px; font-family: monospace; margin-bottom: 20px; font-weight: bold; }
+  .log { border-bottom: 1px solid #E2E5EB; padding: 12px 0; font-size: 14px; }
+  .pass { color: #059669; font-weight: bold; }
+  .fail { color: #DC2626; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Database Connection Test</h1>
+  <div class="status-box" id="auth-status">Checking login status...</div>
+  <div class="status-box" id="db-status">Waiting for auth...</div>
+  <div id="logs"></div>
+</div>
+
+<script>
+  var firebaseConfig = {
+    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+    authDomain: "starlane-stream.firebaseapp.com",
+    projectId: "starlane-stream",
+    storageBucket: "starlane-stream.firebasestorage.app",
+    messagingSenderId: "115625325145",
+    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var auth = firebase.auth();
+  var db = firebase.firestore();
+  
+  var ADMIN_EMAILS = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
+  var authStatus = document.getElementById('auth-status');
+  var dbStatus = document.getElementById('db-status');
+  var logs = document.getElementById('logs');
+
+  auth.onAuthStateChanged(function(user) {
+    if (!user) {
+      authStatus.innerHTML = 'STATUS: <span class="fail">NOT LOGGED IN</span>';
+      authStatus.innerHTML += '<br><br><a href="login.html?redirect=db-test.html">Click here to log in</a>';
+      dbStatus.innerHTML = 'Waiting for you to log in...';
+      return;
+    }
+
+    authStatus.innerHTML = 'STATUS: <span class="pass">LOGGED IN AS ' + user.email + '</span>';
+
+    if (!ADMIN_EMAILS.includes(user.email)) {
+      authStatus.innerHTML = 'STATUS: <span class="fail">LOGGED IN AS ' + user.email + ' (NOT AN ADMIN)</span>';
+      dbStatus.innerHTML = 'Cannot query database. You are not an admin.';
+      return;
+    }
+
+    dbStatus.innerHTML = 'Fetching orders from database...';
+
+    db.collection('orders').orderBy('createdAt', 'desc').limit(10).get()
+      .then(function(snapshot) {
+        dbStatus.innerHTML = 'STATUS: <span class="pass">DATABASE CONNECTION SUCCESSFUL</span>';
+        logs.innerHTML += '<div class="log">Successfully queried the database. Found ' + snapshot.size + ' orders.</div>';
+        
+        if (snapshot.empty) {
+          logs.innerHTML += '<div class="log">There are no orders in the database yet.</div>';
+        } else {
+          snapshot.forEach(function(doc) {
+            var data = doc.data();
+            logs.innerHTML += '<div class="log">Order #' + doc.id.slice(0, 6) + ' | Status: ' + (data.status || 'pending') + ' | R ' + data.total + '</div>';
+          });
+        }
+      })
+      .catch(function(error) {
+        dbStatus.innerHTML = 'STATUS: <span class="fail">DATABASE CONNECTION FAILED</span>';
+        logs.innerHTML += '<div class="log fail">Error: ' + error.message + '</div>';
+      });
+  });
+</script>
+</body>
+</html>
