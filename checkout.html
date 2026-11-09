@@ -273,7 +273,7 @@
 
   var currentUser = null;
   var globalTotal = 0; 
-  var hasSelectedLocation = false; // Tracks if the user moved the pin
+  var hasSelectedLocation = false;
 
   function money(v){ return 'R ' + parseFloat(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function refreshIcons(){if(window.lucide)lucide.createIcons();}
@@ -302,16 +302,14 @@
   });
 
   function initMap() {
-    // We removed the default coordinate so they MUST drop a pin or search
     new LocationPicker('delivery-map', {
       provider: 'leaflet',
-      zoom: 5, // Starts zoomed out over South Africa
+      zoom: 5,
       search: true,
       latInput: '#checkout-lat',
       lngInput: '#checkout-lng',
       addressInput: '#checkout-address',
       onChange: function() {
-        // This fires when the user drops a pin or searches an address
         hasSelectedLocation = true;
       }
     });
@@ -372,7 +370,6 @@
     var lng = document.getElementById('checkout-lng').value;
     var phone = document.getElementById('checkout-phone').value;
 
-    // Force the user to actually select their location
     if (!hasSelectedLocation || !lat || !lng) {
       showToast('Please search your address or drop a pin on the map.', 'alert-circle');
       return;
@@ -395,7 +392,7 @@
       buyerEmail: currentUser.email,
       items: cart,
       sellerIds: sellerIds,
-      total: globalTotal, // Saved to DB securely
+      total: globalTotal,
       status: 'pending',
       deliveryAddress: address,
       deliveryLat: lat,
@@ -406,7 +403,8 @@
     .then(function(docRef) {
       console.log("Order created:", docRef.id);
       
-      // 2. Call Render Backend (No price sent! It fetches the order and calculates it)
+      // 2. Call Render Backend
+      // 🔥 CHANGED RETURN URL TO PAYMENT-SUCCESS.HTML
       fetch('/api/create-yoco-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -414,14 +412,14 @@
           orderId: docRef.id,
           userId: currentUser.uid,
           userEmail: currentUser.email,
-          returnUrl: window.location.origin + '/account.html'
+          returnUrl: window.location.origin + '/payment-success.html?orderId=' + docRef.id
         })
       })
       .then(function(res) { return res.json(); })
       .then(function(data) {
         if (data.redirectUrl) {
-          localStorage.removeItem('forestbase_cart'); // Clear cart before redirect
-          window.location.href = data.redirectUrl; // Send to Yoco
+          localStorage.removeItem('forestbase_cart');
+          window.location.href = data.redirectUrl;
         } else {
           throw new Error(data.error || 'Failed to generate payment link');
         }
