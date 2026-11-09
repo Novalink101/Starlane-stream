@@ -27,6 +27,10 @@
   .header { background: var(--ink-black); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
   .nav-brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: #fff; }
   .nav-brand svg { width: 28px; height: 34px; }
+
+  /* DEBUG BANNER */
+  .debug-banner { background: #1F222C; color: #fff; padding: 12px 20px; font-family: var(--mono); font-size: 12px; border-bottom: 2px solid var(--bright-lime); }
+  .debug-banner span { color: var(--bright-lime); font-weight: bold; }
   
   .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
   
@@ -60,16 +64,28 @@
   </a>
 </div>
 
+<!-- 🔍 DEBUG BANNER: This will tell us exactly what is happening -->
+<div class="debug-banner">
+  Status: <span id="debug-status">Connecting to Auth...</span> | User: <span id="debug-user">None</span>
+</div>
+
 <div class="container">
   <div class="page-header">
     <h1 class="page-title"><span class="live-dot"></span> Live Transaction Log</h1>
   </div>
   <div class="log-box" id="log-container">
-    <div style="padding: 40px; text-align: center; color: var(--text-muted);">Authenticating...</div>
+    <div style="padding: 40px; text-align: center; color: var(--text-muted);">Waiting for database...</div>
   </div>
 </div>
 
 <script>
+// Clear any old service workers trying to serve cached versions of this page
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    for(let registration of registrations) { registration.unregister(); }
+  });
+}
+
 (function(){
   var firebaseConfig = {
     apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
@@ -85,53 +101,68 @@
   
   var ADMIN_EMAILS = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
   var container = document.getElementById('log-container');
+  var debugUser = document.getElementById('debug-user');
+  var debugStatus = document.getElementById('debug-status');
 
-  // AUTH GUARD: Wait until we know for sure if the user is an admin
   auth.onAuthStateChanged(function(user) {
-    if (user && ADMIN_EMAILS.includes(user.email)) {
-      
-      // User is verified. Now it is safe to listen to the database.
-      db.collection('orders').orderBy('createdAt', 'desc').limit(15).onSnapshot(function(snapshot) {
-        if (snapshot.empty) {
-          container.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-muted);">No orders yet. Start the R 2.00 test.</div>';
-          return;
-        }
-
-        container.innerHTML = '';
-        
-        snapshot.forEach(function(doc) {
-          var order = doc.data();
-          var date = order.createdAt ? order.createdAt.toDate().toLocaleTimeString('en-ZA') : 'Just now';
-          var statusClass = 'status-' + (order.status || 'pending');
-          
-          var itemNames = order.items.map(function(i) { return i.name; }).join(', ');
-          
-          var div = document.createElement('div');
-          div.className = 'log-item';
-          div.innerHTML = `
-            <div class="log-time">${date}</div>
-            <div class="log-status ${statusClass}">${order.status || 'pending'}</div>
-            <div class="log-info">
-              <div class="log-title">${order.buyerEmail}</div>
-              <div class="log-desc">Order #${doc.id.slice(0,8).toUpperCase()} · ${itemNames}</div>
-            </div>
-            <div class="log-price">R ${parseFloat(order.total).toFixed(2)}</div>
-          `;
-          container.appendChild(div);
-        });
-      }, function(error) {
-        container.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--danger);">Error: ' + error.message + '</div>';
-      });
-
-    } else {
-      // User is not logged in or not an admin
+    if (!user) {
+      debugUser.textContent = 'Not Logged In';
+      debugStatus.innerHTML = '<span style="color:var(--danger)">FAILED</span>';
       container.innerHTML = `
         <div style="padding: 40px; text-align: center;">
-          <p style="color: var(--danger); font-weight: 600; margin-bottom: 16px;">Access Denied. You are not logged in as an Admin.</p>
+          <p style="color: var(--danger); font-weight: 600; margin-bottom: 16px;">You are not logged in.</p>
           <a href="login.html?redirect=live-activity.html" style="background: var(--ink-black); color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">Log In Here</a>
         </div>
       `;
+      return;
     }
+
+    debugUser.textContent = user.email;
+
+    if (!ADMIN_EMAILS.includes(user.email)) {
+      debugStatus.innerHTML = '<span style="color:var(--danger)">FAILED - Not an Admin</span>';
+      container.innerHTML = `
+        <div style="padding: 40px; text-align: center;">
+          <p style="color: var(--danger); font-weight: 600; margin-bottom: 16px;">Logged in as ${user.email}, but this is not an admin account.</p>
+          <a href="login.html?redirect=live-activity.html" style="background: var(--ink-black); color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">Switch Account</a>
+        </div>
+      `;
+      return;
+    }
+
+    // User is an Admin. Load Data.
+    debugStatus.innerHTML = '<span style="color:var(--success)">SUCCESS - Querying Database</span>';
+    
+    db.collection('orders').orderBy('createdAt', 'desc').limit(15).onSnapshot(function(snapshot) {
+      if (snapshot.empty) {
+        container.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-muted);">No orders yet. Start the R 2.00 test.</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      snapshot.forEach(function(doc) {
+        var order = doc.data();
+        var date = order.createdAt ? order.createdAt.toDate().toLocaleTimeString('en-ZA') : 'Just now';
+        var statusClass = 'status-' + (order.status || 'pending');
+        var itemNames = order.items.map(function(i) { return i.name; }).join(', ');
+        
+        var div = document.createElement('div');
+        div.className = 'log-item';
+        div.innerHTML = `
+          <div class="log-time">${date}</div>
+          <div class="log-status ${statusClass}">${order.status || 'pending'}</div>
+          <div class="log-info">
+            <div class="log-title">${order.buyerEmail}</div>
+            <div class="log-desc">Order #${doc.id.slice(0,8).toUpperCase()} · ${itemNames}</div>
+          </div>
+          <div class="log-price">R ${parseFloat(order.total).toFixed(2)}</div>
+        `;
+        container.appendChild(div);
+      });
+    }, function(error) {
+      debugStatus.innerHTML = '<span style="color:var(--danger)">FAILED - Database Error</span>';
+      container.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--danger); font-weight:600;">Error: ' + error.message + '</div>';
+    });
   });
 })();
 </script>
