@@ -19,7 +19,7 @@
     --ink-black: #030407; --silver-glass: #AAB0C4; --bright-lime: #A3FF12;
     --surface: #FFFFFF; --surface-2: #F1F3F7; --border: #E2E5EB;
     --text: #111827; --text-muted: #6B7280; --danger: #DC2626;
-    --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', sans-serif; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #FAFBFC; color: var(--text); font-family: var(--font-body); display: flex; min-height: 100vh; }
@@ -30,11 +30,10 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .dashboard-wrapper { display: flex; width: 100%; }
-  .sidebar { width: 260px; background: var(--ink-black); color: #fff; padding: 24px; display: flex; flex-direction: column; position: fixed; height: 100vh; border-right: 1px solid rgba(255,255,255,0.1); }
+  .sidebar { width: 260px; background: var(--ink-black); color: #fff; padding: 24px; display: flex; flex-direction: column; position: fixed; height: 100vh; }
   .nav-brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: #fff; margin-bottom: 40px; }
   .nav-brand svg { width: 28px; height: 34px; }
   .nav-brand span { color: var(--bright-lime); }
-  
   .nav-menu { display: flex; flex-direction: column; gap: 8px; }
   .nav-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--silver-glass); transition: 0.2s; cursor: pointer; }
   .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
@@ -55,25 +54,17 @@
 
   .panel { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 40px; max-width: 650px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
   .panel-header { margin-bottom: 32px; border-bottom: 1px solid var(--border); padding-bottom: 24px; }
-  .panel-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; display: flex; align-items: center; gap: 12px; color: var(--ink-black); }
-  .panel-title svg { color: var(--bright-lime); width: 28px; height: 28px; }
+  .panel-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+  .panel-title svg { color: var(--bright-lime); }
   .panel-sub { color: var(--text-muted); font-size: 15px; margin-top: 8px; }
 
   .form-group { margin-bottom: 24px; }
-  .form-group label { display: block; font-size: 14px; font-weight: 600; color: var(--ink-black); margin-bottom: 10px; }
-  .form-group input, .form-group textarea, .form-group select { 
-    width: 100%; padding: 16px; border: 1px solid var(--border); border-radius: 10px; 
-    background: var(--surface-2); font-family: var(--font-body); font-size: 15px; transition: 0.2s;
-  }
+  .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+  .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); font-family: var(--font-body); font-size: 15px; transition: 0.2s; }
   .form-group textarea { min-height: 140px; resize: vertical; }
   .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--bright-lime); background: #fff; box-shadow: 0 0 0 3px rgba(163,255,18,0.15); }
 
-  .btn-submit { 
-    width: 100%; background: var(--bright-lime); color: var(--ink-black); border: none; 
-    padding: 18px; border-radius: 12px; font-family: var(--font-display); font-size: 18px; font-weight: 700; 
-    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s;
-    box-shadow: 0 8px 24px rgba(163,255,18,0.3);
-  }
+  .btn-submit { width: 100%; background: var(--bright-lime); color: var(--ink-black); border: none; padding: 18px; border-radius: 12px; font-family: var(--font-display); font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; box-shadow: 0 8px 24px rgba(163,255,18,0.3); }
   .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(163,255,18,0.5); }
   .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
 </style>
@@ -92,13 +83,13 @@
       <svg viewBox="0 0 60 74"><path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" /><path d="M30 22 L44 46 H16 Z" fill="#A3FF12" /><path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" /><path d="M20 56 H40 V60 H20 Z" fill="#030407" /></svg>
       FOREST<span>BASE</span>
     </a>
-
     <div class="nav-menu">
-      <a href="admin.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Command Center</a>
+      <a href="admin.html" class="nav-item"><i data-lucide="shield-check"></i> Command Center</a>
+      <a href="admin-payments.html" class="nav-item"><i data-lucide="banknote"></i> Payments & Payouts</a>
+      <a href="admin-emails.html" class="nav-item"><i data-lucide="mail"></i> Email Marketing</a>
       <div class="nav-item active"><i data-lucide="bell"></i> Broadcast Notifications</div>
       <a href="index.html" class="nav-item"><i data-lucide="store"></i> View Storefront</a>
     </div>
-
     <div class="sidebar-bottom">
       <a href="#" id="admin-signout" class="nav-item" style="color: #F87171;"><i data-lucide="log-out"></i> Secure Sign Out</a>
     </div>
@@ -108,16 +99,22 @@
     <div class="panel">
       <div class="panel-header">
         <h1 class="panel-title"><i data-lucide="megaphone"></i> Broadcast Message</h1>
-        <p class="panel-sub">Send a real-time notification to all users currently on the platform.</p>
+        <p class="panel-sub">Send a real-time notification, or schedule one for later.</p>
       </div>
 
       <form id="notif-form">
         <div class="form-group">
-          <label>Notification Type</label>
-          <select id="notif-type">
-            <option value="info">General Info (Lime)</option>
-            <option value="warning">Warning / Alert (Red)</option>
-            <option value="update">Platform Update (Blue)</option>
+          <label>Schedule For (Optional - leave blank to send now)</label>
+          <input type="datetime-local" id="notif-schedule" />
+        </div>
+
+        <div class="form-group">
+          <label>Notification Theme</label>
+          <select id="notif-theme">
+            <option value="none">Standard (No Animation)</option>
+            <option value="snow">❄️ Christmas Snow</option>
+            <option value="hearts">❤️ Valentine Hearts</option>
+            <option value="fireworks">🎆 New Year Fireworks</option>
           </select>
         </div>
 
@@ -152,19 +149,15 @@
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var auth = firebase.auth();
   var db = firebase.firestore();
-
   var ADMIN_EMAILS = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
 
   auth.onAuthStateChanged(function(user) {
     if (user && ADMIN_EMAILS.includes(user.email)) {
-      document.getElementById('loader').style.opacity = '0';
-      setTimeout(function() {
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'flex';
-        if (window.lucide) lucide.createIcons();
-      }, 400);
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'flex';
+      if (window.lucide) lucide.createIcons();
     } else {
-      window.location.href = 'login.html?redirect=admin-notifications.html';
+      window.location.href = 'login.html';
     }
   });
 
@@ -172,33 +165,33 @@
     e.preventDefault();
     var btn = document.getElementById('submit-btn');
     btn.disabled = true;
-    btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;border-top-color:#030407;border-color:rgba(3,4,7,0.2);border-top-color:#030407;border-radius:50%;border-style:solid;"></div> Sending...';
+    btn.innerHTML = 'Sending...';
+
+    var scheduleTime = document.getElementById('notif-schedule').value;
+    var activeFrom = scheduleTime ? new Date(scheduleTime) : new Date();
 
     db.collection('global_notifications').add({
       title: document.getElementById('notif-title').value,
       message: document.getElementById('notif-message').value,
-      type: document.getElementById('notif-type').value,
+      theme: document.getElementById('notif-theme').value,
+      activeFrom: firebase.firestore.Timestamp.fromDate(activeFrom),
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     }).then(function() {
-      btn.innerHTML = '<i data-lucide="check-circle"></i> Sent Successfully!';
+      btn.innerHTML = 'Sent Successfully!';
       btn.style.background = '#059669';
       btn.style.color = '#fff';
-      if (window.lucide) lucide.createIcons();
-      
       document.getElementById('notif-form').reset();
-      
       setTimeout(function() {
         btn.disabled = false;
         btn.innerHTML = '<i data-lucide="send"></i> Broadcast to All Users';
         btn.style.background = 'var(--bright-lime)';
         btn.style.color = 'var(--ink-black)';
         if (window.lucide) lucide.createIcons();
-      }, 3000);
+      }, 2500);
     }).catch(function(error) {
-      alert('Error sending: ' + error.message);
+      alert('Error: ' + error.message);
       btn.disabled = false;
-      btn.innerHTML = '<i data-lucide="send"></i> Broadcast to All Users';
-      if (window.lucide) lucide.createIcons();
+      btn.innerHTML = 'Broadcast';
     });
   });
 
@@ -206,7 +199,6 @@
     e.preventDefault();
     auth.signOut().then(function() { window.location.href = 'login.html'; });
   });
-
 })();
 </script>
 </body>
