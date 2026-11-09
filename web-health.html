@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#030407" />
+<title>System Health · FORESTBASE</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+  :root { 
+    --ink-black: #030407; --silver-glass: #AAB0C4; --bright-lime: #A3FF12;
+    --surface: #FFFFFF; --surface-2: #F1F3F7; --border: #E2E5EB;
+    --text: #111827; --text-muted: #6B7280; 
+    --success: #059669; --warning: #D97706; --danger: #DC2626;
+    --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', system-ui, sans-serif; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #FAFBFC; color: var(--text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; min-height: 100vh; }
+  a { text-decoration: none; color: inherit; }
+
+  .header { background: var(--ink-black); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+  .nav-brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: #fff; letter-spacing: -0.03em; }
+  .nav-brand svg { width: 28px; height: 34px; }
+  .nav-back { color: var(--silver-glass); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .nav-back:hover { color: var(--bright-lime); }
+
+  .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px 80px; }
+
+  /* Summary */
+  .summary { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; margin-bottom: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); text-align: center; position: relative; overflow: hidden; }
+  .summary::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--silver-glass); transition: background 0.4s; }
+  .summary.pass::before { background: var(--success); box-shadow: 0 0 20px var(--success); }
+  .summary.warn::before { background: var(--warning); box-shadow: 0 0 20px var(--warning); }
+  .summary.fail::before { background: var(--danger); box-shadow: 0 0 20px var(--danger); }
+  
+  .summary-icon { width: 72px; height: 72px; border-radius: 50%; background: var(--surface-2); color: var(--silver-glass); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; transition: all 0.4s; }
+  .summary.pass .summary-icon { background: rgba(5,150,105,0.15); color: var(--success); }
+  .summary.warn .summary-icon { background: rgba(217,119,6,0.15); color: var(--warning); }
+  .summary.fail .summary-icon { background: rgba(220,38,38,0.15); color: var(--danger); }
+  .summary-icon svg { width: 36px; height: 36px; stroke-width: 2.5; }
+
+  .summary h1 { font-family: var(--font-display); font-size: 28px; font-weight: 700; margin-bottom: 8px; color: var(--ink-black); }
+  .summary p { color: var(--text-muted); font-size: 15px; margin-bottom: 24px; }
+  
+  .summary-stats { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; margin-bottom: 24px; }
+  .summary-stat { text-align: center; }
+  .summary-stat .num { font-family: var(--mono); font-size: 24px; font-weight: 700; }
+  .summary-stat .lbl { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; }
+  .summary-stat.pass .num { color: var(--success); }
+  .summary-stat.warn .num { color: var(--warning); }
+  .summary-stat.fail .num { color: var(--danger); }
+
+  .btn-rerun { background: var(--ink-black); color: #fff; padding: 12px 32px; border-radius: 10px; font-family: var(--font-display); font-weight: 700; font-size: 15px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+  .btn-rerun:hover { background: var(--bright-lime); color: var(--ink-black); }
+  .btn-rerun:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Category */
+  .category { margin-bottom: 32px; }
+  .category-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+  .category-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .test-list { background: #fff; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+
+  .test-item { display: flex; align-items: center; gap: 16px; padding: 20px; border-bottom: 1px solid var(--border); transition: background 0.2s; }
+  .test-item:last-child { border-bottom: none; }
+  .test-item:hover { background: var(--surface-2); }
+
+  .test-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s; }
+  .test-icon svg { width: 20px; height: 20px; color: var(--text-muted); }
+  
+  .test-item.pass .test-icon { background: rgba(5,150,105,0.1); }
+  .test-item.pass .test-icon svg { color: var(--success); }
+  .test-item.warn .test-icon { background: rgba(217,119,6,0.1); }
+  .test-item.warn .test-icon svg { color: var(--warning); }
+  .test-item.fail .test-icon { background: rgba(220,38,38,0.1); }
+  .test-item.fail .test-icon svg { color: var(--danger); }
+  .test-item.checking .test-icon svg { animation: spin 1s linear infinite; }
+
+  .test-info { flex: 1; min-width: 0; }
+  .test-title { font-weight: 600; font-size: 15px; color: var(--ink-black); margin-bottom: 2px; }
+  .test-desc { font-size: 13px; color: var(--text-muted); }
+  .test-detail { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 4px; word-break: break-word; }
+
+  .test-status { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
+  .test-status.checking { background: var(--surface-2); color: var(--text-muted); }
+  .test-status.pass { background: rgba(5,150,105,0.15); color: var(--success); }
+  .test-status.warn { background: rgba(217,119,6,0.15); color: var(--warning); }
+  .test-status.fail { background: rgba(220,38,38,0.15); color: var(--danger); }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Info box */
+  .info-box { background: rgba(163,255,18,0.06); border: 1px solid rgba(163,255,18,0.3); border-radius: 16px; padding: 24px; margin-top: 32px; }
+  .info-box h3 { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--ink-black); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .info-box h3 svg { color: var(--success); width: 20px; height: 20px; }
+  .info-box p { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 8px; }
+  .info-box p:last-child { margin-bottom: 0; }
+  .info-box strong { color: var(--ink-black); }
+  .info-box ul { margin-left: 20px; margin-top: 8px; }
+  .info-box li { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 4px; }
+  .info-box code { background: var(--ink-black); color: var(--bright-lime); padding: 2px 6px; border-radius: 4px; font-family: var(--mono); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html" class="nav-brand">
+    <svg viewBox="0 0 60 74"><path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" /><path d="M30 22 L44 46 H16 Z" fill="#A3FF12" /><path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" /><path d="M20 56 H40 V60 H20 Z" fill="#030407" /></svg>
+    FORESTBASE
+  </a>
+  <a href="index.html" class="nav-back"><i data-lucide="arrow-left" size="16"></i> Back to Shop</a>
+</div>
+
+<div class="container">
+
+  <div class="summary" id="summary">
+    <div class="summary-icon" id="summary-icon"><i data-lucide="activity"></i></div>
+    <h1 id="summary-title">Running Diagnostics...</h1>
+    <p id="summary-desc">Checking platform health. This takes 5–10 seconds.</p>
+    <div class="summary-stats">
+      <div class="summary-stat pass"><div class="num" id="count-pass">0</div><div class="lbl">Passing</div></div>
+      <div class="summary-stat warn"><div class="num" id="count-warn">0</div><div class="lbl">Warnings</div></div>
+      <div class="summary-stat fail"><div class="num" id="count-fail">0</div><div class="lbl">Failing</div></div>
+    </div>
+    <button class="btn-rerun" id="rerun-btn" onclick="runAllTests()">
+      <i data-lucide="refresh-cw" style="width:16px;"></i> Re-run All Tests
+    </button>
+  </div>
+
+  <div id="tests-container"></div>
+
+  <div class="info-box">
+    <h3><i data-lucide="info"></i> What this page can't check</h3>
+    <p>These tests verify everything reachable from your <strong>browser</strong>. They <strong>cannot</strong> verify backend-only logic:</p>
+    <ul>
+      <li><strong>Yoco webhook signature verification</strong> — only fires when Yoco's server calls your backend after payment</li>
+      <li><strong>Email sending (nodemailer)</strong> — only triggers after a successful webhook</li>
+      <li><strong>Cloudinary API credentials</strong> — only verified on an actual image upload</li>
+      <li><strong>Price calculation security</strong> — whether <code>server.js</code> trusts the browser or recalculates from Firestore</li>
+    </ul>
+    <p style="margin-top: 12px;"><strong>The only real test for those is a live R 2.00 purchase.</strong> If all tests here pass but a real purchase fails at the payment step, the bug is in <code>server.js</code>, not the frontend.</p>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var firebaseConfig = {
+    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+    authDomain: "starlane-stream.firebaseapp.com",
+    projectId: "starlane-stream",
+    storageBucket: "starlane-stream.firebasestorage.app",
+    messagingSenderId: "115625325145",
+    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+  };
+
+  // Initialize Firebase if not already
+  if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+    try { firebase.initializeApp(firebaseConfig); } catch(e) { /* ignore */ }
+  }
+  var auth = (typeof firebase !== 'undefined') ? firebase.auth() : null;
+  var db = (typeof firebase !== 'undefined') ? firebase.firestore() : null;
+
+  // ── TEST DEFINITIONS ──
+  var TESTS = [
+    // PLATFORM
+    {
+      id: 'firebase-sdk', category: 'Platform', icon: 'zap',
+      title: 'Firebase SDK', desc: 'JavaScript SDK loaded from CDN',
+      run: function() {
+        if (typeof firebase === 'undefined') throw new Error('Firebase SDK not loaded — CDN blocked or offline');
+        return 'SDK v' + (firebase.SDK_VERSION || '10.x');
+      }
+    },
+    {
+      id: 'firebase-init', category: 'Platform', icon: 'check-circle',
+      title: 'Firebase Init', desc: 'App properly initialized with project credentials',
+      run: function() {
+        if (!firebase.apps.length) throw new Error('Firebase app not initialized');
+        return 'Project: ' + firebase.app().options.projectId;
+      }
+    },
+    {
+      id: 'firestore-read', category: 'Platform', icon: 'database',
+      title: 'Firestore Read', desc: 'Can query the products collection',
+      run: async function() {
+        var snap = await db.collection('products').limit(1).get();
+        return 'Read OK — ' + (snap.size === 0 ? 'collection empty' : snap.size + ' doc(s) visible');
+      }
+    },
+    {
+      id: 'auth-ready', category: 'Platform', icon: 'user-check',
+      title: 'Auth State', desc: 'Firebase Authentication initialized',
+      run: function() {
+        return new Promise(function(resolve, reject) {
+          var done = false;
+          var unsub = auth.onAuthStateChanged(function(u) {
+            if (done) return;
+            done = true; unsub();
+            if (u) resolve('Signed in as ' + (u.email || u.uid.slice(0,8)));
+            else resolve('No user signed in (guest mode)');
+          });
+          setTimeout(function() { if (!done) { done = true; unsub(); reject(new Error('Auth timeout')); } }, 3000);
+        });
+      }
+    },
+
+    // BACKEND
+    {
+      id: 'server-root', category: 'Backend', icon: 'server',
+      title: 'Render Server', desc: 'Backend responds to requests',
+      run: async function() {
+        var res = await fetch(window.location.origin + '/?healthcheck=' + Date.now(), { method: 'GET', cache: 'no-store' });
+        if (!res.ok && res.status !== 200) throw new Error('Server returned HTTP ' + res.status);
+        return 'Server responding (HTTP ' + res.status + ')';
+      }
+    },
+    {
+      id: 'api-upload', category: 'Backend', icon: 'image',
+      title: 'Upload API', desc: '/api/upload-image endpoint mounted',
+      run: async function() {
+        // Send empty FormData - should fail validation with 400 if endpoint exists
+        var fd = new FormData();
+        var res = await fetch(window.location.origin + '/api/upload-image', { method: 'POST', body: fd });
+        if (res.status === 404) throw new Error('Endpoint not found (404) — server.js not deployed or route missing');
+        return 'Endpoint alive (HTTP ' + res.status + ')';
+      }
+    },
+    {
+      id: 'api-yoco', category: 'Backend', icon: 'credit-card',
+      title: 'Yoco API', desc: '/api/create-yoco-checkout endpoint mounted',
+      run: async function() {
+        // Send empty JSON - should fail validation, not 404
+        var res = await fetch(window.location.origin + '/api/create-yoco-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        if (res.status === 404) throw new Error('Endpoint not found (404) — server.js not deployed or route missing');
+        return 'Endpoint alive (HTTP ' + res.status + ')';
+      }
+    },
+
+    // PWA
+    {
+      id: 'https', category: 'PWA', icon: 'lock',
+      title: 'HTTPS', desc: 'Secure context required for PWA features',
+      run: function() {
+        if (window.location.protocol === 'https:') return 'Secure (HTTPS)';
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'Localhost (dev mode)';
+        throw new Error('Not HTTPS — PWA features disabled');
+      }
+    },
+    {
+      id: 'service-worker', category: 'PWA', icon: 'wifi',
+      title: 'Service Worker', desc: 'Offline caching registered',
+      run: async function() {
+        if (!('serviceWorker' in navigator)) throw new Error('Service workers not supported');
+        var regs = await navigator.serviceWorker.getRegistrations();
+        if (regs.length === 0) throw new Error('No service worker registered — check /sw.js exists');
+        return regs.length + ' registration(s) active';
+      }
+    },
+    {
+      id: 'manifest', category: 'PWA', icon: 'file-text',
+      title: 'PWA Manifest', desc: 'manifest.json accessible and valid',
+      run: async function() {
+        var res = await fetch('/manifest.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('manifest.json not found (HTTP ' + res.status + ')');
+        var data = await res.json();
+        if (!data.name) throw new Error('manifest.json missing "name" field');
+        return '"' + data.name + '" — ' + (data.icons ? data.icons.length : 0) + ' icon(s)';
+      }
+    },
+
+    // CLIENT
+    {
+      id: 'localstorage', category: 'Client', icon: 'hard-drive',
+      title: 'localStorage', desc: 'Cart persistence available',
+      run: function() {
+        var key = '__forestbase_test__';
+        localStorage.setItem(key, '1');
+        var ok = localStorage.getItem(key) === '1';
+        localStorage.removeItem(key);
+        if (!ok) throw new Error('localStorage write/read failed');
+        return 'Read/write OK';
+      }
+    },
+    {
+      id: 'sessionstorage', category: 'Client', icon: 'hard-drive',
+      title: 'sessionStorage', desc: 'Per-tab storage available',
+      run: function() {
+        var key = '__forestbase_test__';
+        sessionStorage.setItem(key, '1');
+        var ok = sessionStorage.getItem(key) === '1';
+        sessionStorage.removeItem(key);
+        if (!ok) throw new Error('sessionStorage failed');
+        return 'Read/write OK';
+      }
+    },
+    {
+      id: 'geolocation', category: 'Client', icon: 'map-pin',
+      title: 'Geolocation API', desc: 'Required for delivery map',
+      run: function() {
+        if (!navigator.geolocation) throw new Error('Geolocation not supported by browser');
+        return 'API available (permission not requested here)';
+      }
+    },
+    {
+      id: 'clipboard', category: 'Client', icon: 'clipboard',
+      title: 'Clipboard API', desc: 'Required for admin email export',
+      run: function() {
+        if (!navigator.clipboard) throw new Error('Clipboard API not available');
+        return 'API available';
+      }
+    },
+    {
+      id: 'fetch', category: 'Client', icon: 'globe',
+      title: 'Fetch API', desc: 'Required for all backend calls',
+      run: function() {
+        if (typeof fetch !== 'function') throw new Error('Fetch not supported');
+        return 'Available';
+      }
+    }
+  ];
+
+  // ── RENDER TEST CARDS ──
+  function renderTests() {
+    var container = document.getElementById('tests-container');
+    container.innerHTML = '';
+
+    var categories = {};
+    TESTS.forEach(function(t) {
+      if (!categories[t.category]) categories[t.category] = [];
+      categories[t.category].push(t);
+    });
+
+    Object.keys(categories).forEach(function(cat) {
+      var catEl = document.createElement('div');
+      catEl.className = 'category';
+      catEl.innerHTML = '<div class="category-title">' + cat + '</div><div class="test-list" id="cat-' + cat + '"></div>';
+      container.appendChild(catEl);
+
+      var list = catEl.querySelector('.test-list');
+      categories[cat].forEach(function(test) {
+        var el = document.createElement('div');
+        el.className = 'test-item checking';
+        el.id = 'test-' + test.id;
+        el.innerHTML = 
+          '<div class="test-icon"><i data-lucide="loader"></i></div>' +
+          '<div class="test-info">' +
+            '<div class="test-title">' + test.title + '</div>' +
+            '<div class="test-desc">' + test.desc + '</div>' +
+            '<div class="test-detail" id="detail-' + test.id + '"></div>' +
+          '</div>' +
+          '<div class="test-status checking" id="status-' + test.id + '"><i data-lucide="loader" style="width:12px;"></i> Checking</div>';
+        list.appendChild(el);
+      });
+    });
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // ── RUN A SINGLE TEST ──
+  async function runTest(test) {
+    var el = document.getElementById('test-' + test.id);
+    var statusEl = document.getElementById('status-' + test.id);
+    var detailEl = document.getElementById('detail-' + test.id);
+    var iconEl = el.querySelector('.test-icon');
+
+    el.className = 'test-item checking';
+    statusEl.className = 'test-status checking';
+    statusEl.innerHTML = '<i data-lucide="loader" style="width:12px;"></i> Checking';
+    detailEl.textContent = '';
+    iconEl.innerHTML = '<i data-lucide="loader"></i>';
+    if (window.lucide) lucide.createIcons();
+
+    try {
+      var result = await Promise.race([
+        Promise.resolve(test.run()),
+        new Promise(function(_, reject) { setTimeout(function() { reject(new Error('Timeout (8s)')); }, 8000); })
+      ]);
+
+      el.className = 'test-item pass';
+      statusEl.className = 'test-status pass';
+      statusEl.innerHTML = '<i data-lucide="check" style="width:12px;"></i> Pass';
+      iconEl.innerHTML = '<i data-lucide="' + test.icon + '"></i>';
+      detailEl.textContent = result || '';
+      return 'pass';
+    } catch (err) {
+      el.className = 'test-item fail';
+      statusEl.className = 'test-status fail';
+      statusEl.innerHTML = '<i data-lucide="x" style="width:12px;"></i> Fail';
+      iconEl.innerHTML = '<i data-lucide="' + test.icon + '"></i>';
+      detailEl.textContent = err.message || String(err);
+      return 'fail';
+    } finally {
+      if (window.lucide) lucide.createIcons();
+    }
+  }
+
+  // ── RUN ALL TESTS ──
+  window.runAllTests = async function() {
+    var btn = document.getElementById('rerun-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader" style="width:16px;"></i> Running...';
+    if (window.lucide) lucide.createIcons();
+
+    document.getElementById('summary').className = 'summary';
+    document.getElementById('summary-title').textContent = 'Running Diagnostics...';
+    document.getElementById('summary-desc').textContent = 'Checking platform health. This takes 5–10 seconds.';
+    document.getElementById('summary-icon').innerHTML = '<i data-lucide="activity"></i>';
+    document.getElementById('count-pass').textContent = '0';
+    document.getElementById('count-warn').textContent = '0';
+    document.getElementById('count-fail').textContent = '0';
+
+    var pass = 0, warn = 0, fail = 0;
+
+    // Run tests sequentially to avoid overwhelming the server
+    for (var i = 0; i < TESTS.length; i++) {
+      var result = await runTest(TESTS[i]);
+      if (result === 'pass') pass++;
+      else if (result === 'warn') warn++;
+      else fail++;
+
+      document.getElementById('count-pass').textContent = pass;
+      document.getElementById('count-warn').textContent = warn;
+      document.getElementById('count-fail').textContent = fail;
+    }
+
+    // Summary
+    var summary = document.getElementById('summary');
+    var title = document.getElementById('summary-title');
+    var desc = document.getElementById('summary-desc');
+    var icon = document.getElementById('summary-icon');
+
+    if (fail > 0) {
+      summary.className = 'summary fail';
+      title.textContent = 'Issues Detected';
+      desc.textContent = fail + ' test(s) failing — check the failed items below before launching.';
+      icon.innerHTML = '<i data-lucide="alert-triangle"></i>';
+    } else if (warn > 0) {
+      summary.className = 'summary warn';
+      title.textContent = 'Mostly Operational';
+      desc.textContent = warn + ' warning(s) — non-blocking, but review before launch.';
+      icon.innerHTML = '<i data-lucide="alert-circle"></i>';
+    } else {
+      summary.className = 'summary pass';
+      title.textContent = 'All Systems Operational';
+      desc.textContent = 'All ' + pass + ' tests passed. Frontend is ready. Run a real R 2.00 purchase to verify backend.';
+      icon.innerHTML = '<i data-lucide="check-circle"></i>';
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="refresh-cw" style="width:16px;"></i> Re-run All Tests';
+    if (window.lucide) lucide.createIcons();
+  };
+
+  // ── BOOT ──
+  document.addEventListener('DOMContentLoaded', function() {
+    renderTests();
+    if (window.lucide) lucide.createIcons();
+    runAllTests();
+  });
+})();
+</script>
+</body>
+      </html>
