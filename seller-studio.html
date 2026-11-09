@@ -265,8 +265,8 @@
   var auth = firebase.auth();
   var db = firebase.firestore();
 
-  // ⚠️ PASTE YOUR IMGBB API KEY HERE
-  var IMGBB_API_KEY = 'YOUR_IMGBB_API_KEY_HERE';
+  // ⚠️ Your Render Backend URL
+  var RENDER_URL = 'https://forestbase.onrender.com';
 
   var currentUser = null;
   var unsubscribeInventory = null;
@@ -424,7 +424,7 @@
       });
   }
 
-  // ADD PRODUCT (Using ImgBB)
+  // ADD PRODUCT (Sending to Render Backend for Cloudinary Upload)
   document.getElementById('add-product-form').addEventListener('submit', function(e) {
     e.preventDefault();
     var btn = document.getElementById('submit-btn');
@@ -435,23 +435,23 @@
     btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Uploading Image...';
     btn.disabled = true;
 
-    // Prepare image for ImgBB
+    // 1. Prepare Form Data
     var formData = new FormData();
     formData.append('image', file);
 
-    // Send to ImgBB API
-    fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, {
+    // 2. Send to Render Secure Backend
+    fetch(RENDER_URL + '/api/upload-image', {
       method: 'POST',
       body: formData
     })
     .then(function(response) { return response.json(); })
     .then(function(data) {
-      if (!data.success) throw new Error('ImgBB upload failed. Check your API key.');
+      if (!data.success) throw new Error(data.error || 'Image upload failed');
       
-      var downloadURL = data.data.url;
+      var downloadURL = data.url; 
       btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Saving Product...';
 
-      // Save to Firestore
+      // 3. Save to Firestore
       var oldPriceVal = document.getElementById('p-old-price').value;
       var badgeVal = document.getElementById('p-badge').value;
 
