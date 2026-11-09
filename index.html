@@ -122,11 +122,11 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .nav-tab.sell-tab{color:var(--ink-black);font-weight:700;}
 .nav-tab.sell-tab svg{width:16px;height:16px;color:var(--bright-lime);}
 
-/* HERO (NOW WITH 12 IMAGES) */
+/* HERO */
 .hero{background:#030407;color:#fff;padding:100px 0 100px;position:relative;overflow:hidden;min-height:600px;display:flex;align-items:center;}
 .hero-bg{position:absolute;inset:0;z-index:0;overflow:hidden}
 .hero-slide{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat;opacity:0;transition:opacity 1.5s ease-in-out, transform 6s linear;transform:scale(1);}
-.hero-slide.active{opacity:.55;transform:scale(1.05);} /* Fades in and slowly zooms */
+.hero-slide.active{opacity:.55;transform:scale(1.05);}
 .hero-overlay{position:absolute;inset:0;z-index:1;background:radial-gradient(circle at 20% 50%, rgba(3,4,7,.95) 0%, rgba(3,4,7,.6) 60%, rgba(3,4,7,.9) 100%),linear-gradient(to top, #030407 0%, transparent 40%);pointer-events:none;}
 
 .hero-in{position:relative;z-index:2;max-width:var(--container);margin:0 auto;padding:0 20px;width:100%;}
@@ -159,6 +159,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .card-img{aspect-ratio:1/1;background:var(--surface-2);background-size:cover;background-position:center;position:relative;}
 .card-badge{position:absolute;top:14px;left:14px;background:var(--ink-black);color:#fff;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
 .card-badge.sale{background:var(--bright-lime);color:var(--ink-black);}
+.card-badge.viral{background:#DB2777;color:#fff;}
 .card-body{padding:20px;display:flex;flex-direction:column;gap:10px;flex:1}
 .card-title{font-size:15px;font-weight:600;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .card-rating{display:flex;align-items:center;gap:4px;font-size:12px;color:#6B7787;}
@@ -252,13 +253,11 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 
     <div class="nav-actions">
       
-      <!-- ADMIN ONLY BUTTONS -->
       <div class="admin-actions" id="admin-actions">
         <a href="admin.html" class="btn-admin"><i data-lucide="shield" style="width:16px;"></i> Admin</a>
         <a href="admin-notifications.html" class="btn-admin"><i data-lucide="bell" style="width:16px;"></i> Broadcast</a>
       </div>
 
-      <!-- NOTIFICATION BELL -->
       <div class="notif-wrapper" id="notif-wrapper">
         <button class="notif-btn" id="notif-btn">
           <i data-lucide="bell" style="width:20px; height:20px;"></i>
@@ -324,13 +323,26 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
   </div>
 </section>
 
+<!-- TRENDING / VIRAL SECTION -->
+<section class="section" id="trending" style="padding-top: 40px; padding-bottom: 0;">
+  <div class="container">
+    <div class="section-head">
+      <h2><i data-lucide="flame" style="color:#DB2777;"></i> As Seen on TikTok (Trending)</h2>
+      <a href="browse.html?filter=viral" class="see-all">See all <i data-lucide="arrow-right" style="width:16px;"></i></a>
+    </div>
+    <div class="grid" id="trendingGrid">
+      <!-- Injected by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ALL PRODUCTS / MAIN SECTION -->
 <section class="section" id="shop">
   <div class="container">
     <div class="section-head">
-      <h2><i data-lucide="flame"></i> Trending Mysteries</h2>
+      <h2><i data-lucide="sparkles"></i> Trending Mysteries</h2>
       <a href="browse.html" class="see-all">See all <i data-lucide="arrow-right" style="width:16px;"></i></a>
     </div>
-    
     <div class="grid" id="productsGrid">
       <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div><div class="sk-line w40"></div></div></div>
       <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div><div class="sk-line w40"></div></div></div>
@@ -538,18 +550,18 @@ function updateCartBadge() {
 
 // --- 12-IMAGE HERO CAROUSEL ---
 var HERO_IMAGES = [
-  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1600&q=80&auto=format&fit=crop', // Abstract Tech
-  'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1600&q=80&auto=format&fit=crop', // Retro Gaming
-  'https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?w=1600&q=80&auto=format&fit=crop', // VR Headset
-  'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&q=80&auto=format&fit=crop', // Tech Workspace
-  'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1600&q=80&auto=format&fit=crop', // Matrix Code
-  'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1600&q=80&auto=format&fit=crop', // Robot
-  'https://images.unsplash.com/photo-1531297172866-3020c13c9d4a?w=1600&q=80&auto=format&fit=crop', // Abstract Lights
-  'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1600&q=80&auto=format&fit=crop', // Circuit Board
-  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1600&q=80&auto=format&fit=crop', // Office
-  'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&q=80&auto=format&fit=crop', // Team
-  'https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=1600&q=80&auto=format&fit=crop', // Neon
-  'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&q=80&auto=format&fit=crop'  // Tech Desk
+  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1600&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1600&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?w=1600&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1600&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1600&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1531297172866-3020c13c9d4a?w=1600&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1600&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1600&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=1600&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&q=80&auto=format&fit=crop'
 ];
 var heroIndex = 0;
 
@@ -566,7 +578,6 @@ function initCarousel(){
     slides.push(slide);
   });
 
-  // Change image every 4 seconds
   setInterval(function(){
     var next = (heroIndex + 1) % slides.length;
     slides.forEach(function(s, idx){ s.classList.toggle('active', idx === next); });
@@ -574,14 +585,87 @@ function initCarousel(){
   }, 4000);
 }
 
-// --- FETCH PRODUCTS ---
-function loadProducts() {
-  var grid = $('productsGrid');
+// --- RENDER SINGLE PRODUCT CARD ---
+function createProductCard(p, index) {
+  var card = document.createElement('div');
+  card.className = 'card-item';
+  card.style.animationDelay = (index * 0.05) + 's';
 
-  db.collection('products').orderBy('createdAt', 'desc').limit(4).get()
+  var badgeHTML = '';
+  if (p.isViral) {
+    badgeHTML = `<span class="card-badge viral">🔥 Trending</span>`;
+  } else if (p.badge) {
+    badgeHTML = `<span class="card-badge ${p.badge.toLowerCase()==='sale'?'sale':''}">${p.badge}</span>`;
+  }
+
+  var priceHTML = p.oldPrice ? `<del>${money(p.oldPrice)}</del> ${money(p.price)}` : money(p.price);
+  
+  // Use Cover Image or fallback
+  var displayImg = p.imageCover || p.imageUrl || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop';
+
+  card.innerHTML = `
+    <div class="card-img" style="background-image:url('${displayImg}')">
+      ${badgeHTML}
+    </div>
+    <div class="card-body">
+      <div class="card-title">${p.name || 'Unnamed Product'}</div>
+      <div class="card-rating">
+        <i data-lucide="star"></i> ${p.rating || 5.0} <span>(${p.reviews || 0})</span>
+      </div>
+      <div class="card-foot">
+        <span class="price">${priceHTML}</span>
+        <button class="btn btn-accent" onclick="event.stopPropagation(); quickAdd('${p.id}', '${p.name}', ${p.price}, '${displayImg}', '${p.sellerId}')">
+          Add
+        </button>
+      </div>
+    </div>
+  `;
+
+  card.addEventListener('click', function(e) {
+    if(e.target.tagName !== 'BUTTON') {
+      window.location.href = 'product.html?id=' + p.id;
+    }
+  });
+
+  return card;
+}
+
+// --- FETCH PRODUCTS (Trending & Main) ---
+function loadProducts() {
+  var trendingGrid = $('trendingGrid');
+  var productsGrid = $('productsGrid');
+
+  // 1. Fetch Trending / Viral Products
+  db.collection('products')
+    .where('isViral', '==', true)
+    .limit(4)
+    .get()
     .then(function(snapshot) {
+      trendingGrid.innerHTML = '';
       if (snapshot.empty) {
-        grid.innerHTML = `
+        // If no viral products, hide the whole section to keep the site clean
+        document.getElementById('trending').style.display = 'none';
+        return;
+      }
+      var index = 0;
+      snapshot.forEach(function(doc) {
+        var p = doc.data();
+        p.id = doc.id;
+        trendingGrid.appendChild(createProductCard(p, index));
+        index++;
+      });
+      refreshIcons();
+    });
+
+  // 2. Fetch Main Products (Newest)
+  db.collection('products')
+    .orderBy('createdAt', 'desc')
+    .limit(4)
+    .get()
+    .then(function(snapshot) {
+      productsGrid.innerHTML = '';
+      if (snapshot.empty) {
+        productsGrid.innerHTML = `
           <div class="empty-state">
             <i data-lucide="ghost"></i>
             <h3>No mysteries found yet</h3>
@@ -591,50 +675,15 @@ function loadProducts() {
         refreshIcons();
         return;
       }
-
-      grid.innerHTML = ''; 
       var index = 0;
-
       snapshot.forEach(function(doc) {
         var p = doc.data();
-        var id = doc.id;
-        var card = document.createElement('div');
-        card.className = 'card-item';
-        card.style.animationDelay = (index * 0.05) + 's';
-
-        var badgeHTML = p.badge ? `<span class="card-badge ${p.badge.toLowerCase()==='sale'?'sale':''}">${p.badge}</span>` : '';
-        var priceHTML = p.oldPrice ? `<del>${money(p.oldPrice)}</del> ${money(p.price)}` : money(p.price);
-        
-        card.innerHTML = `
-          <div class="card-img" style="background-image:url('${p.imageUrl || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop'}')">
-            ${badgeHTML}
-          </div>
-          <div class="card-body">
-            <div class="card-title">${p.name || 'Unnamed Product'}</div>
-            <div class="card-rating">
-              <i data-lucide="star"></i> ${p.rating || 5.0} <span>(${p.reviews || 0})</span>
-            </div>
-            <div class="card-foot">
-              <span class="price">${priceHTML}</span>
-              <button class="btn btn-accent" onclick="event.stopPropagation(); quickAdd('${id}', '${p.name}', ${p.price}, '${p.imageUrl}', '${p.sellerId}')">
-                Add
-              </button>
-            </div>
-          </div>
-        `;
-
-        card.addEventListener('click', function(e) {
-          if(e.target.tagName !== 'BUTTON') {
-            window.location.href = 'product.html?id=' + id;
-          }
-        });
-
-        grid.appendChild(card);
+        p.id = doc.id;
+        productsGrid.appendChild(createProductCard(p, index));
         index++;
       });
       refreshIcons();
-    })
-    .catch(function(error) { console.error("Error fetching products: ", error); });
+    });
 }
 
 // --- QUICK ADD TO CART ---
@@ -660,4 +709,4 @@ document.addEventListener('DOMContentLoaded', function(){
 })();
 </script>
 </body>
-        </html>
+</html>
