@@ -114,10 +114,12 @@
       FOREST<span>BASE</span>
     </a>
 
+    <!-- ADMIN NAVIGATION -->
     <div class="nav-menu">
       <div class="nav-item active" data-target="tab-overview"><i data-lucide="shield-check"></i> Command Center</div>
       <div class="nav-item" data-target="tab-products"><i data-lucide="package"></i> Manage Products</div>
       <a href="admin-payments.html" class="nav-item"><i data-lucide="banknote"></i> Payments & Payouts</a>
+      <a href="admin-emails.html" class="nav-item"><i data-lucide="mail"></i> Email Marketing</a>
       <a href="admin-notifications.html" class="nav-item"><i data-lucide="bell"></i> Broadcast Notifications</a>
       <a href="index.html" class="nav-item"><i data-lucide="store"></i> View Storefront</a>
     </div>
@@ -271,7 +273,7 @@
     });
   }
 
-  // --- LOAD RECENT ORDERS ---
+  // --- LOAD RECENT ORDERS (WITH FULL DELIVERY INFO) ---
   function loadRecentOrders() {
     var tbody = document.getElementById('orders-body');
     db.collection('orders').orderBy('createdAt', 'desc').limit(10).get().then(function(snapshot) {
