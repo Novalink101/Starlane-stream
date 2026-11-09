@@ -16,25 +16,48 @@
 
 <style>
   :root { 
-    --ink-black: #030407; --silver-glass: #AAB0C4; --bright-lime: #A3FF12;
-    --surface: #FFFFFF; --surface-2: #F1F3F7; --border: #E2E5EB;
-    --text: #111827; --text-muted: #6B7280; --danger: #DC2626; --success: #059669;
-    --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', system-ui, sans-serif; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --ink-black: #030407;
+    --silver-glass: #AAB0C4;
+    --bright-lime: #A3FF12;
+    
+    --surface: #FFFFFF;
+    --surface-2: #F1F3F7;
+    --border: #E2E5EB;
+    --text: #111827;
+    --text-muted: #6B7280;
+    --danger: #DC2626;
+    --success: #059669;
+    
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #FAFBFC; color: var(--text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; flex-direction: column; }
+  body { 
+    background: #FAFBFC; 
+    color: var(--text); 
+    font-family: var(--font-body); 
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
   a { text-decoration: none; color: inherit; }
   
   .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; width: 100%; flex: 1; }
+
+  /* NAVBAR */
   .nav { background: var(--ink-black); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
   .nav-brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: #fff; letter-spacing:-0.03em; }
   .nav-brand svg { width: 28px; height: 34px; }
   .nav-back { color: var(--silver-glass); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
   .nav-back:hover { color: var(--bright-lime); }
 
+  /* DASHBOARD LAYOUT */
   .dashboard { display: grid; grid-template-columns: 280px 1fr; gap: 32px; align-items: start; }
   @media (max-width: 800px) { .dashboard { grid-template-columns: 1fr; } }
 
+  /* Sidebar */
   .sidebar { background: #fff; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
   .profile-card { padding: 32px 24px; text-align: center; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #fff 0%, #f9fafb 100%); }
   .avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--ink-black); color: var(--bright-lime); font-family: var(--font-display); font-size: 32px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
@@ -48,6 +71,7 @@
   .nav-item.active { background: var(--ink-black); color: var(--bright-lime); }
   .nav-item svg { width: 18px; height: 18px; }
 
+  /* Main Content */
   .content-area { display: flex; flex-direction: column; gap: 24px; }
   .page-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--ink-black); margin-bottom: 8px; }
   .page-sub { font-size: 15px; color: var(--text-muted); margin-bottom: 24px; }
@@ -66,10 +90,13 @@
   .order-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
   .order-id { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--ink-black); }
   .order-date { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  
+  /* ORDER STATUS BADGES */
   .order-status { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
   .status-pending { background: #FEF3C7; color: #D97706; }
   .status-paid { background: rgba(163,255,18,0.15); color: #5c9e00; }
   .status-shipped { background: #DBEAFE; color: #2563EB; }
+  .status-cancelled { background: #FEF2F2; color: #DC2626; }
 
   .order-items-list { display: flex; flex-direction: column; gap: 12px; }
   .order-item { display: flex; align-items: center; gap: 16px; }
@@ -329,7 +356,11 @@
       snapshot.forEach(function(doc) {
         var order = doc.data();
         var dateStr = order.createdAt ? order.createdAt.toDate().toLocaleDateString('en-ZA') : 'Just now';
-        var statusClass = order.status === 'paid' ? 'status-paid' : (order.status === 'shipped' ? 'status-shipped' : 'status-pending');
+        
+        var statusClass = 'status-pending';
+        if (order.status === 'paid') statusClass = 'status-paid';
+        if (order.status === 'shipped') statusClass = 'status-shipped';
+        if (order.status === 'cancelled') statusClass = 'status-cancelled';
         
         container.innerHTML += `
           <div class="order-card">
@@ -376,7 +407,12 @@
       snapshot.forEach(function(doc) {
         var order = doc.data();
         var dateStr = order.createdAt ? order.createdAt.toDate().toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Just now';
-        var statusClass = order.status === 'paid' ? 'status-paid' : (order.status === 'shipped' ? 'status-shipped' : 'status-pending');
+        
+        var statusClass = 'status-pending';
+        if (order.status === 'paid') statusClass = 'status-paid';
+        if (order.status === 'shipped') statusClass = 'status-shipped';
+        if (order.status === 'cancelled') statusClass = 'status-cancelled';
+        
         var itemsHTML = '';
         order.items.forEach(function(item) {
           itemsHTML += `
@@ -475,4 +511,4 @@
 })();
 </script>
 </body>
-              </html>
+</html>
