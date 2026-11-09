@@ -13,7 +13,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
 <style>
   :root { 
@@ -265,7 +264,9 @@
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var auth = firebase.auth();
   var db = firebase.firestore();
-  var storage = firebase.storage();
+
+  // ⚠️ PASTE YOUR IMGBB API KEY HERE
+  var IMGBB_API_KEY = 'YOUR_IMGBB_API_KEY_HERE';
 
   var currentUser = null;
   var unsubscribeInventory = null;
@@ -306,7 +307,7 @@
     }
   });
 
-  // IMAGE UPLOAD
+  // IMAGE UPLOAD PREVIEW
   var fileInput = document.getElementById('p-image-file');
   var uploadZone = document.getElementById('upload-zone');
   var uploadPreview = document.getElementById('upload-preview');
@@ -391,7 +392,6 @@
           if (order.status === 'shipped') statusClass = 'status-shipped';
           if (order.status === 'cancelled') statusClass = 'status-cancelled';
 
-          // DELIVERY MAP LINK LOGIC
           var mapLink = order.deliveryLat ? `
             <a href="https://www.google.com/maps/search/?api=1&query=${order.deliveryLat},${order.deliveryLng}" target="_blank" class="btn-action btn-map">
               <i data-lucide="map-pin" style="width:12px;"></i> View Map
@@ -424,7 +424,7 @@
       });
   }
 
-  // ADD PRODUCT
+  // ADD PRODUCT (Using ImgBB)
   document.getElementById('add-product-form').addEventListener('submit', function(e) {
     e.preventDefault();
     var btn = document.getElementById('submit-btn');
@@ -435,58 +435,62 @@
     btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Uploading Image...';
     btn.disabled = true;
 
-    var storageRef = storage.ref('products/' + Date.now() + '_' + file.name);
-    var uploadTask = storageRef.put(file);
+    // Prepare image for ImgBB
+    var formData = new FormData();
+    formData.append('image', file);
 
-    uploadTask.on('state_changed', null, 
-      function(error) {
-        alert("Image upload failed: " + error.message);
+    // Send to ImgBB API
+    fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, {
+      method: 'POST',
+      body: formData
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+      if (!data.success) throw new Error('ImgBB upload failed. Check your API key.');
+      
+      var downloadURL = data.data.url;
+      btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Saving Product...';
+
+      // Save to Firestore
+      var oldPriceVal = document.getElementById('p-old-price').value;
+      var badgeVal = document.getElementById('p-badge').value;
+
+      return db.collection('products').add({
+        sellerId: currentUser.uid,
+        sellerEmail: currentUser.email,
+        name: document.getElementById('p-name').value,
+        category: document.getElementById('p-category').value,
+        price: parseFloat(document.getElementById('p-price').value),
+        oldPrice: oldPriceVal ? parseFloat(oldPriceVal) : null,
+        imageUrl: downloadURL,
+        description: document.getElementById('p-desc').value,
+        badge: badgeVal ? badgeVal : null,
+        rating: 5.0,
+        reviews: 0,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    })
+    .then(function() {
+      document.getElementById('add-product-form').reset();
+      uploadPreview.style.display = 'none';
+      uploadContent.style.display = 'block';
+      btn.innerHTML = '<i data-lucide="check"></i> Published!';
+      btn.style.background = 'var(--bright-lime)';
+      refreshIcons();
+      setTimeout(function() {
         btn.innerHTML = '<i data-lucide="upload-cloud"></i> Publish Product';
+        btn.style.background = 'var(--ink-black)';
         btn.disabled = false;
         refreshIcons();
-      }, 
-      function() {
-        uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
-          btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Saving Product...';
-
-          var oldPriceVal = document.getElementById('p-old-price').value;
-          var badgeVal = document.getElementById('p-badge').value;
-
-          db.collection('products').add({
-            sellerId: currentUser.uid,
-            sellerEmail: currentUser.email,
-            name: document.getElementById('p-name').value,
-            category: document.getElementById('p-category').value,
-            price: parseFloat(document.getElementById('p-price').value),
-            oldPrice: oldPriceVal ? parseFloat(oldPriceVal) : null,
-            imageUrl: downloadURL,
-            description: document.getElementById('p-desc').value,
-            badge: badgeVal ? badgeVal : null,
-            rating: 5.0,
-            reviews: 0,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          }).then(function() {
-            document.getElementById('add-product-form').reset();
-            uploadPreview.style.display = 'none';
-            uploadContent.style.display = 'block';
-            btn.innerHTML = '<i data-lucide="check"></i> Published!';
-            btn.style.background = 'var(--bright-lime)';
-            refreshIcons();
-            setTimeout(function() {
-              btn.innerHTML = '<i data-lucide="upload-cloud"></i> Publish Product';
-              btn.style.background = 'var(--ink-black)';
-              btn.disabled = false;
-              refreshIcons();
-            }, 2500);
-          }).catch(function(error) {
-            alert("Failed to save product: " + error.message);
-            btn.innerHTML = '<i data-lucide="upload-cloud"></i> Publish Product';
-            btn.disabled = false;
-            refreshIcons();
-          });
-        });
-      }
-    );
+      }, 2500);
+    })
+    .catch(function(error) {
+      console.error(error);
+      alert("Failed to publish product: " + error.message);
+      btn.innerHTML = '<i data-lucide="upload-cloud"></i> Publish Product';
+      btn.disabled = false;
+      refreshIcons();
+    });
   });
 
   window.deleteProduct = function(id) {
