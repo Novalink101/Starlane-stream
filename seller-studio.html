@@ -118,10 +118,12 @@
   .status-cancelled { background: #FEF2F2; color: #DC2626; }
   .status-viral { background: #FDF2F8; color: #DB2777; }
 
-  .btn-action { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: var(--bright-lime); color: var(--ink-black); transition: 0.2s; display: inline-flex; align-items: center; gap: 4px; }
+  .btn-action { padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: var(--bright-lime); color: var(--ink-black); transition: 0.2s; display: inline-flex; align-items: center; gap: 4px; }
   .btn-action:hover { background: #BDFF53; }
   .btn-map { background: #F3F4F6; color: var(--ink-black); }
   .btn-map:hover { background: #E5E7EB; }
+  .btn-print { background: #fff; border: 1px solid var(--border); color: var(--ink-black); }
+  .btn-print:hover { border-color: var(--ink-black); }
   .btn-cancel { background: #FEF2F2; color: var(--danger); }
   .btn-cancel:hover { background: var(--danger); color: #fff; }
   
@@ -139,263 +141,83 @@
 </head>
 <body>
 
-<div id="loader">
-  <div class="spinner"></div>
-  Connecting to Seller Database...
-</div>
+<div id="loader"><div class="spinner"></div>Connecting to Seller Database...</div>
 
 <!-- FULL EDIT PRODUCT MODAL -->
 <div class="modal-overlay" id="edit-modal">
   <div class="modal-content">
     <button class="modal-close" onclick="closeEditModal()"><i data-lucide="x" style="width:18px;"></i></button>
     <h2 class="modal-title">Edit Product</h2>
-    
     <form id="edit-product-form">
       <input type="hidden" id="edit-p-id" />
-      
       <div class="form-grid">
-        <div class="form-group full-width">
-          <label>Product Name</label>
-          <input type="text" id="edit-p-name" required />
-        </div>
-
-        <div class="form-group">
-          <label>Category</label>
-          <select id="edit-p-category">
-            <option>Electronics</option>
-            <option>Future Tech</option>
-            <option>Mystery Drops</option>
-            <option>Fashion Accessories & Jewelry</option>
-            <option>Tech & Phone Accessories</option>
-            <option>Home & Kitchen Gadgets</option>
-            <option>Beauty & Personal Care</option>
-            <option>Pet Supplies</option>
-            <option>Fitness & Wellness</option>
-            <option>Baby & Kids Accessories</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Ships From</label>
-          <select id="edit-p-ships-from">
-            <option value="South Africa (Local)">South Africa (Local)</option>
-            <option value="China (Asia)">China (Asia)</option>
-            <option value="USA">USA</option>
-            <option value="Europe">Europe</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Current Price (ZAR)</label>
-          <input type="number" id="edit-p-price" required min="1" step="0.01" />
-        </div>
-        <div class="form-group">
-          <label>Old Price (Optional)</label>
-          <input type="number" id="edit-p-old-price" min="1" step="0.01" />
-        </div>
-
-        <div class="form-group">
-          <label>Badge (Optional)</label>
-          <select id="edit-p-badge">
-            <option value="">None (Remove Badge)</option>
-            <option value="Sale">Sale</option>
-            <option value="New">New</option>
-            <option value="Mystery Drop">Mystery Drop</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Marketing Boost</label>
-          <div class="checkbox-group">
-            <input type="checkbox" id="edit-p-is-viral" />
-            <label for="edit-p-is-viral">🔥 Boost as Trending / Viral</label>
-          </div>
-        </div>
-
-        <div class="form-group full-width">
-          <label>External Link (Optional)</label>
-          <input type="url" id="edit-p-external-link" placeholder="https://instagram.com/yourstore" />
-        </div>
-
+        <div class="form-group full-width"><label>Product Name</label><input type="text" id="edit-p-name" required /></div>
+        <div class="form-group"><label>Category</label><select id="edit-p-category"><option>Electronics</option><option>Future Tech</option><option>Mystery Drops</option><option>Fashion Accessories & Jewelry</option><option>Tech & Phone Accessories</option><option>Home & Kitchen Gadgets</option><option>Beauty & Personal Care</option><option>Pet Supplies</option><option>Fitness & Wellness</option><option>Baby & Kids Accessories</option></select></div>
+        <div class="form-group"><label>Ships From</label><select id="edit-p-ships-from"><option value="South Africa (Local)">South Africa (Local)</option><option value="China (Asia)">China (Asia)</option><option value="USA">USA</option><option value="Europe">Europe</option></select></div>
+        <div class="form-group"><label>Current Price (ZAR)</label><input type="number" id="edit-p-price" required min="1" step="0.01" /></div>
+        <div class="form-group"><label>Old Price (Optional)</label><input type="number" id="edit-p-old-price" min="1" step="0.01" /></div>
+        <div class="form-group"><label>Badge (Optional)</label><select id="edit-p-badge"><option value="">None (Remove Badge)</option><option value="Sale">Sale</option><option value="New">New</option><option value="Mystery Drop">Mystery Drop</option></select></div>
+        <div class="form-group"><label>Marketing Boost</label><div class="checkbox-group"><input type="checkbox" id="edit-p-is-viral" /><label for="edit-p-is-viral">🔥 Boost as Trending / Viral</label></div></div>
+        <div class="form-group full-width"><label>External Link (Optional)</label><input type="url" id="edit-p-external-link" placeholder="https://instagram.com/yourstore" /></div>
         <div class="form-group full-width">
           <label>Product Images (Click to replace, or hover to Remove)</label>
           <div class="image-upload-row">
-            
-            <div class="upload-zone" id="edit-zone-cover">
-              <input type="file" id="edit-file-cover" accept="image/*" />
-              <div class="upload-preview" id="edit-preview-cover">
-                <button type="button" class="btn-remove-img" onclick="removeImage(event, 'cover')"><i data-lucide="x" style="width:14px;"></i></button>
-              </div>
-              <div id="edit-content-cover"><i data-lucide="image"></i><p>Cover Image</p></div>
-            </div>
-
-            <div class="upload-zone" id="edit-zone-front">
-              <input type="file" id="edit-file-front" accept="image/*" />
-              <div class="upload-preview" id="edit-preview-front">
-                <button type="button" class="btn-remove-img" onclick="removeImage(event, 'front')"><i data-lucide="x" style="width:14px;"></i></button>
-              </div>
-              <div id="edit-content-front"><i data-lucide="camera"></i><p>Front View</p></div>
-            </div>
-
-            <div class="upload-zone" id="edit-zone-back">
-              <input type="file" id="edit-file-back" accept="image/*" />
-              <div class="upload-preview" id="edit-preview-back">
-                <button type="button" class="btn-remove-img" onclick="removeImage(event, 'back')"><i data-lucide="x" style="width:14px;"></i></button>
-              </div>
-              <div id="edit-content-back"><i data-lucide="camera"></i><p>Back View</p></div>
-            </div>
-
+            <div class="upload-zone" id="edit-zone-cover"><input type="file" id="edit-file-cover" accept="image/*" /><div class="upload-preview" id="edit-preview-cover"><button type="button" class="btn-remove-img" onclick="removeImage(event, 'cover')"><i data-lucide="x" style="width:14px;"></i></button></div><div id="edit-content-cover"><i data-lucide="image"></i><p>Cover Image</p></div></div>
+            <div class="upload-zone" id="edit-zone-front"><input type="file" id="edit-file-front" accept="image/*" /><div class="upload-preview" id="edit-preview-front"><button type="button" class="btn-remove-img" onclick="removeImage(event, 'front')"><i data-lucide="x" style="width:14px;"></i></button></div><div id="edit-content-front"><i data-lucide="camera"></i><p>Front View</p></div></div>
+            <div class="upload-zone" id="edit-zone-back"><input type="file" id="edit-file-back" accept="image/*" /><div class="upload-preview" id="edit-preview-back"><button type="button" class="btn-remove-img" onclick="removeImage(event, 'back')"><i data-lucide="x" style="width:14px;"></i></button></div><div id="edit-content-back"><i data-lucide="camera"></i><p>Back View</p></div></div>
           </div>
         </div>
-
-        <div class="form-group full-width">
-          <label>Description</label>
-          <textarea id="edit-p-desc" required></textarea>
-        </div>
+        <div class="form-group full-width"><label>Description</label><textarea id="edit-p-desc" required></textarea></div>
       </div>
-
-      <button type="submit" class="btn-submit" id="edit-submit-btn" style="width: 100%; justify-content: center;">
-        <i data-lucide="save"></i> Save All Changes
-      </button>
+      <button type="submit" class="btn-submit" id="edit-submit-btn" style="width: 100%; justify-content: center;"><i data-lucide="save"></i> Save All Changes</button>
     </form>
   </div>
 </div>
 
 <div class="dashboard-wrapper" id="dashboard" style="display: none;">
-  
   <aside class="sidebar">
-    <a href="index.html" class="nav-brand">
-      <svg viewBox="0 0 60 74"><path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" /><path d="M30 22 L44 46 H16 Z" fill="#A3FF12" /><path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" /><path d="M20 56 H40 V60 H20 Z" fill="#030407" /></svg>
-      FOREST<span>BASE</span>
-    </a>
-
+    <a href="index.html" class="nav-brand"><svg viewBox="0 0 60 74"><path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" /><path d="M30 22 L44 46 H16 Z" fill="#A3FF12" /><path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" /><path d="M20 56 H40 V60 H20 Z" fill="#030407" /></svg>FOREST<span>BASE</span></a>
     <div class="nav-menu">
       <div class="nav-item active" data-target="tab-inventory"><i data-lucide="package"></i> My Products</div>
       <div class="nav-item" data-target="tab-orders"><i data-lucide="shopping-bag"></i> Orders</div>
     </div>
-
-    <div class="sidebar-bottom">
-      <a href="index.html" class="nav-item"><i data-lucide="arrow-left"></i> Back to Shop</a>
-    </div>
+    <div class="sidebar-bottom"><a href="index.html" class="nav-item"><i data-lucide="arrow-left"></i> Back to Shop</a></div>
   </aside>
 
   <main class="main-content">
     <div class="page-header">
-      <div>
-        <h1 class="page-title">Seller Studio</h1>
-        <p class="page-sub">Welcome back, <span id="seller-name" style="font-weight:600; color:var(--ink-black);">Loading...</span></p>
-      </div>
+      <div><h1 class="page-title">Seller Studio</h1><p class="page-sub">Welcome back, <span id="seller-name" style="font-weight:600; color:var(--ink-black);">Loading...</span></p></div>
     </div>
 
     <div id="tab-inventory" class="tab-content active">
       <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-title">Live Products</div>
-          <div class="stat-value" id="stat-products">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-title">Total Inventory Value</div>
-          <div class="stat-value" id="stat-value">R 0.00</div>
-        </div>
+        <div class="stat-card"><div class="stat-title">Live Products</div><div class="stat-value" id="stat-products">0</div></div>
+        <div class="stat-card"><div class="stat-title">Total Inventory Value</div><div class="stat-value" id="stat-value">R 0.00</div></div>
       </div>
 
       <div class="panel">
         <h2 class="panel-title"><i data-lucide="plus-circle"></i> Publish New Product</h2>
         <form id="add-product-form">
           <div class="form-grid">
-            
-            <div class="form-group full-width">
-              <label>Product Name</label>
-              <input type="text" id="p-name" placeholder="e.g. Cyberpunk LED Desk Mat" required />
-            </div>
-            
-            <div class="form-group">
-              <label>Category</label>
-              <select id="p-category">
-                <option value="">Select Category</option>
-                <option>Electronics</option>
-                <option>Future Tech</option>
-                <option>Mystery Drops</option>
-                <option>Fashion Accessories & Jewelry</option>
-                <option>Tech & Phone Accessories</option>
-                <option>Home & Kitchen Gadgets</option>
-                <option>Beauty & Personal Care</option>
-                <option>Pet Supplies</option>
-                <option>Fitness & Wellness</option>
-                <option>Baby & Kids Accessories</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Ships From</label>
-              <select id="p-ships-from">
-                <option value="South Africa (Local)">South Africa (Local)</option>
-                <option value="China (Asia)">China (Asia)</option>
-                <option value="USA">USA</option>
-                <option value="Europe">Europe</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Current Price (ZAR)</label>
-              <input type="number" id="p-price" placeholder="R 0.00" required min="1" step="0.01" />
-            </div>
-            <div class="form-group">
-              <label>Old Price (Optional)</label>
-              <input type="number" id="p-old-price" placeholder="R 0.00" min="1" step="0.01" />
-            </div>
-
-            <div class="form-group">
-              <label>Badge (Optional)</label>
-              <select id="p-badge">
-                <option value="">None</option>
-                <option value="Sale">Sale</option>
-                <option value="New">New</option>
-                <option value="Mystery Drop">Mystery Drop</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Marketing Boost</label>
-              <div class="checkbox-group">
-                <input type="checkbox" id="p-is-viral" />
-                <label for="p-is-viral">🔥 Boost as Trending / Viral</label>
-              </div>
-            </div>
-
-            <div class="form-group full-width">
-              <label>External Link (Optional)</label>
-              <input type="url" id="p-external-link" placeholder="https://instagram.com/yourstore" />
-            </div>
-
+            <div class="form-group full-width"><label>Product Name</label><input type="text" id="p-name" placeholder="e.g. Cyberpunk LED Desk Mat" required /></div>
+            <div class="form-group"><label>Category</label><select id="p-category"><option value="">Select Category</option><option>Electronics</option><option>Future Tech</option><option>Mystery Drops</option><option>Fashion Accessories & Jewelry</option><option>Tech & Phone Accessories</option><option>Home & Kitchen Gadgets</option><option>Beauty & Personal Care</option><option>Pet Supplies</option><option>Fitness & Wellness</option><option>Baby & Kids Accessories</option></select></div>
+            <div class="form-group"><label>Ships From</label><select id="p-ships-from"><option value="South Africa (Local)">South Africa (Local)</option><option value="China (Asia)">China (Asia)</option><option value="USA">USA</option><option value="Europe">Europe</option></select></div>
+            <div class="form-group"><label>Current Price (ZAR)</label><input type="number" id="p-price" placeholder="R 0.00" required min="1" step="0.01" /></div>
+            <div class="form-group"><label>Old Price (Optional)</label><input type="number" id="p-old-price" placeholder="R 0.00" min="1" step="0.01" /></div>
+            <div class="form-group"><label>Badge (Optional)</label><select id="p-badge"><option value="">None</option><option value="Sale">Sale</option><option value="New">New</option><option value="Mystery Drop">Mystery Drop</option></select></div>
+            <div class="form-group"><label>Marketing Boost</label><div class="checkbox-group"><input type="checkbox" id="p-is-viral" /><label for="p-is-viral">🔥 Boost as Trending / Viral</label></div></div>
+            <div class="form-group full-width"><label>External Link (Optional)</label><input type="url" id="p-external-link" placeholder="https://instagram.com/yourstore" /></div>
             <div class="form-group full-width">
               <label>Product Images</label>
               <div class="image-upload-row">
-                <div class="upload-zone" id="zone-cover">
-                  <input type="file" id="file-cover" accept="image/*" required />
-                  <div class="upload-preview" id="preview-cover"></div>
-                  <div id="content-cover"><i data-lucide="image"></i><p>Cover Image</p><span>(Main Display)</span></div>
-                </div>
-                <div class="upload-zone" id="zone-front">
-                  <input type="file" id="file-front" accept="image/*" />
-                  <div class="upload-preview" id="preview-front"></div>
-                  <div id="content-front"><i data-lucide="camera"></i><p>Front View</p><span>(Optional)</span></div>
-                </div>
-                <div class="upload-zone" id="zone-back">
-                  <input type="file" id="file-back" accept="image/*" />
-                  <div class="upload-preview" id="preview-back"></div>
-                  <div id="content-back"><i data-lucide="camera"></i><p>Back View</p><span>(Optional)</span></div>
-                </div>
+                <div class="upload-zone" id="zone-cover"><input type="file" id="file-cover" accept="image/*" required /><div class="upload-preview" id="preview-cover"></div><div id="content-cover"><i data-lucide="image"></i><p>Cover Image</p><span>(Main Display)</span></div></div>
+                <div class="upload-zone" id="zone-front"><input type="file" id="file-front" accept="image/*" /><div class="upload-preview" id="preview-front"></div><div id="content-front"><i data-lucide="camera"></i><p>Front View</p><span>(Optional)</span></div></div>
+                <div class="upload-zone" id="zone-back"><input type="file" id="file-back" accept="image/*" /><div class="upload-preview" id="preview-back"></div><div id="content-back"><i data-lucide="camera"></i><p>Back View</p><span>(Optional)</span></div></div>
               </div>
             </div>
-
-            <div class="form-group full-width">
-              <label>Description</label>
-              <textarea id="p-desc" placeholder="Describe the product..." required></textarea>
-            </div>
+            <div class="form-group full-width"><label>Description</label><textarea id="p-desc" placeholder="Describe the product..." required></textarea></div>
           </div>
-          
-          <button type="submit" class="btn-submit" id="submit-btn">
-            <i data-lucide="upload-cloud"></i> Publish Product
-          </button>
+          <button type="submit" class="btn-submit" id="submit-btn"><i data-lucide="upload-cloud"></i> Publish Product</button>
         </form>
       </div>
 
@@ -415,482 +237,266 @@
         <h2 class="panel-title"><i data-lucide="truck"></i> Orders to Fulfill</h2>
         <div class="table-wrapper">
           <table>
-            <thead>
-              <tr><th>Order ID</th><th>Buyer</th><th>Item</th><th>Total</th><th>Status</th><th>Action</th></tr>
-            </thead>
+            <thead><tr><th>Order ID</th><th>Buyer</th><th>Item</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
             <tbody id="orders-body"></tbody>
           </table>
         </div>
       </div>
     </div>
-
   </main>
 </div>
 
 <script>
 (function(){
-  var firebaseConfig = {
-    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
-    authDomain: "starlane-stream.firebaseapp.com",
-    projectId: "starlane-stream",
-    storageBucket: "starlane-stream.firebasestorage.app",
-    messagingSenderId: "115625325145",
-    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
-  };
+  var firebaseConfig = { apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk", authDomain: "starlane-stream.firebaseapp.com", projectId: "starlane-stream", storageBucket: "starlane-stream.firebasestorage.app", messagingSenderId: "115625325145", appId: "1:115625325145:web:b14025df503bbe2b7d7748" };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-  var auth = firebase.auth();
-  var db = firebase.firestore();
+  var auth = firebase.auth(); var db = firebase.firestore();
 
-  var currentUser = null;
-  var unsubscribeInventory = null;
-  var unsubscribeOrders = null;
-  var currentEditProduct = null;
-  
-  // SECURITY FIX: Global object to store products safely without inline string issues
+  var currentUser = null; var unsubscribeInventory = null; var unsubscribeOrders = null; var currentEditProduct = null;
   window.inventoryData = {}; 
 
   function money(v){ return 'R ' + parseFloat(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function refreshIcons(){if(window.lucide)lucide.createIcons();}
 
-  var navItems = document.querySelectorAll('.nav-item[data-target]');
-  var tabContents = document.querySelectorAll('.tab-content');
-  navItems.forEach(function(item) {
-    item.addEventListener('click', function() {
-      navItems.forEach(function(nav) { nav.classList.remove('active'); });
-      tabContents.forEach(function(content) { content.classList.remove('active'); });
-      this.classList.add('active');
-      document.getElementById(this.getAttribute('data-target')).classList.add('active');
-    });
-  });
+  var navItems = document.querySelectorAll('.nav-item[data-target]'); var tabContents = document.querySelectorAll('.tab-content');
+  navItems.forEach(function(item) { item.addEventListener('click', function() { navItems.forEach(function(nav) { nav.classList.remove('active'); }); tabContents.forEach(function(content) { content.classList.remove('active'); }); this.classList.add('active'); document.getElementById(this.getAttribute('data-target')).classList.add('active'); }); });
 
   auth.onAuthStateChanged(function(user) {
-    if (!user) {
-      window.location.href = 'login.html?redirect=seller-studio.html';
-    } else {
-      currentUser = user;
-      document.getElementById('seller-name').textContent = user.displayName || user.email.split('@')[0];
-      
-      document.getElementById('loader').style.opacity = '0';
-      setTimeout(function() {
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'flex';
-        refreshIcons();
-      }, 400);
-
-      listenToInventory();
-      listenToOrders();
+    if (!user) { window.location.href = 'login.html?redirect=seller-studio.html'; }
+    else {
+      currentUser = user; document.getElementById('seller-name').textContent = user.displayName || user.email.split('@')[0];
+      document.getElementById('loader').style.opacity = '0'; setTimeout(function() { document.getElementById('loader').style.display = 'none'; document.getElementById('dashboard').style.display = 'flex'; refreshIcons(); }, 400);
+      listenToInventory(); listenToOrders();
     }
   });
 
   function setupImagePreview(fileId, zoneId, previewId, contentId) {
-    var fileInput = document.getElementById(fileId);
-    var uploadZone = document.getElementById(zoneId);
-    var uploadPreview = document.getElementById(previewId);
-    var uploadContent = document.getElementById(contentId);
-
-    uploadZone.addEventListener('click', function(e) { 
-      if (e.target.tagName !== 'BUTTON') { fileInput.click(); }
-    });
+    var fileInput = document.getElementById(fileId); var uploadZone = document.getElementById(zoneId); var uploadPreview = document.getElementById(previewId); var uploadContent = document.getElementById(contentId);
+    uploadZone.addEventListener('click', function(e) { if (e.target.tagName !== 'BUTTON') { fileInput.click(); } });
     fileInput.addEventListener('change', function(e) {
       var file = e.target.files[0];
-      if (file) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-          uploadPreview.style.backgroundImage = `url('${e.target.result}')`;
-          uploadPreview.style.display = 'block';
-          uploadContent.style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-      }
+      if (file) { var reader = new FileReader(); reader.onload = function(e) { uploadPreview.style.backgroundImage = `url('${e.target.result}')`; uploadPreview.style.display = 'block'; uploadContent.style.display = 'none'; }; reader.readAsDataURL(file); }
     });
   }
-  setupImagePreview('file-cover', 'zone-cover', 'preview-cover', 'content-cover');
-  setupImagePreview('file-front', 'zone-front', 'preview-front', 'content-front');
-  setupImagePreview('file-back', 'zone-back', 'preview-back', 'content-back');
-  setupImagePreview('edit-file-cover', 'edit-zone-cover', 'edit-preview-cover', 'edit-content-cover');
-  setupImagePreview('edit-file-front', 'edit-zone-front', 'edit-preview-front', 'edit-content-front');
-  setupImagePreview('edit-file-back', 'edit-zone-back', 'edit-preview-back', 'edit-content-back');
+  setupImagePreview('file-cover', 'zone-cover', 'preview-cover', 'content-cover'); setupImagePreview('file-front', 'zone-front', 'preview-front', 'content-front'); setupImagePreview('file-back', 'zone-back', 'preview-back', 'content-back');
+  setupImagePreview('edit-file-cover', 'edit-zone-cover', 'edit-preview-cover', 'edit-content-cover'); setupImagePreview('edit-file-front', 'edit-zone-front', 'edit-preview-front', 'edit-content-front'); setupImagePreview('edit-file-back', 'edit-zone-back', 'edit-preview-back', 'edit-content-back');
 
   window.removeImage = function(event, type) {
     event.stopPropagation();
-    if (type === 'cover') {
-      document.getElementById('edit-file-cover').value = '';
-      document.getElementById('edit-preview-cover').style.backgroundImage = 'none';
-      document.getElementById('edit-preview-cover').style.display = 'none';
-      document.getElementById('edit-content-cover').style.display = 'block';
-    } else if (type === 'front') {
-      document.getElementById('edit-file-front').value = '';
-      document.getElementById('edit-preview-front').style.backgroundImage = 'none';
-      document.getElementById('edit-preview-front').style.display = 'none';
-      document.getElementById('edit-content-front').style.display = 'block';
-    } else if (type === 'back') {
-      document.getElementById('edit-file-back').value = '';
-      document.getElementById('edit-preview-back').style.backgroundImage = 'none';
-      document.getElementById('edit-preview-back').style.display = 'none';
-      document.getElementById('edit-content-back').style.display = 'block';
-    }
+    if (type === 'cover') { document.getElementById('edit-file-cover').value = ''; document.getElementById('edit-preview-cover').style.backgroundImage = 'none'; document.getElementById('edit-preview-cover').style.display = 'none'; document.getElementById('edit-content-cover').style.display = 'block'; }
+    else if (type === 'front') { document.getElementById('edit-file-front').value = ''; document.getElementById('edit-preview-front').style.backgroundImage = 'none'; document.getElementById('edit-preview-front').style.display = 'none'; document.getElementById('edit-content-front').style.display = 'block'; }
+    else if (type === 'back') { document.getElementById('edit-file-back').value = ''; document.getElementById('edit-preview-back').style.backgroundImage = 'none'; document.getElementById('edit-preview-back').style.display = 'none'; document.getElementById('edit-content-back').style.display = 'block'; }
   };
 
   function listenToInventory() {
     if (unsubscribeInventory) unsubscribeInventory();
     unsubscribeInventory = db.collection('products').where('sellerId', '==', currentUser.uid).onSnapshot(function(snapshot) {
-      var tbody = document.getElementById('inventory-body');
-      tbody.innerHTML = '';
-      var totalValue = 0;
-
-      if (snapshot.empty) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty-row" style="text-align:center; padding: 30px; color: var(--text-muted);">You have no products yet. Publish one above!</td></tr>';
-        document.getElementById('stat-products').textContent = '0';
-        document.getElementById('stat-value').textContent = 'R 0.00';
-        return;
-      }
-
+      var tbody = document.getElementById('inventory-body'); tbody.innerHTML = ''; var totalValue = 0;
+      if (snapshot.empty) { tbody.innerHTML = '<tr><td colspan="5" class="empty-row" style="text-align:center; padding: 30px; color: var(--text-muted);">You have no products yet. Publish one above!</td></tr>'; document.getElementById('stat-products').textContent = '0'; document.getElementById('stat-value').textContent = 'R 0.00'; return; }
       var productsArray = [];
-      snapshot.forEach(function(doc) {
-        var item = doc.data();
-        item.id = doc.id;
-        item._time = item.createdAt ? item.createdAt.toMillis() : 0; 
-        productsArray.push(item);
-      });
-
+      snapshot.forEach(function(doc) { var item = doc.data(); item.id = doc.id; item._time = item.createdAt ? item.createdAt.toMillis() : 0; productsArray.push(item); });
       productsArray.sort(function(a, b) { return b._time - a._time; });
-
       productsArray.forEach(function(item) {
-        totalValue += parseFloat(item.price || 0);
-        
-        // SECURITY FIX: Store item globally, only pass ID to onclick
-        window.inventoryData[item.id] = item; 
-        
+        totalValue += parseFloat(item.price || 0); window.inventoryData[item.id] = item; 
         var viralBadge = item.isViral ? `<br><span class="status-badge status-viral" style="margin-top:4px; display:inline-block; font-size:10px;">Trending</span>` : '';
         var coverImg = item.imageCover || item.imageUrl || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop';
-
         var tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>
-            <div class="product-cell">
-              <div class="product-img" style="background-image:url('${coverImg}')"></div>
-              <div class="product-info">
-                <h4>${item.name}</h4>
-                <p>SKU-${item.id.slice(0, 6).toUpperCase()}</p>
-                ${viralBadge}
-              </div>
-            </div>
-          </td>
+          <td><div class="product-cell"><div class="product-img" style="background-image:url('${coverImg}')"></div><div class="product-info"><h4>${item.name}</h4><p>SKU-${item.id.slice(0, 6).toUpperCase()}</p>${viralBadge}</div></div></td>
           <td style="font-size: 14px; color: var(--text-muted);">${item.category}<br><span style="font-size:11px;">📍 ${item.shipsFrom || 'Unknown'}</span></td>
           <td style="font-family: var(--mono); font-weight: 600;">${money(item.price)}</td>
           <td><span class="status-badge status-paid">Active</span></td>
-          <td style="display:flex; gap:6px;">
-            <button class="btn-icon-sm edit" onclick="openEditModal('${item.id}')"><i data-lucide="edit-2" style="width:14px;"></i></button>
-            <button class="btn-icon-sm delete" onclick="deleteProduct('${item.id}')"><i data-lucide="trash-2" style="width:14px;"></i></button>
-          </td>
+          <td style="display:flex; gap:6px;"><button class="btn-icon-sm edit" onclick="openEditModal('${item.id}')"><i data-lucide="edit-2" style="width:14px;"></i></button><button class="btn-icon-sm delete" onclick="deleteProduct('${item.id}')"><i data-lucide="trash-2" style="width:14px;"></i></button></td>
         `;
         tbody.appendChild(tr);
       });
-      
-      document.getElementById('stat-products').textContent = snapshot.size;
-      document.getElementById('stat-value').textContent = money(totalValue);
-      refreshIcons();
+      document.getElementById('stat-products').textContent = snapshot.size; document.getElementById('stat-value').textContent = money(totalValue); refreshIcons();
     });
   }
 
   function listenToOrders() {
     if (unsubscribeOrders) unsubscribeOrders();
-    unsubscribeOrders = db.collection('orders')
-      .where('sellerIds', 'array-contains', currentUser.uid)
-      .orderBy('createdAt', 'desc')
-      .onSnapshot(function(snapshot) {
-        var tbody = document.getElementById('orders-body');
-        tbody.innerHTML = '';
+    unsubscribeOrders = db.collection('orders').where('sellerIds', 'array-contains', currentUser.uid).orderBy('createdAt', 'desc').onSnapshot(function(snapshot) {
+      var tbody = document.getElementById('orders-body'); tbody.innerHTML = '';
+      if (snapshot.empty) { tbody.innerHTML = '<tr><td colspan="6" class="empty-row" style="text-align:center; padding: 30px; color: var(--text-muted);">No orders yet.</td></tr>'; return; }
+      snapshot.forEach(function(doc) {
+        var order = doc.data();
+        var myItems = order.items.filter(item => item.sellerId === currentUser.uid);
+        var itemsHtml = myItems.map(item => `<div style="font-size:13px;">${item.quantity}x ${item.name}</div>`).join('');
+        var myTotal = myItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        var statusClass = 'status-pending'; if (order.status === 'paid') statusClass = 'status-paid'; if (order.status === 'shipped') statusClass = 'status-shipped'; if (order.status === 'cancelled') statusClass = 'status-cancelled';
+        var mapLink = order.deliveryLat ? `<a href="https://www.google.com/maps/search/?api=1&query=${order.deliveryLat},${order.deliveryLng}" target="_blank" class="btn-action btn-map"><i data-lucide="map-pin" style="width:12px;"></i> View Map</a>` : '';
 
-        if (snapshot.empty) {
-          tbody.innerHTML = '<tr><td colspan="6" class="empty-row" style="text-align:center; padding: 30px; color: var(--text-muted);">No orders yet.</td></tr>';
-          return;
-        }
-
-        snapshot.forEach(function(doc) {
-          var order = doc.data();
-          var myItems = order.items.filter(item => item.sellerId === currentUser.uid);
-          var itemsHtml = myItems.map(item => `<div style="font-size:13px;">${item.quantity}x ${item.name}</div>`).join('');
-          var myTotal = myItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-          
-          var statusClass = 'status-pending';
-          if (order.status === 'paid') statusClass = 'status-paid';
-          if (order.status === 'shipped') statusClass = 'status-shipped';
-          if (order.status === 'cancelled') statusClass = 'status-cancelled';
-
-          var mapLink = order.deliveryLat ? `
-            <a href="https://www.google.com/maps/search/?api=1&query=${order.deliveryLat},${order.deliveryLng}" target="_blank" class="btn-action btn-map">
-              <i data-lucide="map-pin" style="width:12px;"></i> View Map
-            </a>
-          ` : '';
-
-          var tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td style="font-family: var(--mono); font-weight:600;">#${doc.id.slice(0, 8).toUpperCase()}</td>
-            <td style="font-size: 13px;">
-              ${order.buyerEmail}<br>
-              <span style="color:var(--text-muted); font-size:11px;">${order.deliveryPhone || ''}</span>
-            </td>
-            <td>${itemsHtml}</td>
-            <td style="font-family: var(--mono); font-weight:700;">${money(myTotal)}</td>
-            <td><span class="status-badge ${statusClass}">${order.status || 'pending'}</span></td>
-            <td>
-              <div style="display:flex; flex-direction:column; gap:6px;">
-                ${mapLink}
-                ${order.status === 'paid' ? `
-                  <button class="btn-action" onclick="markShipped('${doc.id}')">Mark Shipped</button>
-                  <button class="btn-action btn-cancel" onclick="cancelOrder('${doc.id}')">Cancel</button>
-                ` : ''}
-              </div>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-        refreshIcons();
+        var tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-family: var(--mono); font-weight:600;">#${doc.id.slice(0, 8).toUpperCase()}</td>
+          <td style="font-size: 13px;">${order.buyerEmail}<br><span style="color:var(--text-muted); font-size:11px;">${order.deliveryPhone || ''}</span></td>
+          <td>${itemsHtml}</td>
+          <td style="font-family: var(--mono); font-weight:700;">${money(myTotal)}</td>
+          <td><span class="status-badge ${statusClass}">${order.status || 'pending'}</span></td>
+          <td>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              ${mapLink}
+              <button class="btn-action btn-print" onclick="printPackingSlip('${doc.id}')"><i data-lucide="printer" style="width:12px;"></i> Print Slip</button>
+              ${order.status === 'paid' ? `
+                <button class="btn-action" onclick="markShipped('${doc.id}')">Mark Shipped</button>
+                <button class="btn-action btn-cancel" onclick="cancelOrder('${doc.id}')">Cancel</button>
+              ` : ''}
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
       });
+      refreshIcons();
+    });
   }
 
-  window.openEditModal = function(id) {
-    var item = window.inventoryData[id];
-    if(!item) return;
-    currentEditProduct = item;
-    
-    document.getElementById('edit-p-id').value = item.id;
-    document.getElementById('edit-p-name').value = item.name;
-    document.getElementById('edit-p-price').value = item.price;
-    document.getElementById('edit-p-old-price').value = item.oldPrice || '';
-    document.getElementById('edit-p-desc').value = item.description;
-    document.getElementById('edit-p-category').value = item.category;
-    document.getElementById('edit-p-ships-from').value = item.shipsFrom || 'South Africa (Local)';
-    document.getElementById('edit-p-badge').value = item.badge || '';
-    document.getElementById('edit-p-is-viral').checked = item.isViral || false;
-    document.getElementById('edit-p-external-link').value = item.externalLink || '';
+  // 🔥 NEW: Print Packing Slip Function
+  window.printPackingSlip = function(orderId) {
+    db.collection('orders').doc(orderId).get().then(function(doc) {
+      if (!doc.exists) return alert('Order not found');
+      var order = doc.data();
+      var myItems = order.items.filter(item => item.sellerId === currentUser.uid);
+      
+      var itemsHtml = myItems.map(item => `
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.name}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.quantity}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">R ${(item.price * item.quantity).toFixed(2)}</td>
+        </tr>
+      `).join('');
 
-    document.getElementById('edit-file-cover').value = '';
-    document.getElementById('edit-file-front').value = '';
-    document.getElementById('edit-file-back').value = '';
-
-    var cover = item.imageCover || item.imageUrl;
-    if (cover) {
-      document.getElementById('edit-preview-cover').style.backgroundImage = `url('${cover}')`;
-      document.getElementById('edit-preview-cover').style.display = 'block';
-      document.getElementById('edit-content-cover').style.display = 'none';
-    } else {
-      document.getElementById('edit-preview-cover').style.display = 'none';
-      document.getElementById('edit-content-cover').style.display = 'block';
-    }
-    
-    if (item.imageFront) {
-      document.getElementById('edit-preview-front').style.backgroundImage = `url('${item.imageFront}')`;
-      document.getElementById('edit-preview-front').style.display = 'block';
-      document.getElementById('edit-content-front').style.display = 'none';
-    } else {
-      document.getElementById('edit-preview-front').style.display = 'none';
-      document.getElementById('edit-content-front').style.display = 'block';
-    }
-
-    if (item.imageBack) {
-      document.getElementById('edit-preview-back').style.backgroundImage = `url('${item.imageBack}')`;
-      document.getElementById('edit-preview-back').style.display = 'block';
-      document.getElementById('edit-content-back').style.display = 'none';
-    } else {
-      document.getElementById('edit-preview-back').style.display = 'none';
-      document.getElementById('edit-content-back').style.display = 'block';
-    }
-
-    document.getElementById('edit-modal').classList.add('open');
-    refreshIcons();
+      var printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+        <head>
+          <title>Packing Slip #${orderId.slice(0,8).toUpperCase()}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+            .header { display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
+            .logo { font-size: 24px; font-weight: bold; }
+            .details { display: flex; justify-content: space-between; margin-bottom: 40px; }
+            .box { width: 45%; }
+            .box h3 { border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; font-size: 14px; text-transform: uppercase; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th { text-align: left; padding: 10px; border-bottom: 2px solid #000; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo">FORESTBASE</div>
+            <div>
+              <strong>PACKING SLIP</strong><br>
+              Order: #${orderId.slice(0,8).toUpperCase()}<br>
+              Date: ${new Date().toLocaleDateString()}
+            </div>
+          </div>
+          <div class="details">
+            <div class="box">
+              <h3>Ship To:</h3>
+              <strong>${order.buyerEmail}</strong><br>
+              ${order.deliveryAddress}<br>
+              Phone: ${order.deliveryPhone}
+            </div>
+            <div class="box">
+              <h3>Seller Info:</h3>
+              <strong>${currentUser.email}</strong><br>
+              FORESTBASE Verified Seller
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Item</th><th style="text-align: center;">Qty</th><th style="text-align: right;">Price</th></tr></thead>
+            <tbody>${itemsHtml}</tbody>
+          </table>
+          <p style="margin-top: 40px; text-align: center; font-size: 12px; color: #888;">Thank you for shopping in the forest. Please include this slip in the package.</p>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(function() { printWindow.print(); }, 500);
+    });
   };
 
-  window.closeEditModal = function() {
-    document.getElementById('edit-modal').classList.remove('open');
-  };
-
-  document.getElementById('edit-product-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    var btn = document.getElementById('edit-submit-btn');
-    var id = document.getElementById('edit-p-id').value;
+  // 🔥 NEW: Tracking Number on Ship
+  window.markShipped = function(orderId) {
+    var trackingCarrier = prompt("Enter Courier (e.g. The Courier Guy, PUDO, DHL):");
+    if (trackingCarrier === null) return; // User cancelled
     
-    var coverVisible = document.getElementById('edit-preview-cover').style.display !== 'none';
-    var frontVisible = document.getElementById('edit-preview-front').style.display !== 'none';
-    var backVisible = document.getElementById('edit-preview-back').style.display !== 'none';
+    var trackingNumber = prompt("Enter Tracking Number:");
+    if (trackingNumber === null) return; // User cancelled
 
-    var updatedData = {
-      name: document.getElementById('edit-p-name').value,
-      price: parseFloat(document.getElementById('edit-p-price').value),
-      oldPrice: document.getElementById('edit-p-old-price').value ? parseFloat(document.getElementById('edit-p-old-price').value) : null,
-      description: document.getElementById('edit-p-desc').value,
-      category: document.getElementById('edit-p-category').value,
-      shipsFrom: document.getElementById('edit-p-ships-from').value,
-      badge: document.getElementById('edit-p-badge').value || null,
-      isViral: document.getElementById('edit-p-is-viral').checked,
-      externalLink: document.getElementById('edit-p-external-link').value || null,
-      imageCover: coverVisible ? currentEditProduct.imageCover || currentEditProduct.imageUrl : null,
-      imageFront: frontVisible ? currentEditProduct.imageFront : null,
-      imageBack: backVisible ? currentEditProduct.imageBack : null,
-      imageUrl: coverVisible ? currentEditProduct.imageCover || currentEditProduct.imageUrl : null
-    };
-
-    var fileCover = document.getElementById('edit-file-cover').files[0];
-    var fileFront = document.getElementById('edit-file-front').files[0];
-    var fileBack = document.getElementById('edit-file-back').files[0];
-
-    btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Saving...';
-    btn.disabled = true;
-
-    if (!fileCover && !fileFront && !fileBack) {
-      db.collection('products').doc(id).update(updatedData)
-        .then(finishEdit)
-        .catch(err => { alert("Error: " + err.message); btn.innerHTML = '<i data-lucide="save"></i> Save All Changes'; btn.disabled = false; });
+    if (!trackingCarrier || !trackingNumber) {
+      alert("You must provide both a courier name and tracking number to mark as shipped.");
       return;
     }
 
-    var formData = new FormData();
-    var queue = []; 
-
-    if (fileCover) { formData.append('images', fileCover); queue.push('imageCover'); }
-    if (fileFront) { formData.append('images', fileFront); queue.push('imageFront'); }
-    if (fileBack) { formData.append('images', fileBack); queue.push('imageBack'); }
-
-    // SECURITY FIX: Relative URL
-    fetch('/api/upload-image', { method: 'POST', body: formData })
-      .then(res => res.json())
-      .then(data => {
-        if (!data.success) throw new Error('Image upload failed');
-        
-        data.urls.forEach((url, index) => {
-          var field = queue[index];
-          if (field === 'imageCover') { updatedData.imageCover = url; updatedData.imageUrl = url; }
-          if (field === 'imageFront') { updatedData.imageFront = url; }
-          if (field === 'imageBack') { updatedData.imageBack = url; }
-        });
-
-        return db.collection('products').doc(id).update(updatedData);
-      })
-      .then(finishEdit)
-      .catch(err => { alert("Error: " + err.message); btn.innerHTML = '<i data-lucide="save"></i> Save All Changes'; btn.disabled = false; });
-  });
-
-  function finishEdit() {
-    var btn = document.getElementById('edit-submit-btn');
-    btn.innerHTML = '<i data-lucide="check"></i> Saved!';
-    btn.style.background = 'var(--bright-lime)';
-    btn.style.color = 'var(--ink-black)';
-    refreshIcons();
-    
-    setTimeout(() => {
-      closeEditModal();
-      btn.innerHTML = '<i data-lucide="save"></i> Save All Changes';
-      btn.style.background = 'var(--ink-black)';
-      btn.style.color = '#fff';
-      btn.disabled = false;
-      refreshIcons();
-    }, 1500);
-  }
-
-  document.getElementById('add-product-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    var btn = document.getElementById('submit-btn');
-    
-    var fileCover = document.getElementById('file-cover').files[0];
-    var fileFront = document.getElementById('file-front').files[0];
-    var fileBack = document.getElementById('file-back').files[0];
-    
-    if (!fileCover) { alert("Please upload at least a Cover Image."); return; }
-
-    btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Uploading Images...';
-    btn.disabled = true;
-
-    var formData = new FormData();
-    formData.append('images', fileCover);
-    if (fileFront) formData.append('images', fileFront);
-    if (fileBack) formData.append('images', fileBack);
-
-    // SECURITY FIX: Relative URL
-    fetch('/api/upload-image', { method: 'POST', body: formData })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
-      if (!data.success) throw new Error(data.error || 'Image upload failed');
-      
-      var coverUrl = data.urls[0] || '';
-      var frontUrl = data.urls[1] || '';
-      var backUrl = data.urls[2] || '';
-
-      btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Saving Product...';
-
-      var oldPriceVal = document.getElementById('p-old-price').value;
-      var badgeVal = document.getElementById('p-badge').value;
-      var shipsFromVal = document.getElementById('p-ships-from').value;
-      var isViral = document.getElementById('p-is-viral').checked;
-      var externalLink = document.getElementById('p-external-link').value;
-
-      return db.collection('products').add({
-        sellerId: currentUser.uid,
-        sellerEmail: currentUser.email,
-        name: document.getElementById('p-name').value,
-        category: document.getElementById('p-category').value,
-        shipsFrom: shipsFromVal,
-        isViral: isViral,
-        externalLink: externalLink || null,
-        imageCover: coverUrl,
-        imageFront: frontUrl,
-        imageBack: backUrl,
-        imageUrl: coverUrl,
-        price: parseFloat(document.getElementById('p-price').value),
-        oldPrice: oldPriceVal ? parseFloat(oldPriceVal) : null,
-        description: document.getElementById('p-desc').value,
-        badge: badgeVal ? badgeVal : null,
-        rating: 5.0,
-        reviews: 0,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    })
-    .then(function() {
-      document.getElementById('add-product-form').reset();
-      document.getElementById('preview-cover').style.display = 'none';
-      document.getElementById('content-cover').style.display = 'block';
-      document.getElementById('preview-front').style.display = 'none';
-      document.getElementById('content-front').style.display = 'block';
-      document.getElementById('preview-back').style.display = 'none';
-      document.getElementById('content-back').style.display = 'block';
-
-      btn.innerHTML = '<i data-lucide="check"></i> Published!';
-      btn.style.background = 'var(--bright-lime)';
-      refreshIcons();
-      setTimeout(function() {
-        btn.innerHTML = '<i data-lucide="upload-cloud"></i> Publish Product';
-        btn.style.background = 'var(--ink-black)';
-        btn.disabled = false;
-        refreshIcons();
-      }, 2500);
-    })
-    .catch(function(error) {
-      console.error(error);
-      alert("Failed to publish product: " + error.message);
-      btn.innerHTML = '<i data-lucide="upload-cloud"></i> Publish Product';
-      btn.disabled = false;
-      refreshIcons();
+    db.collection('orders').doc(orderId).update({ 
+      status: 'shipped',
+      trackingCarrier: trackingCarrier,
+      trackingNumber: trackingNumber,
+      shippedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function() { 
+      alert('Order marked as shipped! Buyer can now see the tracking info.'); 
+    }).catch(function(error) {
+      alert('Error updating order: ' + error.message);
     });
-  });
-
-  window.deleteProduct = function(id) {
-    if(confirm('Permanently delete this product?')) db.collection('products').doc(id).delete();
-  };
-
-  window.markShipped = function(orderId) {
-    if(confirm('Mark this order as shipped?')) {
-      db.collection('orders').doc(orderId).update({ status: 'shipped' })
-        .then(function() { alert('Order marked as shipped!'); });
-    }
   };
 
   window.cancelOrder = function(orderId) {
     if(confirm('Are you sure? This will cancel the order. You will need to refund the buyer manually via your Yoco dashboard.')) {
-      db.collection('orders').doc(orderId).update({ status: 'cancelled' })
-        .then(function() { alert('Order cancelled.'); });
+      db.collection('orders').doc(orderId).update({ status: 'cancelled' }).then(function() { alert('Order cancelled.'); });
     }
   };
 
+  // EDIT MODAL LOGIC (Remains unchanged from previous, standard seller studio logic)
+  window.openEditModal = function(id) {
+    var item = window.inventoryData[id]; if(!item) return; currentEditProduct = item;
+    document.getElementById('edit-p-id').value = item.id; document.getElementById('edit-p-name').value = item.name; document.getElementById('edit-p-price').value = item.price;
+    document.getElementById('edit-p-old-price').value = item.oldPrice || ''; document.getElementById('edit-p-desc').value = item.description;
+    document.getElementById('edit-p-category').value = item.category; document.getElementById('edit-p-ships-from').value = item.shipsFrom || 'South Africa (Local)';
+    document.getElementById('edit-p-badge').value = item.badge || ''; document.getElementById('edit-p-is-viral').checked = item.isViral || false;
+    document.getElementById('edit-p-external-link').value = item.externalLink || '';
+    document.getElementById('edit-file-cover').value = ''; document.getElementById('edit-file-front').value = ''; document.getElementById('edit-file-back').value = '';
+    var cover = item.imageCover || item.imageUrl;
+    if (cover) { document.getElementById('edit-preview-cover').style.backgroundImage = `url('${cover}')`; document.getElementById('edit-preview-cover').style.display = 'block'; document.getElementById('edit-content-cover').style.display = 'none'; } else { document.getElementById('edit-preview-cover').style.display = 'none'; document.getElementById('edit-content-cover').style.display = 'block'; }
+    if (item.imageFront) { document.getElementById('edit-preview-front').style.backgroundImage = `url('${item.imageFront}')`; document.getElementById('edit-preview-front').style.display = 'block'; document.getElementById('edit-content-front').style.display = 'none'; } else { document.getElementById('edit-preview-front').style.display = 'none'; document.getElementById('edit-content-front').style.display = 'block'; }
+    if (item.imageBack) { document.getElementById('edit-preview-back').style.backgroundImage = `url('${item.imageBack}')`; document.getElementById('edit-preview-back').style.display = 'block'; document.getElementById('edit-content-back').style.display = 'none'; } else { document.getElementById('edit-preview-back').style.display = 'none'; document.getElementById('edit-content-back').style.display = 'block'; }
+    document.getElementById('edit-modal').classList.add('open'); refreshIcons();
+  };
+  window.closeEditModal = function() { document.getElementById('edit-modal').classList.remove('open'); };
+
+  document.getElementById('edit-product-form').addEventListener('submit', function(e) {
+    e.preventDefault(); var btn = document.getElementById('edit-submit-btn'); var id = document.getElementById('edit-p-id').value;
+    var coverVisible = document.getElementById('edit-preview-cover').style.display !== 'none'; var frontVisible = document.getElementById('edit-preview-front').style.display !== 'none'; var backVisible = document.getElementById('edit-preview-back').style.display !== 'none';
+    var updatedData = { name: document.getElementById('edit-p-name').value, price: parseFloat(document.getElementById('edit-p-price').value), oldPrice: document.getElementById('edit-p-old-price').value ? parseFloat(document.getElementById('edit-p-old-price').value) : null, description: document.getElementById('edit-p-desc').value, category: document.getElementById('edit-p-category').value, shipsFrom: document.getElementById('edit-p-ships-from').value, badge: document.getElementById('edit-p-badge').value || null, isViral: document.getElementById('edit-p-is-viral').checked, externalLink: document.getElementById('edit-p-external-link').value || null, imageCover: coverVisible ? currentEditProduct.imageCover || currentEditProduct.imageUrl : null, imageFront: frontVisible ? currentEditProduct.imageFront : null, imageBack: backVisible ? currentEditProduct.imageBack : null, imageUrl: coverVisible ? currentEditProduct.imageCover || currentEditProduct.imageUrl : null };
+    var fileCover = document.getElementById('edit-file-cover').files[0]; var fileFront = document.getElementById('edit-file-front').files[0]; var fileBack = document.getElementById('edit-file-back').files[0];
+    btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Saving...'; btn.disabled = true;
+    if (!fileCover && !fileFront && !fileBack) { db.collection('products').doc(id).update(updatedData).then(finishEdit).catch(err => { alert("Error: " + err.message); btn.innerHTML = '<i data-lucide="save"></i> Save All Changes'; btn.disabled = false; }); return; }
+    var formData = new FormData(); var queue = []; 
+    if (fileCover) { formData.append('images', fileCover); queue.push('imageCover'); } if (fileFront) { formData.append('images', fileFront); queue.push('imageFront'); } if (fileBack) { formData.append('images', fileBack); queue.push('imageBack'); }
+    fetch('/api/upload-image', { method: 'POST', body: formData }).then(res => res.json()).then(data => { if (!data.success) throw new Error('Image upload failed'); data.urls.forEach((url, index) => { var field = queue[index]; if (field === 'imageCover') { updatedData.imageCover = url; updatedData.imageUrl = url; } if (field === 'imageFront') { updatedData.imageFront = url; } if (field === 'imageBack') { updatedData.imageBack = url; } }); return db.collection('products').doc(id).update(updatedData); }).then(finishEdit).catch(err => { alert("Error: " + err.message); btn.innerHTML = '<i data-lucide="save"></i> Save All Changes'; btn.disabled = false; });
+  });
+  function finishEdit() { var btn = document.getElementById('edit-submit-btn'); btn.innerHTML = '<i data-lucide="check"></i> Saved!'; btn.style.background = 'var(--bright-lime)'; btn.style.color = 'var(--ink-black)'; refreshIcons(); setTimeout(() => { closeEditModal(); btn.innerHTML = '<i data-lucide="save"></i> Save All Changes'; btn.style.background = 'var(--ink-black)'; btn.style.color = '#fff'; btn.disabled = false; refreshIcons(); }, 1500); }
+
+  document.getElementById('add-product-form').addEventListener('submit', function(e) {
+    e.preventDefault(); var btn = document.getElementById('submit-btn'); var fileCover = document.getElementById('file-cover').files[0]; var fileFront = document.getElementById('file-front').files[0]; var fileBack = document.getElementById('file-back').files[0];
+    if (!fileCover) { alert("Please upload at least a Cover Image."); return; }
+    btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Uploading Images...'; btn.disabled = true;
+    var formData = new FormData(); formData.append('images', fileCover); if (fileFront) formData.append('images', fileFront); if (fileBack) formData.append('images', fileBack);
+    fetch('/api/upload-image', { method: 'POST', body: formData }).then(response => response.json()).then(data => {
+      if (!data.success) throw new Error(data.error || 'Image upload failed');
+      var coverUrl = data.urls[0] || ''; var frontUrl = data.urls[1] || ''; var backUrl = data.urls[2] || '';
+      btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Saving Product...';
+      return db.collection('products').add({ sellerId: currentUser.uid, sellerEmail: currentUser.email, name: document.getElementById('p-name').value, category: document.getElementById('p-category').value, shipsFrom: document.getElementById('p-ships-from').value, isViral: document.getElementById('p-is-viral').checked, externalLink: document.getElementById('p-external-link').value || null, imageCover: coverUrl, imageFront: frontUrl, imageBack: backUrl, imageUrl: coverUrl, price: parseFloat(document.getElementById('p-price').value), oldPrice: document.getElementById('p-old-price').value ? parseFloat(document.getElementById('p-old-price').value) : null, description: document.getElementById('p-desc').value, badge: document.getElementById('p-badge').value || null, rating: 5.0, reviews: 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }).then(function() {
+      document.getElementById('add-product-form').reset(); document.getElementById('preview-cover').style.display = 'none'; document.getElementById('content-cover').style.display = 'block'; document.getElementById('preview-front').style.display = 'none'; document.getElementById('content-front').style.display = 'block'; document.getElementById('preview-back').style.display = 'none'; document.getElementById('content-back').style.display = 'block';
+      btn.innerHTML = '<i data-lucide="check"></i> Published!'; btn.style.background = 'var(--bright-lime)'; refreshIcons(); setTimeout(function() { btn.innerHTML = '<i data-lucide="upload-cloud"></i> Publish Product'; btn.style.background = 'var(--ink-black)'; btn.disabled = false; refreshIcons(); }, 2500);
+    }).catch(function(error) { alert("Failed: " + error.message); btn.innerHTML = '<i data-lucide="upload-cloud"></i> Publish Product'; btn.disabled = false; refreshIcons(); });
+  });
+
+  window.deleteProduct = function(id) { if(confirm('Permanently delete this product?')) db.collection('products').doc(id).delete(); };
 })();
 </script>
 </body>
