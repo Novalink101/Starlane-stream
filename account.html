@@ -168,7 +168,6 @@
         </div>
       </div>
 
-      <!-- ADMIN OVERVIEW TAB -->
       <div id="tab-admin-stats" class="tab-content">
         <h1 class="page-title">Platform Financials</h1>
         <p class="page-sub">Live overview of all transactions on FORESTBASE.</p>
@@ -179,14 +178,12 @@
         </div>
       </div>
 
-      <!-- ADMIN ORDERS TAB -->
       <div id="tab-admin-orders" class="tab-content">
         <h1 class="page-title">All Platform Orders</h1>
         <p class="page-sub">Master list of every order placed on the platform.</p>
         <div id="admin-orders-container"></div>
       </div>
 
-      <!-- SETTINGS TAB -->
       <div id="tab-settings" class="tab-content">
         <h1 class="page-title">Account Settings</h1>
         <p class="page-sub">Manage your personal information and security.</p>
@@ -241,7 +238,6 @@
       document.getElementById('user-menu').style.display = 'none';
       document.getElementById('admin-menu').style.display = 'flex';
       
-      // FORCE THE CORRECT TAB TO SHOW IMMEDIATELY
       document.getElementById('tab-orders').classList.remove('active');
       document.getElementById('tab-admin-stats').classList.add('active');
       
@@ -277,11 +273,27 @@
 
   function loadAdminOrders() {
     var container = document.getElementById('admin-orders-container');
-    db.collection('orders').orderBy('createdAt', 'desc').limit(20).get().then(function(snapshot) {
-      if(snapshot.empty) { container.innerHTML = '<div class="empty-state"><h3>No orders yet</h3></div>'; return; }
-      container.innerHTML = '';
+    
+    // 🔥 FIXED: Removed orderBy to prevent Missing Index error
+    db.collection('orders').get().then(function(snapshot) {
+      if(snapshot.empty) { 
+        container.innerHTML = '<div class="empty-state"><h3>No orders yet</h3></div>'; 
+        return; 
+      }
+      
+      // Sort in JS instead
+      var orders = [];
       snapshot.forEach(function(doc) {
-        var order = doc.data();
+        var data = doc.data();
+        data.id = doc.id;
+        data._time = data.createdAt ? data.createdAt.toMillis() : 0;
+        orders.push(data);
+      });
+      orders.sort(function(a, b) { return b._time - a._time; });
+      orders = orders.slice(0, 20); // Only show top 20
+
+      container.innerHTML = '';
+      orders.forEach(function(order) {
         var dateStr = order.createdAt ? order.createdAt.toDate().toLocaleDateString('en-ZA') : 'Just now';
         var statusClass = order.status === 'paid' ? 'status-paid' : (order.status === 'shipped' ? 'status-shipped' : 'status-pending');
         
@@ -289,7 +301,7 @@
           <div class="order-card">
             <div class="order-header">
               <div>
-                <div class="order-id">Order #${doc.id.slice(0, 8).toUpperCase()}</div>
+                <div class="order-id">Order #${order.id.slice(0, 8).toUpperCase()}</div>
                 <div class="order-date">${order.buyerEmail} · ${dateStr}</div>
               </div>
               <div class="order-status ${statusClass}">${order.status || 'pending'}</div>
@@ -313,7 +325,9 @@
   // USER LOGIC
   function loadUserOrders(userId) {
     var container = document.getElementById('orders-container');
-    db.collection('orders').where('buyerId', '==', userId).orderBy('createdAt', 'desc').get().then(function(snapshot) {
+    
+    // 🔥 FIXED: Removed orderBy to prevent Missing Index error
+    db.collection('orders').where('buyerId', '==', userId).get().then(function(snapshot) {
       if (snapshot.empty) {
         container.innerHTML = `
           <div class="empty-state">
@@ -326,9 +340,19 @@
         refreshIcons();
         return;
       }
-      container.innerHTML = '';
+
+      // Sort in JS instead
+      var orders = [];
       snapshot.forEach(function(doc) {
-        var order = doc.data();
+        var data = doc.data();
+        data.id = doc.id;
+        data._time = data.createdAt ? data.createdAt.toMillis() : 0;
+        orders.push(data);
+      });
+      orders.sort(function(a, b) { return b._time - a._time; });
+
+      container.innerHTML = '';
+      orders.forEach(function(order) {
         var dateStr = order.createdAt ? order.createdAt.toDate().toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Just now';
         var statusClass = order.status === 'paid' ? 'status-paid' : (order.status === 'shipped' ? 'status-shipped' : (order.status === 'cancelled' ? 'status-cancelled' : 'status-pending'));
         
@@ -356,7 +380,7 @@
           <div class="order-card">
             <div class="order-header">
               <div>
-                <div class="order-id">Order #${doc.id.slice(0, 8).toUpperCase()}</div>
+                <div class="order-id">Order #${order.id.slice(0, 8).toUpperCase()}</div>
                 <div class="order-date">${dateStr}</div>
               </div>
               <div class="order-status ${statusClass}">${order.status || 'pending'}</div>
@@ -422,4 +446,4 @@
 })();
 </script>
 </body>
-                                                           </html>
+</html>
