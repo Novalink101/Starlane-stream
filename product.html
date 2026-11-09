@@ -301,12 +301,17 @@
       userBtn.href = "account.html";
       userIcon.setAttribute('data-lucide', 'user-check');
       userIcon.style.color = 'var(--bright-lime)';
-      renderReviewForm();
     } else {
       userBtn.href = "login.html";
       userIcon.setAttribute('data-lucide', 'user');
       userIcon.style.color = 'var(--ink-black)';
-      renderReviewForm();
+    }
+    
+    // Only load reviews if product is loaded. Otherwise, render basic form.
+    if (currentProduct) {
+      loadReviews(currentProduct.id);
+    } else {
+      renderReviewForm(false);
     }
     refreshIcons();
   });
@@ -407,10 +412,12 @@
       var totalStars = 0;
       var list = document.getElementById('reviews-list');
       list.innerHTML = '';
+      var hasReviewed = false;
 
       if (snapshot.empty) {
         list.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:20px;">No reviews yet. Be the first to review this product!</p>';
         document.getElementById('p-reviews').textContent = `0.0 (0 reviews)`;
+        renderReviewForm(false);
         return;
       }
 
@@ -418,6 +425,11 @@
         var rev = doc.data();
         productReviews.push(rev);
         totalStars += rev.rating;
+
+        // Check if the current user has already left a review
+        if (currentUser && rev.userId === currentUser.uid) {
+          hasReviewed = true;
+        }
 
         var dateStr = rev.createdAt ? rev.createdAt.toDate().toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Just now';
         var starsHTML = '';
@@ -442,11 +454,15 @@
 
       var avg = (totalStars / snapshot.size).toFixed(1);
       document.getElementById('p-reviews').textContent = `${avg} (${snapshot.size} review${snapshot.size > 1 ? 's' : ''})`;
+      
+      // Pass the hasReviewed flag to the form renderer
+      renderReviewForm(hasReviewed);
       refreshIcons();
     });
   }
 
-  function renderReviewForm() {
+  // RENDER REVIEW FORM (Accepts hasReviewed flag)
+  function renderReviewForm(hasReviewed) {
     var wrapper = document.getElementById('review-form-wrapper');
     
     if (!currentUser) {
@@ -454,6 +470,15 @@
         <div class="login-prompt">
           <p>You must be logged in to leave a review.</p>
           <a href="login.html?redirect=product.html?id=${new URLSearchParams(window.location.search).get('id')}">Sign In Here</a>
+        </div>
+      `;
+      return;
+    }
+
+    if (hasReviewed) {
+      wrapper.innerHTML = `
+        <div class="login-prompt">
+          <p>✅ You have already reviewed this product. Thank you!</p>
         </div>
       `;
       return;
@@ -493,9 +518,9 @@
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       }).then(function() {
         showToast('Review submitted successfully!', 'check-circle');
-        document.getElementById('submit-review-form').reset();
         btn.textContent = 'Submit Review';
         btn.disabled = false;
+        // Reload reviews (which will now hide the form because hasReviewed will be true)
         loadReviews(currentProduct.id);
       }).catch(function(err) {
         showToast(err.message, 'alert-circle');
@@ -554,4 +579,4 @@
 })();
 </script>
 </body>
-  </html>
+</html>
