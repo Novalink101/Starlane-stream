@@ -10,7 +10,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
-<!-- Chart.js for the graphs -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -59,27 +58,28 @@
   .page-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; }
   .page-sub { font-size: 15px; color: var(--text-muted); margin-top: 4px; }
 
+  /* TABS */
+  .tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+  .tab-btn { padding: 16px 24px; font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--text-muted); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; transition: 0.2s; margin-bottom: -1px; }
+  .tab-btn:hover { color: var(--ink-black); }
+  .tab-btn.active { color: var(--ink-black); border-bottom-color: var(--bright-lime); }
+  
+  .tab-content { display: none; animation: fadeIn 0.3s ease; }
+  .tab-content.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
   .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 32px; }
   .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
   .stat-title { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
-  .stat-value { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--ink-black); }
-  .stat-sub { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+  .stat-value { font-family: var(--mono); font-size: 32px; font-weight: 700; }
 
   .panel { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 32px; }
   .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
   .panel-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-  .panel-title svg { color: var(--bright-lime); }
-
-  /* SEARCH BAR */
-  .search-box { position: relative; width: 100%; max-width: 400px; margin-bottom: 24px; }
-  .search-box input { width: 100%; padding: 14px 16px 14px 44px; border: 1px solid var(--border); border-radius: 10px; font-family: var(--font-body); font-size: 14px; background: var(--surface-2); transition: 0.2s; }
-  .search-box input:focus { outline: none; border-color: var(--bright-lime); background: #fff; }
-  .search-box svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--silver-glass); width: 18px; height: 18px; }
-
-  /* TABLE */
+  
   .table-wrapper { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; text-align: left; }
-  th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); padding: 16px; border-bottom: 1px solid var(--border); }
+  th { font-size: 12px; text-transform: uppercase; color: var(--text-muted); padding: 16px; border-bottom: 1px solid var(--border); }
   td { padding: 16px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 14px; }
   
   .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
@@ -88,19 +88,16 @@
 
   .btn-payout { background: var(--ink-black); color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; }
   .btn-payout:hover { background: var(--bright-lime); color: var(--ink-black); }
-  .btn-payout:disabled { opacity: 0.5; cursor: not-allowed; }
-
+  .btn-export { background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 10px 20px; border-radius: 8px; font-family: var(--font-display); font-weight: 700; cursor: pointer; transition: 0.2s; }
+  .btn-export:hover { background: var(--surface-2); }
   .empty-row { text-align: center; padding: 40px; color: var(--text-muted); font-size: 15px; }
-
-  /* CHART */
-  .chart-container { position: relative; height: 300px; width: 100%; margin-bottom: 32px; }
 </style>
 </head>
 <body>
 
 <div id="loader">
   <div class="spinner"></div>
-  Authenticating Admin...
+  Authenticating Admin Access...
 </div>
 
 <div class="dashboard-wrapper" id="dashboard" style="display: none;">
@@ -112,9 +109,9 @@
     </a>
 
     <div class="nav-menu">
-      <a href="admin.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Command Center</a>
-      <div class="nav-item active"><i data-lucide="wallet"></i> Payments Manager</div>
-      <a href="admin-notifications.html" class="nav-item"><i data-lucide="bell"></i> Broadcast</a>
+      <a href="admin.html" class="nav-item"><i data-lucide="shield-check"></i> Command Center</a>
+      <a href="admin-payments.html" class="nav-item active"><i data-lucide="banknote"></i> Payments & Payouts</a>
+      <a href="admin-notifications.html" class="nav-item"><i data-lucide="bell"></i> Broadcast Notifications</a>
       <a href="index.html" class="nav-item"><i data-lucide="store"></i> View Storefront</a>
     </div>
 
@@ -128,7 +125,7 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Payments & Payouts</h1>
-        <p class="page-sub">Audit seller balances and track platform commission (12%).</p>
+        <p class="page-sub">Track your platform earnings and pay your sellers.</p>
       </div>
     </div>
 
@@ -137,55 +134,67 @@
       <div class="stat-card">
         <div class="stat-title">Total Gross Revenue</div>
         <div class="stat-value" id="stat-gross">R 0.00</div>
-        <div class="stat-sub">All paid orders</div>
       </div>
       <div class="stat-card">
         <div class="stat-title">Platform Profit (12%)</div>
         <div class="stat-value" id="stat-profit" style="color: var(--success);">R 0.00</div>
-        <div class="stat-sub">Your commission</div>
       </div>
       <div class="stat-card">
         <div class="stat-title">Owed to Sellers (88%)</div>
         <div class="stat-value" id="stat-owed" style="color: var(--danger);">R 0.00</div>
-        <div class="stat-sub">Pending EFT payouts</div>
       </div>
     </div>
 
-    <!-- CHART -->
-    <div class="panel">
-      <div class="panel-header">
-        <h2 class="panel-title"><i data-lucide="bar-chart-3"></i> Revenue Breakdown</h2>
-      </div>
-      <div class="chart-container">
-        <canvas id="revenueChart"></canvas>
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" data-target="tab-sellers">Seller Payouts</button>
+      <button class="tab-btn" data-target="tab-buyers">Active Buyers</button>
+    </div>
+
+    <!-- TAB: SELLER PAYOUTS -->
+    <div id="tab-sellers" class="tab-content active">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><i data-lucide="users"></i> Who to Pay</h2>
+          <button class="btn-export" onclick="exportSellersCSV()">Export CSV</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Seller Email</th>
+                <th>Total Sales</th>
+                <th>Platform Fee (12%)</th>
+                <th>Net Payout (88%)</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="sellers-body"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <!-- SELLER PAYOUTS -->
-    <div class="panel">
-      <div class="panel-header">
-        <h2 class="panel-title"><i data-lucide="users"></i> Seller Payouts</h2>
-      </div>
-      
-      <div class="search-box">
-        <i data-lucide="search"></i>
-        <input type="text" id="search-bar" placeholder="Search by seller email..." />
-      </div>
-
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Seller Email</th>
-              <th>Total Sales</th>
-              <th>Platform Fee (12%)</th>
-              <th>Net Payout (88%)</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="payouts-body"></tbody>
-        </table>
+    <!-- TAB: ACTIVE BUYERS -->
+    <div id="tab-buyers" class="tab-content">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><i data-lucide="shopping-bag"></i> Active Buyers</h2>
+          <button class="btn-export" onclick="exportBuyersCSV()">Export CSV</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Buyer Email</th>
+                <th>Total Spent</th>
+                <th>Total Orders</th>
+              </tr>
+            </thead>
+            <tbody id="buyers-body"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -207,11 +216,24 @@
   var db = firebase.firestore();
 
   var ADMIN_EMAILS = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
-  var allPayouts = []; // Store data for search filtering
-  var revenueChartInstance = null;
+  
+  var globalSellers = [];
+  var globalBuyers = [];
 
   function money(v){ return 'R ' + parseFloat(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function refreshIcons(){if(window.lucide)lucide.createIcons();}
+
+  // TABS
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabContents = document.querySelectorAll('.tab-content');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById(this.getAttribute('data-target')).classList.add('active');
+    });
+  });
 
   // AUTH GUARD
   auth.onAuthStateChanged(function(user) {
@@ -222,7 +244,6 @@
         document.getElementById('dashboard').style.display = 'flex';
         refreshIcons();
       }, 400);
-      
       loadFinancials();
     } else {
       window.location.href = 'login.html?redirect=admin-payments.html';
@@ -230,8 +251,9 @@
   });
 
   function loadFinancials() {
-    var grossRevenue = 0;
-    var sellers = {}; // Group sales by sellerId
+    var gross = 0; 
+    var sellers = {}; 
+    var buyers = {};
 
     db.collection('orders').get().then(function(snapshot) {
       snapshot.forEach(function(doc) {
@@ -239,164 +261,122 @@
         
         // Only count fully paid/shipped orders
         if (order.status !== 'paid' && order.status !== 'shipped') return;
+        
+        gross += parseFloat(order.total || 0);
 
-        grossRevenue += parseFloat(order.total || 0);
+        // Track Buyer Data
+        if (order.buyerEmail) {
+          if (!buyers[order.buyerEmail]) buyers[order.buyerEmail] = { email: order.buyerEmail, spent: 0, count: 0 };
+          buyers[order.buyerEmail].spent += parseFloat(order.total || 0);
+          buyers[order.buyerEmail].count += 1;
+        }
 
+        // Track Seller Data
         order.items.forEach(function(item) {
           if (!item.sellerId) return;
-          if (!sellers[item.sellerId]) {
-            sellers[item.sellerId] = { email: 'Unknown Seller', totalSales: 0 };
-          }
-          sellers[item.sellerId].totalSales += (item.price * item.quantity);
+          if (!sellers[item.sellerId]) sellers[item.sellerId] = { email: 'Unknown Seller', total: 0 };
+          sellers[item.sellerId].total += (item.price * item.quantity);
         });
       });
 
       // Update Top Stats
-      var totalProfit = grossRevenue * 0.12;
-      var totalOwed = grossRevenue * 0.88;
-      
-      document.getElementById('stat-gross').textContent = money(grossRevenue);
-      document.getElementById('stat-profit').textContent = money(totalProfit);
-      document.getElementById('stat-owed').textContent = money(totalOwed);
+      document.getElementById('stat-gross').textContent = money(gross);
+      document.getElementById('stat-profit').textContent = money(gross * 0.12);
+      document.getElementById('stat-owed').textContent = money(gross * 0.88);
 
-      // Render Chart
-      renderChart(grossRevenue, totalProfit, totalOwed);
-
-      // Build Payout Table
-      buildPayoutTable(sellers);
-    });
-  }
-
-  function buildPayoutTable(sellers) {
-    var sellerIds = Object.keys(sellers);
-    allPayouts = [];
-
-    if (sellerIds.length === 0) {
-      document.getElementById('payouts-body').innerHTML = '<tr><td colspan="6" class="empty-row">No paid sales yet.</td></tr>';
-      return;
-    }
-
-    // Fetch emails for each seller
-    var promises = sellerIds.map(function(sellerId) {
-      return db.collection('products').where('sellerId', '==', sellerId).limit(1).get()
-        .then(function(pSnap) {
-          var email = pSnap.empty ? 'Unknown' : pSnap.docs[0].data().sellerEmail;
-          var totalSales = sellers[sellerId].totalSales;
-          var fee = totalSales * 0.12;
-          var net = totalSales * 0.88;
-
-          return {
-            sellerId: sellerId,
-            email: email,
-            totalSales: totalSales,
-            fee: fee,
-            net: net
-          };
+      // Render Buyers Table
+      globalBuyers = Object.values(buyers);
+      var buyersBody = document.getElementById('buyers-body');
+      buyersBody.innerHTML = '';
+      if (globalBuyers.length === 0) {
+        buyersBody.innerHTML = '<tr><td colspan="3" class="empty-row">No buyers yet.</td></tr>';
+      } else {
+        globalBuyers.forEach(b => {
+          buyersBody.innerHTML += `
+            <tr>
+              <td style="font-weight:600;">${b.email}</td>
+              <td style="font-family:var(--mono);">${money(b.spent)}</td>
+              <td style="font-family:var(--mono);">${b.count} order(s)</td>
+            </tr>
+          `;
         });
-    });
+      }
 
-    Promise.all(promises).then(function(results) {
-      allPayouts = results;
-      renderPayoutRows(allPayouts);
+      // Fetch Seller Emails & Render Sellers Table
+      var sellerIds = Object.keys(sellers);
+      var promises = sellerIds.map(id => {
+        return db.collection('products').where('sellerId', '==', id).limit(1).get()
+          .then(pSnap => {
+            if (!pSnap.empty) sellers[id].email = pSnap.docs[0].data().sellerEmail;
+            sellers[id].id = id;
+            return sellers[id];
+          });
+      });
+
+      Promise.all(promises).then(results => {
+        globalSellers = results;
+        var sellersBody = document.getElementById('sellers-body');
+        sellersBody.innerHTML = '';
+
+        if (globalSellers.length === 0) {
+          sellersBody.innerHTML = '<tr><td colspan="6" class="empty-row">No paid sales yet.</td></tr>';
+          return;
+        }
+
+        globalSellers.forEach(s => {
+          sellersBody.innerHTML += `
+            <tr>
+              <td style="font-weight:600;">${s.email}</td>
+              <td style="font-family:var(--mono);">${money(s.total)}</td>
+              <td style="font-family:var(--mono); color:var(--success);">${money(s.total * 0.12)}</td>
+              <td style="font-family:var(--mono); font-weight:700;">${money(s.total * 0.88)}</td>
+              <td><span class="status-badge status-owed">Owed</span></td>
+              <td><button class="btn-payout" onclick="markPaid('${s.email}', ${s.total * 0.88})">Mark Paid</button></td>
+            </tr>
+          `;
+        });
+      });
     });
   }
 
-  function renderPayoutRows(data) {
-    var tbody = document.getElementById('payouts-body');
-    tbody.innerHTML = '';
-
-    if (data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No sellers found.</td></tr>';
-      return;
-    }
-
-    data.forEach(function(p) {
-      tbody.innerHTML += `
-        <tr>
-          <td style="font-weight:600;">${p.email}</td>
-          <td style="font-family:var(--mono);">${money(p.totalSales)}</td>
-          <td style="font-family:var(--mono); color:var(--success);">${money(p.fee)}</td>
-          <td style="font-family:var(--mono); font-weight:700;">${money(p.net)}</td>
-          <td><span class="status-badge status-owed">Owed</span></td>
-          <td>
-            <button class="btn-payout" onclick="markPaid('${p.sellerId}', '${p.email}', ${p.net})">Mark Paid</button>
-          </td>
-        </tr>
-      `;
-    });
-    refreshIcons();
-  }
-
-  // SEARCH FILTER
-  document.getElementById('search-bar').addEventListener('input', function(e) {
-    var term = e.target.value.toLowerCase();
-    var filtered = allPayouts.filter(function(p) {
-      return p.email.toLowerCase().includes(term);
-    });
-    renderPayoutRows(filtered);
-  });
-
-  // MARK PAID
-  window.markPaid = function(sellerId, email, amount) {
+  window.markPaid = function(email, amount) {
     if(confirm(`Confirm you have EFT'd ${money(amount)} to ${email}?`)) {
-      // Log this payout in the database for your records
       db.collection('payouts').add({
-        sellerId: sellerId,
-        sellerEmail: email,
+        email: email,
         amount: amount,
         paidAt: firebase.firestore.FieldValue.serverTimestamp(),
         status: 'completed'
       }).then(function() {
-        alert('Payout logged successfully! Check your bank to confirm the transfer.');
-        // In a real system, you would zero out the seller's balance here.
-        // For now, this just creates a log.
+        alert('Payout logged successfully!');
       }).catch(function(err) {
-        alert('Error logging payout: ' + err.message);
+        alert('Error: ' + err.message);
       });
     }
   };
 
-  // CHART.JS RENDERING
-  function renderChart(gross, profit, owed) {
-    var ctx = document.getElementById('revenueChart').getContext('2d');
-    
-    if (revenueChartInstance) revenueChartInstance.destroy();
-
-    revenueChartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Gross Revenue', 'Platform Profit (12%)', 'Seller Payouts (88%)'],
-        datasets: [{
-          label: 'ZAR Amount',
-          data: [gross, profit, owed],
-          backgroundColor: ['#AAB0C4', '#A3FF12', '#111827'],
-          borderRadius: 8,
-          barThickness: 60
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: function(context) { return money(context.raw); }
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: { color: '#E2E5EB' },
-            ticks: { callback: function(value) { return 'R ' + value; } }
-          },
-          x: {
-            grid: { display: false }
-          }
-        }
-      }
+  window.exportSellersCSV = function() {
+    var csv = "Seller Email,Total Sales,Platform Fee (12%),Net Payout (88%)\n";
+    globalSellers.forEach(s => {
+      csv += `${s.email},${s.total.toFixed(2)},${(s.total * 0.12).toFixed(2)},${(s.total * 0.88).toFixed(2)}\n`;
     });
+    downloadCSV(csv, 'seller_payouts.csv');
+  };
+
+  window.exportBuyersCSV = function() {
+    var csv = "Buyer Email,Total Spent,Total Orders\n";
+    globalBuyers.forEach(b => {
+      csv += `${b.email},${b.spent.toFixed(2)},${b.count}\n`;
+    });
+    downloadCSV(csv, 'active_buyers.csv');
+  };
+
+  function downloadCSV(csv, filename) {
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
   }
 
   document.getElementById('admin-signout').addEventListener('click', function(e) {
@@ -404,7 +384,8 @@
     auth.signOut().then(function() { window.location.href = 'login.html'; });
   });
 
+  if (window.lucide) lucide.createIcons();
 })();
 </script>
 </body>
-  </html>
+</html>
