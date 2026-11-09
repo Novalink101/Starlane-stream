@@ -92,7 +92,13 @@
   .upload-zone svg { width: 28px; height: 28px; color: var(--silver-glass); margin: 0 auto 8px; }
   .upload-zone p { font-size: 13px; color: var(--text-muted); font-weight: 600; }
   .upload-zone span { font-size: 11px; color: var(--silver-glass); font-weight: 400; }
-  .upload-preview { width: 100%; height: 160px; background-size: cover; background-position: center; border-radius: 8px; display: none; }
+  
+  .upload-preview { width: 100%; height: 160px; background-size: cover; background-position: center; border-radius: 8px; display: none; position: relative; }
+  
+  /* REMOVE IMAGE BUTTON */
+  .btn-remove-img { position: absolute; top: 8px; right: 8px; background: rgba(220, 38, 38, 0.9); color: #fff; border: none; border-radius: 50%; width: 28px; height: 28px; display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 10; transition: 0.2s; }
+  .btn-remove-img:hover { background: var(--danger); transform: scale(1.1); }
+  .upload-preview:hover .btn-remove-img { display: flex; }
 
   .btn-submit { background: var(--ink-black); color: #fff; border: none; padding: 16px 32px; border-radius: 10px; font-family: var(--font-display); font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
   .btn-submit:hover:not(:disabled) { background: var(--bright-lime); color: var(--ink-black); }
@@ -187,14 +193,14 @@
           <input type="number" id="edit-p-price" required min="1" step="0.01" />
         </div>
         <div class="form-group">
-          <label>Old Price (Optional)</label>
+          <label>Old Price (Optional - leave blank to remove)</label>
           <input type="number" id="edit-p-old-price" min="1" step="0.01" />
         </div>
 
         <div class="form-group">
           <label>Badge (Optional)</label>
           <select id="edit-p-badge">
-            <option value="">None</option>
+            <option value="">None (Remove Badge)</option>
             <option value="Sale">Sale</option>
             <option value="New">New</option>
             <option value="Mystery Drop">Mystery Drop</option>
@@ -209,30 +215,36 @@
         </div>
 
         <div class="form-group full-width">
-          <label>External Link (Optional)</label>
+          <label>External Link (Optional - leave blank to remove)</label>
           <input type="url" id="edit-p-external-link" placeholder="https://instagram.com/yourstore" />
         </div>
 
         <!-- 3 IMAGE EDIT ZONES -->
         <div class="form-group full-width">
-          <label>Product Images (Click to replace)</label>
+          <label>Product Images (Click to replace, or hover to Remove)</label>
           <div class="image-upload-row">
             
             <div class="upload-zone" id="edit-zone-cover">
               <input type="file" id="edit-file-cover" accept="image/*" />
-              <div class="upload-preview" id="edit-preview-cover"></div>
+              <div class="upload-preview" id="edit-preview-cover">
+                <button type="button" class="btn-remove-img" onclick="removeImage('cover')"><i data-lucide="x" style="width:14px;"></i></button>
+              </div>
               <div id="edit-content-cover"><i data-lucide="image"></i><p>Cover Image</p></div>
             </div>
 
             <div class="upload-zone" id="edit-zone-front">
               <input type="file" id="edit-file-front" accept="image/*" />
-              <div class="upload-preview" id="edit-preview-front"></div>
+              <div class="upload-preview" id="edit-preview-front">
+                <button type="button" class="btn-remove-img" onclick="removeImage('front')"><i data-lucide="x" style="width:14px;"></i></button>
+              </div>
               <div id="edit-content-front"><i data-lucide="camera"></i><p>Front View</p></div>
             </div>
 
             <div class="upload-zone" id="edit-zone-back">
               <input type="file" id="edit-file-back" accept="image/*" />
-              <div class="upload-preview" id="edit-preview-back"></div>
+              <div class="upload-preview" id="edit-preview-back">
+                <button type="button" class="btn-remove-img" onclick="removeImage('back')"><i data-lucide="x" style="width:14px;"></i></button>
+              </div>
               <div id="edit-content-back"><i data-lucide="camera"></i><p>Back View</p></div>
             </div>
 
@@ -440,7 +452,7 @@
   var currentUser = null;
   var unsubscribeInventory = null;
   var unsubscribeOrders = null;
-  var currentEditProduct = null; // Stores the product being edited
+  var currentEditProduct = null;
 
   function money(v){ return 'R ' + parseFloat(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function refreshIcons(){if(window.lucide)lucide.createIcons();}
@@ -484,7 +496,9 @@
     var uploadPreview = document.getElementById(previewId);
     var uploadContent = document.getElementById(contentId);
 
-    uploadZone.addEventListener('click', function() { fileInput.click(); });
+    uploadZone.addEventListener('click', function(e) { 
+      if (e.target.tagName !== 'BUTTON') { fileInput.click(); }
+    });
     fileInput.addEventListener('change', function(e) {
       var file = e.target.files[0];
       if (file) {
@@ -507,6 +521,26 @@
   setupImagePreview('edit-file-front', 'edit-zone-front', 'edit-preview-front', 'edit-content-front');
   setupImagePreview('edit-file-back', 'edit-zone-back', 'edit-preview-back', 'edit-content-back');
 
+  // GLOBAL REMOVE IMAGE LOGIC
+  window.removeImage = function(type) {
+    event.stopPropagation(); // Stop the upload zone from opening the file picker
+    if (type === 'cover') {
+      document.getElementById('edit-file-cover').value = '';
+      document.getElementById('edit-preview-cover').style.backgroundImage = 'none';
+      document.getElementById('edit-preview-cover').style.display = 'none';
+      document.getElementById('edit-content-cover').style.display = 'block';
+    } else if (type === 'front') {
+      document.getElementById('edit-file-front').value = '';
+      document.getElementById('edit-preview-front').style.backgroundImage = 'none';
+      document.getElementById('edit-preview-front').style.display = 'none';
+      document.getElementById('edit-content-front').style.display = 'block';
+    } else if (type === 'back') {
+      document.getElementById('edit-file-back').value = '';
+      document.getElementById('edit-preview-back').style.backgroundImage = 'none';
+      document.getElementById('edit-preview-back').style.display = 'none';
+      document.getElementById('edit-content-back').style.display = 'block';
+    }
+  };
 
   // INVENTORY
   function listenToInventory() {
@@ -627,12 +661,12 @@
       });
   }
 
-  // --- EDIT PRODUCT LOGIC (FULLY LOADED) ---
+  // --- OPEN EDIT MODAL ---
   window.openEditModal = function(itemString) {
     var item = JSON.parse(decodeURIComponent(itemString));
     currentEditProduct = item;
     
-    // Populate text fields
+    // Populate ALL text fields
     document.getElementById('edit-p-id').value = item.id;
     document.getElementById('edit-p-name').value = item.name;
     document.getElementById('edit-p-price').value = item.price;
@@ -644,17 +678,20 @@
     document.getElementById('edit-p-is-viral').checked = item.isViral || false;
     document.getElementById('edit-p-external-link').value = item.externalLink || '';
 
-    // Reset all 3 file inputs
+    // Reset all file inputs
     document.getElementById('edit-file-cover').value = '';
     document.getElementById('edit-file-front').value = '';
     document.getElementById('edit-file-back').value = '';
 
-    // Show existing images as previews
+    // Show existing images (if they exist)
     var cover = item.imageCover || item.imageUrl;
     if (cover) {
       document.getElementById('edit-preview-cover').style.backgroundImage = `url('${cover}')`;
       document.getElementById('edit-preview-cover').style.display = 'block';
       document.getElementById('edit-content-cover').style.display = 'none';
+    } else {
+      document.getElementById('edit-preview-cover').style.display = 'none';
+      document.getElementById('edit-content-cover').style.display = 'block';
     }
     
     if (item.imageFront) {
@@ -683,13 +720,18 @@
     document.getElementById('edit-modal').classList.remove('open');
   };
 
-  // SAVE EDIT CHANGES (Handling Multi-Image Uploads)
+  // --- SAVE EDIT CHANGES ---
   document.getElementById('edit-product-form').addEventListener('submit', function(e) {
     e.preventDefault();
     var btn = document.getElementById('edit-submit-btn');
     var id = document.getElementById('edit-p-id').value;
     
-    // Gather text fields
+    // Check if any image previews are visible. If not, and no new file uploaded, the image is removed.
+    var coverVisible = document.getElementById('edit-preview-cover').style.display !== 'none';
+    var frontVisible = document.getElementById('edit-preview-front').style.display !== 'none';
+    var backVisible = document.getElementById('edit-preview-back').style.display !== 'none';
+
+    // Gather text fields. If they are empty, we save null/blank to remove them from DB.
     var updatedData = {
       name: document.getElementById('edit-p-name').value,
       price: parseFloat(document.getElementById('edit-p-price').value),
@@ -699,10 +741,14 @@
       shipsFrom: document.getElementById('edit-p-ships-from').value,
       badge: document.getElementById('edit-p-badge').value || null,
       isViral: document.getElementById('edit-p-is-viral').checked,
-      externalLink: document.getElementById('edit-p-external-link').value || null
+      externalLink: document.getElementById('edit-p-external-link').value || null,
+      // If image is not visible and no new file is uploading, we set it to null
+      imageCover: coverVisible ? currentEditProduct.imageCover || currentEditProduct.imageUrl : null,
+      imageFront: frontVisible ? currentEditProduct.imageFront : null,
+      imageBack: backVisible ? currentEditProduct.imageBack : null,
+      imageUrl: coverVisible ? currentEditProduct.imageCover || currentEditProduct.imageUrl : null
     };
 
-    // Gather image files (if any were uploaded)
     var fileCover = document.getElementById('edit-file-cover').files[0];
     var fileFront = document.getElementById('edit-file-front').files[0];
     var fileBack = document.getElementById('edit-file-back').files[0];
@@ -710,7 +756,7 @@
     btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Saving...';
     btn.disabled = true;
 
-    // If no new images were selected, just update the text data
+    // If no new images selected, just update text (and remove images if they were deleted)
     if (!fileCover && !fileFront && !fileBack) {
       db.collection('products').doc(id).update(updatedData)
         .then(finishEdit)
@@ -718,9 +764,9 @@
       return;
     }
 
-    // If new images WERE selected, upload them to Render/Cloudinary
+    // If new images WERE selected, upload them
     var formData = new FormData();
-    var queue = []; // Tracks which images are being uploaded in order
+    var queue = []; 
 
     if (fileCover) { formData.append('images', fileCover); queue.push('imageCover'); }
     if (fileFront) { formData.append('images', fileFront); queue.push('imageFront'); }
@@ -731,7 +777,6 @@
       .then(data => {
         if (!data.success) throw new Error('Image upload failed');
         
-        // Map the returned URLs back to their specific fields
         data.urls.forEach((url, index) => {
           var field = queue[index];
           if (field === 'imageCover') { updatedData.imageCover = url; updatedData.imageUrl = url; }
@@ -762,7 +807,7 @@
     }, 1500);
   }
 
-  // ADD PRODUCT (Standard)
+  // ADD PRODUCT
   document.getElementById('add-product-form').addEventListener('submit', function(e) {
     e.preventDefault();
     var btn = document.getElementById('submit-btn');
@@ -805,7 +850,7 @@
         category: document.getElementById('p-category').value,
         shipsFrom: shipsFromVal,
         isViral: isViral,
-        externalLink: externalLink,
+        externalLink: externalLink || null,
         imageCover: coverUrl,
         imageFront: frontUrl,
         imageBack: backUrl,
@@ -868,4 +913,4 @@
 })();
 </script>
 </body>
-  </html>
+      </html>
