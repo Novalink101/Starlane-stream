@@ -63,8 +63,6 @@ try {
 // ==========================================
 // 3. HELPER FUNCTIONS
 // ==========================================
-
-// 🔥 We made the email logic a shared function so both the Webhook and the Success Page can use it.
 async function sendReceiptEmail(orderId, orderData) {
   try {
     if (!orderData || !orderData.buyerEmail) return;
@@ -148,7 +146,7 @@ app.post('/api/upload-image', upload.array('images', 3), async (req, res) => {
   }
 });
 
-// --- [ YOCO PAYMENT: CREATE CHECKOUT (SECURE) ] ---
+// --- [ YOCO PAYMENT: CREATE CHECKOUT ] ---
 app.post('/api/create-yoco-checkout', async (req, res) => {
   try {
     const { orderId, userId, userEmail, returnUrl } = req.body;
@@ -162,7 +160,6 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
     if (orderData.buyerId !== userId) return res.status(403).json({ error: 'Unauthorized order access' });
     if (orderData.status !== 'pending') return res.status(400).json({ error: 'Order already processed' });
 
-    // Server-side math
     var trueTotal = 0;
     if (orderData.items && Array.isArray(orderData.items)) {
       orderData.items.forEach(function(item) {
@@ -191,7 +188,6 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
     const yocoData = await yocoRes.json();
     if (!yocoRes.ok) throw new Error(yocoData.message || 'Yoco rejected the request');
     
-    // 🔥 SAVE YOCO CHECKOUT ID (Used by the Verify endpoint)
     await db.collection('orders').doc(orderId).update({
       yocoCheckoutId: yocoData.id
     });
@@ -203,7 +199,7 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
   }
 });
 
-// --- [ YOCO PAYMENT: VERIFY PAYMENT (Fallback for slow webhooks) ] ---
+// --- [ YOCO PAYMENT: VERIFY PAYMENT ] ---
 app.post('/api/verify-yoco-payment', async (req, res) => {
   try {
     const { orderId } = req.body;
@@ -214,7 +210,6 @@ app.post('/api/verify-yoco-payment', async (req, res) => {
     if (!orderDoc.exists) return res.status(404).json({ error: 'Order not found' });
     const orderData = orderDoc.data();
 
-    // If webhook already caught it, just return success
     if (orderData.status === 'paid') {
       return res.json({ success: true, message: 'Already paid' });
     }
@@ -223,7 +218,6 @@ app.post('/api/verify-yoco-payment', async (req, res) => {
       return res.status(400).json({ error: 'No Yoco Checkout ID found for this order.' });
     }
 
-    // Ask Yoco directly
     const yocoRes = await fetch(`https://payments.yoco.com/api/checkouts/${orderData.yocoCheckoutId}`, {
       method: 'GET',
       headers: {
@@ -234,15 +228,14 @@ app.post('/api/verify-yoco-payment', async (req, res) => {
     if (!yocoRes.ok) throw new Error('Could not reach Yoco API to verify');
     const yocoData = await yocoRes.json();
 
-    // Yoco Checkouts API status is usually 'successful', 'failed', 'cancelled', 'created'
-    if (yocoData.status === 'successful') {
+    // 🔥 FIXED: Yoco returns 'completed' for successful Checkout API payments
+    if (yocoData.status === 'completed' || yocoData.status === 'successful') {
       await db.collection('orders').doc(orderId).update({
         status: 'paid',
         paidAt: admin.firestore.FieldValue.serverTimestamp(),
         yocoPaymentId: yocoData.id
       });
 
-      // Send the email since the webhook missed it!
       await sendReceiptEmail(orderId, orderData);
       
       return res.json({ success: true, status: 'paid' });
@@ -260,7 +253,6 @@ app.post('/api/yoco-webhook', async (req, res) => {
   try {
     if (!db) return res.status(500).json({ error: 'Database not initialized' });
 
-    // 1. Verify the webhook signature
     const webhookId = req.headers['webhook-id'];
     const webhookTimestamp = req.headers['webhook-timestamp'];
     const webhookSignature = req.headers['webhook-signature'];
@@ -291,14 +283,12 @@ app.post('/api/yoco-webhook', async (req, res) => {
 
     if (!orderId) return res.status(400).json({ error: 'Missing order metadata' });
 
-    // 2. Mark order as paid
     await db.collection('orders').doc(orderId).update({
       status: 'paid',
       paidAt: admin.firestore.FieldValue.serverTimestamp(),
       yocoPaymentId: event.payload.id
     }).catch(e => console.log('Order not found or already updated'));
 
-    // 3. Send Email
     const orderDoc = await db.collection('orders').doc(orderId).get();
     if (orderDoc.exists) {
       await sendReceiptEmail(orderId, orderDoc.data());
