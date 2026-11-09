@@ -65,10 +65,13 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .nav-top{max-width:var(--container);margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
 .nav-brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--ink);letter-spacing:-0.03em;}
 .nav-brand svg{width:28px;height:34px;}
-.nav-search{flex:1;max-width:600px;position:relative;display:flex;}
-.nav-search input{width:100%;padding:14px 20px 14px 48px;border-radius:var(--r-full);border:2px solid transparent;background:var(--surface-2);font-size:14px;font-weight:500;transition:all .2s;box-shadow:inset 0 2px 4px rgba(0,0,0,0.02);}
-.nav-search input:focus{outline:none;border-color:var(--bright-lime);background:#fff;box-shadow:0 0 0 4px rgba(163,255,18,.2);}
-.nav-search svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--silver-glass);width:20px;height:20px;}
+
+/* SEARCH FORM */
+.nav-search-form{flex:1;max-width:600px;position:relative;display:flex;}
+.nav-search-form input{width:100%;padding:14px 20px 14px 48px;border-radius:var(--r-full);border:2px solid transparent;background:var(--surface-2);font-size:14px;font-weight:500;transition:all .2s;box-shadow:inset 0 2px 4px rgba(0,0,0,0.02);}
+.nav-search-form input:focus{outline:none;border-color:var(--bright-lime);background:#fff;box-shadow:0 0 0 4px rgba(163,255,18,.2);}
+.nav-search-form svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--silver-glass);width:20px;height:20px;}
+
 .nav-actions{display:flex;gap:12px;align-items:center;}
 
 /* TABS */
@@ -105,7 +108,6 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .hero h1 span{color:var(--bright-lime);text-shadow:0 0 40px rgba(163,255,18,.3);}
 .hero p{color:var(--silver-glass);font-size:clamp(1rem,1.5vw,1.2rem);max-width:600px;line-height:1.6;margin-bottom:40px;text-shadow:0 2px 10px rgba(0,0,0,.8);font-weight:400;}
 
-/* Hero Cards */
 .hero-ctas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;max-width:1000px}
 .hero-card{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:28px;border-radius:var(--r-lg);background:rgba(3,4,7,.7);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);transition:all .3s var(--ease);text-decoration:none;color:#fff;position:relative;overflow:hidden;}
 .hero-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg, rgba(163,255,18,.1), transparent);opacity:0;transition:opacity .3s;}
@@ -115,7 +117,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .hc-t{font-size:20px;font-weight:700;position:relative;z-index:1;}
 .hc-s{font-size:13.5px;color:var(--silver-glass);line-height:1.5;position:relative;z-index:1;}
 
-/* SECTIONS & PRODUCT GRIDS */
+/* SECTIONS */
 .section{padding:60px 0}
 .section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:30px}
 .section-head h2{font-size:clamp(1.5rem,2.5vw,2rem);display:flex;align-items:center;gap:12px;}
@@ -170,10 +172,10 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 
 @keyframes fadeIn { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
 
-/* Mobile Fixes */
+/* Mobile */
 @media (max-width: 768px) {
   .nav-top { flex-direction: row; flex-wrap: wrap; justify-content: space-between; }
-  .nav-search { order: 3; width: 100%; max-width: 100%; margin-top: 12px; }
+  .nav-search-form { order: 3; width: 100%; max-width: 100%; margin-top: 12px; }
   .nav-brand { font-size: 18px; }
   .hero { padding: 60px 0 40px; }
   .hero h1 { font-size: 2.2rem; }
@@ -198,30 +200,29 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
       FORESTBASE
     </a>
     
-    <div class="nav-search">
+    <form class="nav-search-form" onsubmit="event.preventDefault(); window.location.href='browse.html?search=' + encodeURIComponent(document.getElementById('search-bar').value);">
       <i data-lucide="search"></i>
-      <input type="text" placeholder="Search the forest for future tech..." />
-    </div>
+      <input type="text" id="search-bar" placeholder="Search the forest for future tech..." />
+    </form>
 
     <div class="nav-actions">
       <a href="login.html" class="btn btn-ghost" id="user-btn">
         <i data-lucide="user" id="user-icon" style="width:18px; height:18px;"></i> 
         <span id="user-text">Sign In</span>
       </a>
-      
-      <a href="checkout.html" class="cart-btn">
+      <a href="cart.html" class="cart-btn">
         <i data-lucide="shopping-bag" style="width:20px; height:20px;"></i>
-        <span class="cart-badge">0</span>
+        <span class="cart-badge" id="cart-count">0</span>
       </a>
     </div>
   </div>
 
   <div class="nav-tabs-wrapper">
-    <a href="index.html" class="nav-tab active">All</a>
-    <a href="browse.html" class="nav-tab">Electronics</a>
-    <a href="browse.html" class="nav-tab">Future Tech</a>
-    <a href="browse.html" class="nav-tab">Mystery Drops</a>
-    <a href="browse.html" class="nav-tab">Today's Deals</a>
+    <a href="browse.html" class="nav-tab active">All</a>
+    <a href="browse.html?category=Electronics" class="nav-tab">Electronics</a>
+    <a href="browse.html?category=Future Tech" class="nav-tab">Future Tech</a>
+    <a href="browse.html?category=Mystery Drops" class="nav-tab">Mystery Drops</a>
+    <a href="browse.html?category=Accessories" class="nav-tab">Accessories</a>
     <a href="seller-studio.html" class="nav-tab sell-tab"><i data-lucide="store"></i> Seller Studio</a>
   </div>
 </header>
@@ -241,9 +242,9 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
         <span class="hc-t">Shop the Market</span>
         <span class="hc-s">Explore trending products and premium brands.</span>
       </a>
-      <a href="browse.html" class="hero-card">
+      <a href="browse.html?category=Mystery Drops" class="hero-card">
         <span class="hc-icon"><i data-lucide="zap"></i></span>
-        <span class="hc-t">Today's Deals</span>
+        <span class="hc-t">Mystery Drops</span>
         <span class="hc-s">Limited-time price drops. Grab them before they vanish.</span>
       </a>
       <a href="seller-studio.html" class="hero-card">
@@ -299,7 +300,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
         <h4>Shop</h4>
         <a href="browse.html">New Arrivals</a>
         <a href="browse.html">Best Sellers</a>
-        <a href="browse.html">Mystery Drops</a>
+        <a href="browse.html?category=Mystery Drops">Mystery Drops</a>
       </div>
       <div class="footer-col">
         <h4>Sell</h4>
@@ -338,7 +339,7 @@ function $(id){return document.getElementById(id);}
 function refreshIcons(){if(window.lucide)lucide.createIcons();}
 function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
-// HEADER AUTH
+// AUTH HEADER
 auth.onAuthStateChanged(function(user) {
   var userBtn = $('user-btn');
   var userIcon = $('user-icon');
@@ -357,6 +358,13 @@ auth.onAuthStateChanged(function(user) {
   }
   refreshIcons();
 });
+
+// CART BADGE
+function updateCartBadge() {
+  var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
+  var total = cart.reduce((sum, item) => sum + item.quantity, 0);
+  $('cart-count').textContent = total;
+}
 
 // HERO CAROUSEL
 var HERO_IMAGES = [
@@ -434,7 +442,7 @@ function loadProducts() {
             </div>
             <div class="card-foot">
               <span class="price">${priceHTML}</span>
-              <button class="btn btn-accent" onclick="event.stopPropagation(); alert('Added to cart!')">
+              <button class="btn btn-accent" onclick="event.stopPropagation(); addToCart('${id}', '${p.name}', ${p.price}, '${p.imageUrl}', '${p.sellerId}')">
                 Add
               </button>
             </div>
@@ -458,10 +466,27 @@ function loadProducts() {
     });
 }
 
+// QUICK ADD TO CART
+window.addToCart = function(id, name, price, imageUrl, sellerId) {
+  var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
+  var existing = cart.find(item => item.id === id);
+
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cart.push({ id, name, price, imageUrl, sellerId, quantity: 1 });
+  }
+
+  localStorage.setItem('forestbase_cart', JSON.stringify(cart));
+  updateCartBadge();
+  alert('Added to cart!');
+};
+
 document.addEventListener('DOMContentLoaded', function(){
   refreshIcons();
   initCarousel();
   loadProducts(); 
+  updateCartBadge();
 });
 })();
 </script>
