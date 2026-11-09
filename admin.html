@@ -87,12 +87,15 @@
   .status-pending { background: #FEF3C7; color: #D97706; }
   .status-paid { background: rgba(163,255,18,0.15); color: #5c9e00; }
   .status-shipped { background: #DBEAFE; color: #2563EB; }
+  .status-cancelled { background: #FEF2F2; color: #DC2626; }
 
   .btn-action { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; }
   .btn-edit { background: #F3F4F6; color: var(--ink-black); margin-right: 4px; }
   .btn-edit:hover { background: var(--bright-lime); }
   .btn-delete { background: #FEF2F2; color: var(--danger); }
   .btn-delete:hover { background: var(--danger); color: #fff; }
+  .btn-payout { background: var(--ink-black); color: #fff; padding: 8px 16px; }
+  .btn-payout:hover { background: var(--bright-lime); color: var(--ink-black); }
 
   .empty-row { text-align: center; padding: 40px; color: var(--text-muted); font-size: 15px; }
 </style>
@@ -115,6 +118,7 @@
     <div class="nav-menu">
       <div class="nav-item active" data-target="tab-overview"><i data-lucide="shield-check"></i> Command Center</div>
       <div class="nav-item" data-target="tab-products"><i data-lucide="package"></i> Manage Products</div>
+      <div class="nav-item" data-target="tab-payouts"><i data-lucide="banknote"></i> Seller Payouts</div>
       <a href="index.html" class="nav-item"><i data-lucide="store"></i> View Storefront</a>
     </div>
 
@@ -168,7 +172,7 @@
       </div>
     </div>
 
-    <!-- TAB: MANAGE PRODUCTS (NEW) -->
+    <!-- TAB: MANAGE PRODUCTS -->
     <div id="tab-products" class="tab-content">
       <div class="panel">
         <div class="panel-header">
@@ -182,6 +186,23 @@
               <tr><th>Product</th><th>Seller</th><th>Price</th><th>Actions</th></tr>
             </thead>
             <tbody id="admin-products-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: PAYOUTS -->
+    <div id="tab-payouts" class="tab-content">
+      <div class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i data-lucide="banknote"></i> Seller Balances</h2></div>
+        <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Amounts owed to sellers from paid & shipped orders. Your platform fee is 5%.</p>
+        
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Seller Email</th><th>Total Sales</th><th>Platform Fee (5%)</th><th>Net Payout</th><th>Action</th></tr>
+            </thead>
+            <tbody id="payouts-body"></tbody>
           </table>
         </div>
       </div>
@@ -223,6 +244,7 @@
       document.getElementById(target).classList.add('active');
       
       if (target === 'tab-products') pageTitle.textContent = 'Product Management';
+      else if (target === 'tab-payouts') pageTitle.textContent = 'Seller Payouts';
       else pageTitle.textContent = 'Admin Command Center';
     });
   });
@@ -244,7 +266,8 @@
 
       loadStats();
       loadRecentOrders();
-      loadAllProducts(); // Load the product moderation table
+      loadAllProducts();
+      loadSellerPayouts();
     }
   });
 
@@ -276,7 +299,11 @@
       snapshot.forEach(function(doc) {
         var order = doc.data();
         var dateStr = order.createdAt ? order.createdAt.toDate().toLocaleDateString('en-ZA', { month: 'short', day: 'numeric' }) : 'Just now';
-        var statusClass = order.status === 'paid' ? 'status-paid' : (order.status === 'shipped' ? 'status-shipped' : 'status-pending');
+        var statusClass = 'status-pending';
+        if (order.status === 'paid') statusClass = 'status-paid';
+        if (order.status === 'shipped') statusClass = 'status-shipped';
+        if (order.status === 'cancelled') statusClass = 'status-cancelled';
+
         tbody.innerHTML += `
           <tr>
             <td style="font-family: var(--mono); font-weight:600;">#${doc.id.slice(0, 8).toUpperCase()}</td>
@@ -290,7 +317,7 @@
     });
   }
 
-  // --- LOAD ALL PRODUCTS (MODERATION) ---
+  // --- LOAD ALL PRODUCTS ---
   function loadAllProducts() {
     var tbody = document.getElementById('admin-products-body');
     db.collection('products').orderBy('createdAt', 'desc').get().then(function(snapshot) {
@@ -305,10 +332,7 @@
             <td>
               <div class="product-cell">
                 <div class="product-img" style="background-image:url('${p.imageUrl}')"></div>
-                <div class="product-info">
-                  <h4>${p.name}</h4>
-                  <p>${p.category}</p>
-                </div>
+                <div class="product-info"><h4>${p.name}</h4><p>${p.category}</p></div>
               </div>
             </td>
             <td style="font-size: 13px; color: var(--text-muted);">${p.sellerEmail || 'Unknown'}</td>
@@ -319,6 +343,54 @@
             </td>
           </tr>
         `;
+      });
+    });
+  }
+
+  // --- LOAD SELLER PAYOUTS ---
+  function loadSellerPayouts() {
+    var tbody = document.getElementById('payouts-body');
+    var sellers = {};
+
+    db.collection('orders').get().then(function(snapshot) {
+      snapshot.forEach(function(doc) {
+        var order = doc.data();
+        if (order.status !== 'paid' && order.status !== 'shipped') return;
+        
+        order.items.forEach(function(item) {
+          if (!item.sellerId) return;
+          if (!sellers[item.sellerId]) sellers[item.sellerId] = { email: '', total: 0 };
+          sellers[item.sellerId].total += (item.price * item.quantity);
+        });
+      });
+
+      tbody.innerHTML = '';
+      var sellerIds = Object.keys(sellers);
+
+      if (sellerIds.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-row">No paid sales to payout yet.</td></tr>';
+        return;
+      }
+
+      var pendingLookups = sellerIds.length;
+      sellerIds.forEach(function(sellerId) {
+        db.collection('products').where('sellerId', '==', sellerId).limit(1).get().then(function(pSnap) {
+          var email = pSnap.empty ? 'Unknown' : pSnap.docs[0].data().sellerEmail;
+          var total = sellers[sellerId].total;
+          var fee = total * 0.05;
+          var net = total - fee;
+
+          tbody.innerHTML += `
+            <tr>
+              <td style="font-weight:600;">${email}</td>
+              <td style="font-family:var(--mono);">${money(total)}</td>
+              <td style="font-family:var(--mono); color:var(--danger);">-${money(fee)}</td>
+              <td style="font-family:var(--mono); font-weight:700; color:#059669;">${money(net)}</td>
+              <td><button class="btn-action btn-payout" onclick="alert('Payout of ${money(net)} marked as sent to ${email}')">Mark Paid</button></td>
+            </tr>
+          `;
+          pendingLookups--;
+        });
       });
     });
   }
