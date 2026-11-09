@@ -10,7 +10,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.0/dist/confetti.browser.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -112,23 +111,12 @@
   .btn-pay:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(163,255,18,0.5); }
   .btn-pay:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
-  /* ── SUCCESS OVERLAY ── */
-  #success-screen { position: fixed; inset: 0; background: var(--ink-black); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; }
-  #success-screen.show { display: flex; animation: fadeIn 0.4s ease-out; }
-  .success-icon { width: 80px; height: 80px; background: rgba(163,255,18,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--bright-lime); margin-bottom: 24px; border: 2px solid var(--bright-lime); }
-  .success-icon svg { width: 40px; height: 40px; }
-  #success-screen h1 { color: #fff; font-family: var(--font-display); font-size: 32px; margin-bottom: 12px; }
-  #success-screen p { color: var(--silver-glass); font-size: 16px; margin-bottom: 32px; max-width: 400px; }
-  .btn-success { background: #fff; color: var(--ink-black); padding: 14px 32px; border-radius: 8px; font-weight: 700; text-decoration: none; transition: 0.2s; }
-  .btn-success:hover { background: var(--silver-glass); }
-
   /* Empty State */
   #empty-cart-state { display: none; text-align: center; padding: 60px 20px; }
   #empty-cart-state svg { width: 64px; height: 64px; color: var(--silver-glass); margin: 0 auto 16px; }
   #empty-cart-state h2 { font-family: var(--font-display); font-size: 24px; margin-bottom: 8px; }
   #empty-cart-state p { color: var(--text-muted); margin-bottom: 24px; }
 
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner { width: 20px; height: 20px; border: 2px solid rgba(3,4,7,0.3); border-top-color: var(--ink-black); border-radius: 50%; animation: spin 0.8s linear infinite; }
 </style>
@@ -260,14 +248,6 @@
   </div>
 </div>
 
-<!-- SUCCESS SCREEN -->
-<div id="success-screen">
-  <div class="success-icon"><i data-lucide="check"></i></div>
-  <h1>Order Confirmed!</h1>
-  <p>Your mystery is on its way. We've sent a receipt to your email and you can track your order in your account.</p>
-  <a href="account.html" class="btn-success">View My Orders</a>
-</div>
-
 <script>
 (function(){
   // ═══════════════════════════════════════════════
@@ -286,7 +266,7 @@
   var db = firebase.firestore();
 
   var currentUser = null;
-  var globalTotal = 0; // Accessible globally for the payment function
+  var globalTotal = 0; 
 
   function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
@@ -346,7 +326,7 @@
   }
 
   // ═══════════════════════════════════════════════
-  // 4. PROCESS PAYMENT (Write to Firestore)
+  // 4. PROCESS PAYMENT (Yoco + Render Integration)
   // ═══════════════════════════════════════════════
   window.processPayment = function() {
     if (!currentUser) {
@@ -361,28 +341,52 @@
 
     var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
     
-    // Create the order in Firestore
+    // 1. Create the order in Firestore as 'pending'
     db.collection('orders').add({
       buyerId: currentUser.uid,
       buyerEmail: currentUser.email,
       items: cart,
       total: globalTotal,
-      status: 'pending', // The Yoco webhook will change this to 'paid'
+      status: 'pending', // Webhook will change to 'paid'
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     })
     .then(function(docRef) {
       console.log("Order created with ID: ", docRef.id);
       
-      // SIMULATE YOCO REDIRECT
-      // In production, this is where you would call your Render backend:
-      // fetch('/api/create-yoco-checkout', ... )
-      // .then(data => window.location.href = data.redirectUrl);
+      // 2. Call your Render Backend to generate the Yoco Checkout link
+      // IMPORTANT: Update this URL if your Render service is named differently.
+      var RENDER_URL = 'https://forestbase.onrender.com'; 
       
-      setTimeout(function() {
-        triggerConfetti();
-        localStorage.removeItem('forestbase_cart'); // Clear cart only after success
-        document.getElementById('success-screen').classList.add('show');
-      }, 1500);
+      fetch(RENDER_URL + '/api/create-yoco-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: docRef.id,
+          userId: currentUser.uid,
+          userEmail: currentUser.email,
+          price: globalTotal,
+          returnUrl: window.location.origin + '/account.html'
+        })
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.redirectUrl) {
+          // 3. Clear cart locally BEFORE redirecting to Yoco
+          localStorage.removeItem('forestbase_cart');
+          
+          // 4. Send user to Yoco to complete payment
+          window.location.href = data.redirectUrl;
+        } else {
+          throw new Error(data.error || 'Failed to generate payment link');
+        }
+      })
+      .catch(function(error) {
+        console.error("Yoco Integration Error: ", error);
+        alert("Payment gateway error. Please try again or contact support.");
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="lock" style="width:20px;"></i> Pay ${money(globalTotal)}`;
+        if (window.lucide) lucide.createIcons();
+      });
 
     })
     .catch(function(error) {
@@ -395,18 +399,8 @@
   };
 
   // ═══════════════════════════════════════════════
-  // 5. CONFETTI & INIT
+  // 5. INIT
   // ═══════════════════════════════════════════════
-  function triggerConfetti() {
-    var duration = 3000;
-    var end = Date.now() + duration;
-    (function frame() {
-      confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#A3FF12', '#030407', '#AAB0C4'] });
-      confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#A3FF12', '#030407', '#AAB0C4'] });
-      if (Date.now() < end) requestAnimationFrame(frame);
-    }());
-  }
-
   document.addEventListener('DOMContentLoaded', function() {
     loadCart();
     if (window.lucide) lucide.createIcons();
