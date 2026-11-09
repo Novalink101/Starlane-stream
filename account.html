@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#030407" />
 <title>My Account · FORESTBASE</title>
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -13,25 +12,17 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
 <style>
-  :root { 
-    --ink-black: #030407; --silver-glass: #AAB0C4; --bright-lime: #A3FF12;
-    --surface: #FFFFFF; --surface-2: #F1F3F7; --border: #E2E5EB;
-    --text: #111827; --text-muted: #6B7280; --danger: #DC2626;
-    --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', system-ui, sans-serif; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  }
+  :root { --ink-black: #030407; --silver-glass: #AAB0C4; --bright-lime: #A3FF12; --surface: #FFFFFF; --surface-2: #F1F3F7; --border: #E2E5EB; --text: #111827; --text-muted: #6B7280; --danger: #DC2626; --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', system-ui, sans-serif; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #FAFBFC; color: var(--text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; flex-direction: column; }
   a { text-decoration: none; color: inherit; }
-  
   .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; width: 100%; flex: 1; }
   .nav { background: var(--ink-black); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
   .nav-brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: #fff; letter-spacing:-0.03em; }
   .nav-brand svg { width: 28px; height: 34px; }
   .nav-back { color: var(--silver-glass); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
   .nav-back:hover { color: var(--bright-lime); }
-
   .dashboard { display: grid; grid-template-columns: 280px 1fr; gap: 32px; align-items: start; }
   @media (max-width: 800px) { .dashboard { grid-template-columns: 1fr; } }
   .sidebar { background: #fff; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
@@ -56,7 +47,6 @@
   .stat-title { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
   .stat-value { font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--ink-black); }
   .stat-trend { font-size: 13px; color: #059669; font-weight: 600; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
-
   .order-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 16px; }
   .order-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
   .order-id { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--ink-black); }
@@ -66,21 +56,18 @@
   .status-paid { background: rgba(163,255,18,0.15); color: #5c9e00; }
   .status-shipped { background: #DBEAFE; color: #2563EB; }
   .status-cancelled { background: #FEF2F2; color: #DC2626; }
-
   .order-items-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
   .order-item { display: flex; align-items: center; gap: 16px; }
   .order-img { width: 64px; height: 64px; border-radius: 8px; background: var(--surface-2) center/cover; flex-shrink: 0; }
   .order-details h4 { font-size: 15px; font-weight: 600; color: var(--ink-black); margin-bottom: 4px; }
   .order-details p { font-size: 13px; color: var(--text-muted); }
   .order-total { margin-left: auto; font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--ink-black); }
-
   .delivery-box { background: var(--surface-2); border: 1px dashed var(--border); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
   .delivery-row { display: flex; justify-content: space-between; align-items: center; }
   .delivery-info h5 { font-size: 13px; font-weight: 700; color: var(--ink-black); margin-bottom: 4px; }
   .delivery-info p { font-size: 13px; color: var(--text-muted); line-height: 1.4; max-width: 300px; }
   .btn-map { background: var(--ink-black); color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
   .btn-map:hover { background: var(--ink-2); }
-
   .settings-form { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 32px; max-width: 600px; }
   .form-group { margin-bottom: 20px; }
   .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-black); margin-bottom: 8px; }
@@ -92,7 +79,6 @@
   .btn-primary:hover { background: #1f222c; transform: translateY(-1px); }
   .btn-outline { background: #fff; color: var(--ink-black); border: 1px solid var(--border); }
   .btn-outline:hover { background: var(--surface-2); }
-
   #loader { position: fixed; inset: 0; background: var(--ink-black); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.4s; }
   .spinner { width: 40px; height: 40px; border: 3px solid rgba(163,255,18,0.2); border-top-color: var(--bright-lime); border-radius: 50%; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -211,7 +197,6 @@
     var loader = document.getElementById('loader'); loader.style.opacity = '0'; setTimeout(function() { loader.style.display = 'none'; }, 400);
   });
 
-  // ADMIN LOGIC
   function loadAdminStats() {
     db.collection('orders').get().then(function(snapshot) {
       var totalRevenue = 0; var pendingCount = 0;
@@ -232,19 +217,18 @@
       if(snapshot.empty) { container.innerHTML = '<div class="empty-state"><h3>No orders yet</h3></div>'; return; }
       var orders = [];
       snapshot.forEach(function(doc) {
-        var data = doc.data(); data.id = doc.id; data._time = data.createdAt ? data.createdAt.toMillis() : 0; orders.push(data);
+        var data = doc.data(); if (data.status === 'pending') return; 
+        data.id = doc.id; data._time = data.createdAt ? data.createdAt.toMillis() : 0; orders.push(data);
       });
       orders.sort(function(a, b) { return b._time - a._time; }); orders = orders.slice(0, 20);
+      if (orders.length === 0) { container.innerHTML = '<div class="empty-state"><h3>No paid orders yet</h3><p>Pending abandoned carts are hidden.</p></div>'; return; }
       container.innerHTML = '';
       orders.forEach(function(order) {
         var dateStr = order.createdAt ? order.createdAt.toDate().toLocaleDateString('en-ZA') : 'Just now';
-        var statusClass = order.status === 'paid' ? 'status-paid' : (order.status === 'shipped' ? 'status-shipped' : 'status-pending');
+        var statusClass = order.status === 'paid' ? 'status-paid' : (order.status === 'shipped' ? 'status-shipped' : 'status-cancelled');
         container.innerHTML += `
           <div class="order-card">
-            <div class="order-header">
-              <div><div class="order-id">Order #${order.id.slice(0, 8).toUpperCase()}</div><div class="order-date">${order.buyerEmail} · ${dateStr}</div></div>
-              <div class="order-status ${statusClass}">${order.status || 'pending'}</div>
-            </div>
+            <div class="order-header"><div><div class="order-id">Order #${order.id.slice(0, 8).toUpperCase()}</div><div class="order-date">${order.buyerEmail} · ${dateStr}</div></div><div class="order-status ${statusClass}">${order.status}</div></div>
             <div class="order-items-list"><div class="order-item"><div class="order-details"><h4>Total Transaction</h4><p>${order.items.length} items purchased</p></div><div class="order-total">${money(order.total)}</div></div></div>
           </div>`;
       });
@@ -252,77 +236,30 @@
     });
   }
 
-  // USER LOGIC
   function loadUserOrders(userId) {
     var container = document.getElementById('orders-container');
     db.collection('orders').where('buyerId', '==', userId).get().then(function(snapshot) {
-      if (snapshot.empty) {
-        container.innerHTML = `<div class="empty-state"><i data-lucide="package"></i><h3>No orders yet</h3><p>You haven't uncovered any mysteries yet.</p><a href="browse.html" class="btn btn-primary" style="background:var(--bright-lime); color:var(--ink-black);">Start Shopping</a></div>`;
-        refreshIcons(); return;
-      }
+      if (snapshot.empty) { container.innerHTML = `<div class="empty-state"><i data-lucide="package"></i><h3>No orders yet</h3><p>You haven't uncovered any mysteries yet.</p><a href="browse.html" class="btn btn-primary" style="background:var(--bright-lime); color:var(--ink-black);">Start Shopping</a></div>`; refreshIcons(); return; }
       var orders = [];
-      snapshot.forEach(function(doc) {
-        var data = doc.data(); 
-        if (data.status === 'pending') return; // Hide abandoned carts
-        data.id = doc.id; data._time = data.createdAt ? data.createdAt.toMillis() : 0; orders.push(data);
-      });
+      snapshot.forEach(function(doc) { var data = doc.data(); if (data.status === 'pending') return; data.id = doc.id; data._time = data.createdAt ? data.createdAt.toMillis() : 0; orders.push(data); });
       orders.sort(function(a, b) { return b._time - a._time; });
-      
-      if (orders.length === 0) {
-        container.innerHTML = `<div class="empty-state"><i data-lucide="package"></i><h3>No paid orders yet</h3><p>Any abandoned checkouts are hidden here.</p><a href="browse.html" class="btn btn-primary" style="background:var(--bright-lime); color:var(--ink-black);">Start Shopping</a></div>`;
-        refreshIcons(); return;
-      }
-
+      if (orders.length === 0) { container.innerHTML = `<div class="empty-state"><i data-lucide="package"></i><h3>No paid orders yet</h3><p>Any abandoned checkouts are hidden here.</p><a href="browse.html" class="btn btn-primary" style="background:var(--bright-lime); color:var(--ink-black);">Start Shopping</a></div>`; refreshIcons(); return; }
       container.innerHTML = '';
       orders.forEach(function(order) {
         var dateStr = order.createdAt ? order.createdAt.toDate().toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Just now';
         var statusClass = order.status === 'paid' ? 'status-paid' : (order.status === 'shipped' ? 'status-shipped' : 'status-cancelled');
-        
         var itemsHTML = '';
-        order.items.forEach(function(item) {
-          itemsHTML += `<div class="order-item"><div class="order-img" style="background-image:url('${item.imageUrl || item.imageCover}')"></div><div class="order-details"><h4>${item.name}</h4><p>Qty: ${item.quantity}</p></div><div class="order-total">${money(item.price * item.quantity)}</div></div>`;
-        });
-
+        order.items.forEach(function(item) { itemsHTML += `<div class="order-item"><div class="order-img" style="background-image:url('${item.imageUrl || item.imageCover}')"></div><div class="order-details"><h4>${item.name}</h4><p>Qty: ${item.quantity}</p></div><div class="order-total">${money(item.price * item.quantity)}</div></div>`; });
         var mapBtn = order.deliveryLat ? `<a href="https://www.google.com/maps/search/?api=1&query=${order.deliveryLat},${order.deliveryLng}" target="_blank" class="btn-map"><i data-lucide="map-pin" style="width:14px;"></i> View Map</a>` : '';
-
-        // 🔥 NEW: Display EDD and Tracking Number if available
         var eddHTML = order.estimatedDelivery ? `<div style="font-size:12px; color:#059669; font-weight:600; margin-top:8px;"><i data-lucide="truck" style="width:12px; display:inline-block; vertical-align:middle; margin-right:4px;"></i> Arriving ${order.estimatedDelivery}</div>` : '';
-        
         var trackingHTML = '';
-        if (order.status === 'shipped' && order.trackingNumber) {
-           trackingHTML = `<div style="background:#fff; padding:10px; border-radius:8px; border:1px solid var(--border); margin-top:10px;">
-              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Tracking Info</div>
-              <div style="font-size:14px; font-weight:600; color:var(--ink-black);">${order.trackingCarrier || 'Courier'}: ${order.trackingNumber}</div>
-           </div>`;
-        }
-
-        container.innerHTML += `
-          <div class="order-card">
-            <div class="order-header">
-              <div><div class="order-id">Order #${order.id.slice(0, 8).toUpperCase()}</div><div class="order-date">${dateStr}</div></div>
-              <div class="order-status ${statusClass}">${order.status}</div>
-            </div>
-            <div class="order-items-list">${itemsHTML}</div>
-            <div class="delivery-box">
-              <div class="delivery-row">
-                <div class="delivery-info">
-                  <h5>Delivery Details</h5>
-                  <p>${order.deliveryAddress || 'No address provided'}</p>
-                  <p style="font-weight:600; margin-top:4px;">📞 ${order.deliveryPhone || 'No phone provided'}</p>
-                </div>
-                ${mapBtn}
-              </div>
-              ${eddHTML}
-              ${trackingHTML}
-            </div>
-          </div>
-        `;
+        if (order.status === 'shipped' && order.trackingNumber) { trackingHTML = `<div style="background:#fff; padding:10px; border-radius:8px; border:1px solid var(--border); margin-top:10px;"><div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Tracking Info</div><div style="font-size:14px; font-weight:600; color:var(--ink-black);">${order.trackingCarrier || 'Courier'}: ${order.trackingNumber}</div></div>`; }
+        container.innerHTML += `<div class="order-card"><div class="order-header"><div><div class="order-id">Order #${order.id.slice(0, 8).toUpperCase()}</div><div class="order-date">${dateStr}</div></div><div class="order-status ${statusClass}">${order.status}</div></div><div class="order-items-list">${itemsHTML}</div><div class="delivery-box"><div class="delivery-row"><div class="delivery-info"><h5>Delivery Details</h5><p>${order.deliveryAddress || 'No address provided'}</p><p style="font-weight:600; margin-top:4px;">📞 ${order.deliveryPhone || 'No phone provided'}</p></div>${mapBtn}</div>${eddHTML}${trackingHTML}</div></div>`;
       });
       refreshIcons();
     });
   }
 
-  // SETTINGS & TABS (remains the same)
   document.getElementById('save-settings-btn').addEventListener('click', function() { var newName = document.getElementById('settings-name').value.trim(); var btn = this; if (!newName) return alert('Name cannot be empty'); btn.textContent = 'Saving...'; btn.disabled = true; currentUser.updateProfile({ displayName: newName }).then(function() { alert('Profile updated!'); document.getElementById('user-name').textContent = newName; document.getElementById('user-avatar').textContent = newName.charAt(0).toUpperCase(); btn.textContent = 'Save Changes'; btn.disabled = false; }).catch(function(error) { alert(error.message); btn.textContent = 'Save Changes'; btn.disabled = false; }); });
   document.getElementById('reset-pw-btn').addEventListener('click', function() { var btn = this; btn.textContent = 'Sending...'; btn.disabled = true; auth.sendPasswordResetEmail(currentUser.email).then(function() { alert('Password reset link sent!'); btn.textContent = 'Reset Password'; btn.disabled = false; }).catch(function(error) { alert(error.message); btn.textContent = 'Reset Password'; btn.disabled = false; }); });
   var navItems = document.querySelectorAll('.nav-item[data-target]'); var tabContents = document.querySelectorAll('.tab-content');
