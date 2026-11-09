@@ -103,7 +103,8 @@ async function sendReceiptEmail(orderId, orderData) {
               <h4 style="margin: 0 0 10px; color: #111827;">Delivery Details</h4>
               <p style="margin: 0; color: #6B7280; font-size: 14px;">
                 📍 ${orderData.deliveryAddress}<br>
-                📞 ${orderData.deliveryPhone}
+                📞 ${orderData.deliveryPhone}<br>
+                📦 Arriving: ${orderData.estimatedDelivery || 'Pending'}
               </p>
             </div>
             <div style="text-align: center; margin-top: 30px;">
@@ -127,7 +128,6 @@ async function sendReceiptEmail(orderId, orderData) {
 // 4. API ROUTES
 // ==========================================
 
-// --- [ CLOUDINARY MULTI-IMAGE UPLOAD ] ---
 app.post('/api/upload-image', upload.array('images', 3), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No images provided' });
@@ -146,7 +146,6 @@ app.post('/api/upload-image', upload.array('images', 3), async (req, res) => {
   }
 });
 
-// --- [ YOCO PAYMENT: CREATE CHECKOUT ] ---
 app.post('/api/create-yoco-checkout', async (req, res) => {
   try {
     const { orderId, userId, userEmail, returnUrl } = req.body;
@@ -199,7 +198,6 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
   }
 });
 
-// --- [ YOCO PAYMENT: VERIFY PAYMENT ] ---
 app.post('/api/verify-yoco-payment', async (req, res) => {
   try {
     const { orderId } = req.body;
@@ -228,7 +226,6 @@ app.post('/api/verify-yoco-payment', async (req, res) => {
     if (!yocoRes.ok) throw new Error('Could not reach Yoco API to verify');
     const yocoData = await yocoRes.json();
 
-    // 🔥 FIXED: Yoco returns 'completed' for successful Checkout API payments
     if (yocoData.status === 'completed' || yocoData.status === 'successful') {
       await db.collection('orders').doc(orderId).update({
         status: 'paid',
@@ -248,7 +245,6 @@ app.post('/api/verify-yoco-payment', async (req, res) => {
   }
 });
 
-// --- [ YOCO PAYMENT: WEBHOOK + EMAIL RECEIPT ] ---
 app.post('/api/yoco-webhook', async (req, res) => {
   try {
     if (!db) return res.status(500).json({ error: 'Database not initialized' });
@@ -298,6 +294,61 @@ app.post('/api/yoco-webhook', async (req, res) => {
     res.status(200).json({ success: true });
   } catch (err) {
     console.error('[Webhook Error]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 🔥 NEW: Shipping Email Endpoint
+app.post('/api/send-shipping-email', async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    if (!orderId || !db) return res.status(400).json({ error: 'Missing orderId' });
+
+    const orderDoc = await db.collection('orders').doc(orderId).get();
+    if (!orderDoc.exists) return res.status(404).json({ error: 'Order not found' });
+    const orderData = orderDoc.data();
+
+    if (!orderData.buyerEmail) return res.status(400).json({ error: 'No buyer email' });
+
+    const mailOptions = {
+      from: '"FORESTBASE" <' + process.env.EMAIL_USER + '>',
+      to: orderData.buyerEmail,
+      subject: `Your order #${orderId.slice(0, 8).toUpperCase()} has been shipped! 📦`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #eee; border-radius: 16px; overflow: hidden;">
+          <div style="background: #030407; padding: 30px; text-align: center;">
+            <h1 style="color: #A3FF12; margin: 0; font-size: 28px;">FORESTBASE</h1>
+          </div>
+          <div style="padding: 30px;">
+            <h2 style="color: #111827; margin-top: 0;">Your package is on the way!</h2>
+            <p style="color: #6B7280; font-size: 16px;">Good news! The seller has shipped your order.</p>
+            
+            <div style="background: #F1F3F7; padding: 20px; border-radius: 10px; margin: 24px 0;">
+              <h4 style="margin: 0 0 10px; color: #111827;">Tracking Details</h4>
+              <p style="margin: 0; color: #6B7280; font-size: 16px;">
+                <strong>${orderData.trackingCarrier || 'Courier'}</strong><br>
+                Tracking Number: <strong>${orderData.trackingNumber || 'N/A'}</strong>
+              </p>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+              <a href="https://forestbase.onrender.com/account.html" style="background: #A3FF12; color: #030407; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">View My Order</a>
+            </div>
+          </div>
+        </div>
+      `
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+      if (error) {
+        console.log('[Shipping Email Error]', error);
+        return res.status(500).json({ error: 'Failed to send email' });
+      }
+      console.log('📧 Shipping email sent to:', orderData.buyerEmail);
+      res.json({ success: true });
+    });
+  } catch (err) {
+    console.error('[Shipping Email Error]', err);
     res.status(500).json({ error: err.message });
   }
 });
