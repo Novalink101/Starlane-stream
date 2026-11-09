@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#030407" />
+<title>Seller Store · FORESTBASE</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+  :root { 
+    --ink-black: #030407;
+    --silver-glass: #AAB0C4;
+    --bright-lime: #A3FF12;
+    
+    --surface: #FFFFFF;
+    --surface-2: #F1F3F7;
+    --border: #E2E5EB;
+    --text: #111827;
+    --text-muted: #6B7280;
+    
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    background: #FAFBFC; 
+    color: var(--text); 
+    font-family: var(--font-body); 
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  a { text-decoration: none; color: inherit; }
+
+  /* HEADER */
+  .header-wrapper{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+  .nav-top{max-width:1300px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  .nav-brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--ink-black);letter-spacing:-0.03em;}
+  .nav-brand svg{width:28px;height:34px;}
+  
+  .nav-search{flex:1;max-width:600px;position:relative;display:flex;}
+  .nav-search input{width:100%;padding:12px 20px 12px 48px;border-radius:999px;border:2px solid transparent;background:var(--surface-2);font-size:14px;font-weight:500;transition:all .2s;}
+  .nav-search input:focus{outline:none;border-color:var(--bright-lime);background:#fff;box-shadow:0 0 0 4px rgba(163,255,18,.2);}
+  .nav-search svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--silver-glass);width:20px;height:20px;}
+
+  .nav-actions{display:flex;gap:12px;align-items:center;}
+  .btn-icon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--surface-2);color:var(--ink-black);transition:0.2s;}
+  .btn-icon:hover{background:var(--border);}
+  .cart-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--ink-black);color:#fff;transition:all .2s;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
+  .cart-btn:hover{background:#1F222C;transform:scale(1.05);}
+  .cart-badge{position:absolute;top:-4px;right:-4px;background:var(--bright-lime);color:var(--ink-black);font-size:11px;font-weight:900;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;border:2px solid #fff;}
+
+  /* PAGE LAYOUT */
+  .container { max-width: 1300px; margin: 0 auto; padding: 40px 20px; width: 100%; flex: 1; }
+
+  /* SELLER BANNER */
+  .seller-banner {
+    background: var(--ink-black);
+    border-radius: 24px;
+    padding: 48px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 40px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  }
+  @media (max-width: 768px) { .seller-banner { flex-direction: column; text-align: center; padding: 32px; gap: 20px; } }
+
+  .seller-banner::before {
+    content: ''; position: absolute; top: -50%; left: 50%; transform: translateX(-50%);
+    width: 100%; height: 100%;
+    background: radial-gradient(circle, rgba(163,255,18,0.15), transparent 60%);
+    pointer-events: none;
+  }
+
+  .seller-avatar {
+    width: 100px; height: 100px;
+    border-radius: 24px;
+    background: var(--surface-2);
+    color: var(--ink-black);
+    font-family: var(--font-display);
+    font-size: 40px; font-weight: 700;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    z-index: 1;
+  }
+
+  .seller-info { z-index: 1; }
+  .seller-name { font-family: var(--font-display); font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+  .seller-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(163,255,18,0.15); color: var(--bright-lime); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px; }
+  .seller-stats { color: var(--silver-glass); font-size: 15px; display: flex; gap: 24px; }
+  @media (max-width: 768px) { .seller-stats { justify-content: center; } }
+
+  /* PRODUCT GRID */
+  .section-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
+  .section-head h2 { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--ink-black); }
+  .section-head span { color: var(--text-muted); font-size: 14px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
+  .card-item { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: transform .3s, box-shadow .3s, border-color .3s; display: flex; flex-direction: column; cursor: pointer; }
+  .card-item:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.08); border-color: var(--bright-lime); }
+  .card-img { aspect-ratio: 1/1; background: var(--surface-2) center/cover no-repeat; position: relative; }
+  .card-badge { position: absolute; top: 14px; left: 14px; background: var(--ink-black); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  .card-badge.sale { background: var(--bright-lime); color: var(--ink-black); }
+
+  .card-body { padding: 20px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .card-title { font-size: 15px; font-weight: 600; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-rating { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-muted); }
+  .card-rating svg { width: 14px; height: 14px; color: #FBBF24; fill: #FBBF24; }
+  .card-foot { margin-top: auto; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .card-foot .price { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--ink-black); }
+  .card-foot .price del { font-size: 13px; color: #94A3B8; font-weight: 500; margin-right: 6px; }
+  .btn-add { background: var(--ink-black); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.2s; }
+  .btn-add:hover { background: var(--bright-lime); color: var(--ink-black); }
+
+  /* Loader & Empty */
+  .skeleton { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .sk-img { aspect-ratio: 1/1; background: linear-gradient(90deg, #EEF2F7, #E2E8F0, #EEF2F7); background-size: 200% 100%; animation: sk 1.4s infinite; }
+  .sk-body { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .sk-line { height: 14px; border-radius: 4px; background: linear-gradient(90deg, #EEF2F7, #E2E8F0, #EEF2F7); background-size: 200% 100%; animation: sk 1.4s infinite; }
+  .sk-line.w80 { width: 80%; } .sk-line.w60 { width: 60%; }
+  @keyframes sk { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  .empty-state { grid-column: 1/-1; text-align: center; padding: 60px 20px; background: #fff; border: 1px dashed var(--border); border-radius: 16px; }
+  .empty-state svg { width: 48px; height: 48px; color: var(--silver-glass); margin: 0 auto 16px; }
+  .empty-state h3 { font-family: var(--font-display); font-size: 20px; margin-bottom: 8px; }
+  .empty-state p { color: var(--text-muted); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<header class="header-wrapper">
+  <div class="nav-top">
+    <a href="index.html" class="nav-brand">
+      <svg viewBox="0 0 60 74">
+        <path d="M30 4 L54 46 H6 Z" fill="#030407" />
+        <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
+        <path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" />
+        <path d="M20 56 H40 V60 H20 Z" fill="#030407" />
+      </svg>
+      FORESTBASE
+    </a>
+    
+    <div class="nav-search">
+      <i data-lucide="search"></i>
+      <input type="text" placeholder="Search the forest..." />
+    </div>
+
+    <div class="nav-actions">
+      <a href="login.html" class="btn-icon" id="user-btn">
+        <i data-lucide="user" id="user-icon" style="width:20px; height:20px;"></i>
+      </a>
+      <a href="cart.html" class="cart-btn">
+        <i data-lucide="shopping-bag" style="width:20px; height:20px;"></i>
+        <span class="cart-badge" id="cart-count">0</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<div class="container" id="page-content" style="display: none;">
+  
+  <!-- SELLER BANNER -->
+  <div class="seller-banner">
+    <div class="seller-avatar" id="seller-avatar">S</div>
+    <div class="seller-info">
+      <div class="seller-badge"><i data-lucide="shield-check" style="width:14px;"></i> Verified Seller</div>
+      <h1 class="seller-name" id="seller-name">Store Name</h1>
+      <div class="seller-stats">
+        <span id="stat-products">0 Products</span>
+        <span id="stat-joined">Joined FORESTBASE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div class="section-head">
+    <h2>Products from this Seller</h2>
+    <span id="product-count-text">Showing all items</span>
+  </div>
+
+  <div class="grid" id="productsGrid">
+    <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
+    <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
+    <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var firebaseConfig = {
+    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+    authDomain: "starlane-stream.firebaseapp.com",
+    projectId: "starlane-stream",
+    storageBucket: "starlane-stream.firebasestorage.app",
+    messagingSenderId: "115625325145",
+    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var auth = firebase.auth();
+  var db = firebase.firestore();
+
+  function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function refreshIcons(){if(window.lucide)lucide.createIcons();}
+
+  // Update header cart badge
+  function updateCartBadge() {
+    var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
+    var total = cart.reduce((sum, item) => sum + item.quantity, 0);
+    document.getElementById('cart-count').textContent = total;
+  }
+
+  // Fetch Seller Data and Products
+  function loadSellerStore() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var sellerId = urlParams.get('id');
+
+    if (!sellerId) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    // 1. Fetch seller's products
+    db.collection('products')
+      .where('sellerId', '==', sellerId)
+      .get()
+      .then(function(snapshot) {
+        
+        var pageContent = document.getElementById('page-content');
+        pageContent.style.display = 'block';
+
+        if (snapshot.empty) {
+          document.getElementById('seller-name').textContent = "Unknown Seller";
+          document.getElementById('stat-products').textContent = "0 Products";
+          document.getElementById('productsGrid').innerHTML = `
+            <div class="empty-state">
+              <i data-lucide="store"></i>
+              <h3>No products found</h3>
+              <p>This seller hasn't listed any products in the forest yet.</p>
+            </div>
+          `;
+          refreshIcons();
+          return;
+        }
+
+        // Get seller info from the first product (since we stored sellerEmail there)
+        var firstProduct = snapshot.docs[0].data();
+        var sellerEmail = firstProduct.sellerEmail || 'Seller';
+        var displayName = sellerEmail.split('@')[0]; // e.g., "nylnathan340" from email
+        
+        // Update Banner
+        document.getElementById('seller-name').textContent = displayName;
+        document.getElementById('seller-avatar').textContent = displayName.charAt(0).toUpperCase();
+        document.getElementById('stat-products').textContent = snapshot.size + " Products";
+        
+        // Render Products
+        var grid = document.getElementById('productsGrid');
+        grid.innerHTML = '';
+        
+        snapshot.forEach(function(doc) {
+          var p = doc.data();
+          var id = doc.id;
+          
+          var badgeHTML = p.badge ? `<span class="card-badge ${p.badge.toLowerCase()==='sale'?'sale':''}">${p.badge}</span>` : '';
+          var priceHTML = p.oldPrice ? `<del>${money(p.oldPrice)}</del> ${money(p.price)}` : money(p.price);
+
+          var card = document.createElement('div');
+          card.className = 'card-item';
+          card.innerHTML = `
+            <div class="card-img" style="background-image:url('${p.imageUrl}')">
+              ${badgeHTML}
+            </div>
+            <div class="card-body">
+              <div class="card-title">${p.name}</div>
+              <div class="card-rating">
+                <i data-lucide="star"></i> ${p.rating || 5.0} <span>(${p.reviews || 0})</span>
+              </div>
+              <div class="card-foot">
+                <span class="price">${priceHTML}</span>
+                <button class="btn-add" onclick="event.stopPropagation(); quickAdd(event, '${id}', '${p.name}', ${p.price}, '${p.imageUrl}', '${p.sellerId}')">
+                  Add
+                </button>
+              </div>
+            </div>
+          `;
+
+          card.addEventListener('click', function(e) {
+            if(e.target.tagName !== 'BUTTON') {
+              window.location.href = 'product.html?id=' + id;
+            }
+          });
+
+          grid.appendChild(card);
+        });
+        
+        refreshIcons();
+      })
+      .catch(function(error) {
+        console.error("Error loading store: ", error);
+      });
+  }
+
+  // Quick Add to Cart
+  window.quickAdd = function(e, id, name, price, imageUrl, sellerId) {
+    var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
+    var existing = cart.find(item => item.id === id);
+
+    if (existing) {
+      existing.quantity += 1;
+    } else {
+      cart.push({ id, name, price, imageUrl, sellerId, quantity: 1 });
+    }
+
+    localStorage.setItem('forestbase_cart', JSON.stringify(cart));
+    updateCartBadge();
+
+    var btn = e.target.closest('.btn-add');
+    var originalText = btn.innerHTML;
+    btn.innerHTML = 'Added!';
+    btn.style.background = 'var(--bright-lime)';
+    btn.style.color = 'var(--ink-black)';
+    
+    setTimeout(function() {
+      btn.innerHTML = originalText;
+      btn.style.background = 'var(--ink-black)';
+      btn.style.color = '#fff';
+    }, 1500);
+  };
+
+  // Init
+  document.addEventListener('DOMContentLoaded', function() {
+    updateCartBadge();
+    loadSellerStore();
+
+    auth.onAuthStateChanged(function(user) {
+      var userBtn = document.getElementById('user-btn');
+      var userIcon = document.getElementById('user-icon');
+      if (user) {
+        userBtn.href = "account.html";
+        userIcon.setAttribute('data-lucide', 'user-check');
+        userIcon.style.color = 'var(--bright-lime)';
+      } else {
+        userBtn.href = "login.html";
+        userIcon.setAttribute('data-lucide', 'user');
+        userIcon.style.color = 'var(--ink-black)';
+      }
+      refreshIcons();
+    });
+  });
+})();
+</script>
+</body>
+</html>
