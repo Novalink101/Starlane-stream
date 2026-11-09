@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#030407" />
 <title>Secure Checkout · FORESTBASE</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -12,60 +13,106 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<!-- MAP LIBRARIES -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/location-picker@3"></script>
+
 <style>
   :root { 
-    --ink-black: #030407; --silver-glass: #AAB0C4; --bright-lime: #A3FF12;
-    --surface: #FFFFFF; --surface-2: #F1F3F7; --border: #E2E5EB;
-    --text: #111827; --text-muted: #6B7280; --danger: #DC2626;
-    --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', system-ui, sans-serif; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --ink-black: #030407;
+    --silver-glass: #AAB0C4;
+    --bright-lime: #A3FF12;
+    
+    --surface: #FFFFFF;
+    --surface-2: #F1F3F7;
+    --border: #E2E5EB;
+    --text: #111827;
+    --text-muted: #6B7280;
+    --danger: #DC2626;
+    
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #FAFBFC; color: var(--text); font-family: var(--font-body); display: flex; flex-direction: column; min-height: 100vh; }
+  body { 
+    background: #FAFBFC; 
+    color: var(--text); 
+    font-family: var(--font-body); 
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
   a { text-decoration: none; color: inherit; }
+
+  /* HEADER */
   .header-wrapper{background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
   .nav-top{max-width:1200px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;}
   .nav-brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--ink-black);letter-spacing:-0.03em;}
   .nav-brand svg{width:28px;height:34px;}
   .secure-badge { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #059669; }
   .secure-badge svg { width: 16px; height: 16px; }
+
+  /* LAYOUT */
   .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; width: 100%; flex: 1; }
   .checkout-layout { display: grid; grid-template-columns: 1fr 420px; gap: 48px; align-items: start; }
   @media (max-width: 900px) { .checkout-layout { grid-template-columns: 1fr; gap: 32px; } }
+
+  /* LEFT: FORMS */
   .checkout-section { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
   .section-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
   .section-title svg { color: var(--bright-lime); }
+
   .form-group { margin-bottom: 20px; }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
   .form-group input { width: 100%; padding: 16px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; background: var(--surface-2); transition: 0.2s; }
   .form-group input:focus { outline: none; border-color: var(--bright-lime); background: #fff; box-shadow: 0 0 0 4px rgba(163,255,18,.15); }
+
+  /* THE MAP */
   #delivery-map { height: 300px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 16px; z-index: 1; }
+  .map-note { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+
+  /* PAYMENT */
   .payment-option { border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px; background: rgba(163,255,18,0.03); border-color: var(--bright-lime); box-shadow: 0 0 0 2px var(--bright-lime); }
   .payment-option input { accent-color: var(--ink-black); width: 20px; height: 20px; }
   .payment-option .pay-info strong { display: block; font-size: 15px; }
   .payment-option .pay-info span { font-size: 13px; color: var(--text-muted); }
   .payment-option svg { margin-left: auto; height: 28px; }
+
+  /* RIGHT: SUMMARY */
   .summary-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; position: sticky; top: 100px; box-shadow: 0 12px 30px rgba(0,0,0,0.04); }
   .summary-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+  
   #order-items-container { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; max-height: 300px; overflow-y: auto; padding-right: 8px; }
   .order-item { display: flex; align-items: center; gap: 16px; padding-bottom: 16px; border-bottom: 1px dashed var(--border); }
   .order-img { width: 64px; height: 64px; border-radius: 10px; background: var(--surface-2) center/cover; flex-shrink: 0; }
   .order-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
   .order-info p { font-size: 13px; color: var(--text-muted); }
   .order-price { font-family: var(--mono); font-size: 14px; font-weight: 700; margin-left: auto; }
+
   .totals { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
   .total-row { display: flex; justify-content: space-between; font-size: 14px; color: var(--text-muted); }
   .total-row.grand-total { font-size: 20px; font-weight: 700; color: var(--ink-black); border-top: 1px solid var(--border); padding-top: 16px; margin-top: 8px; font-family: var(--font-display); }
-  .btn-pay { width: 100%; padding: 20px; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; border: none; background: var(--bright-lime); color: var(--ink-black); margin-top: 24px; box-shadow: 0 8px 24px rgba(163,255,18,0.3); display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+  .btn-pay { width: 100%; padding: 20px; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; border: none; background: var(--bright-lime); color: var(--ink-black); margin-top: 24px; box-shadow: 0 8px 24px rgba(163,255,18,0.3); display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
+  .btn-pay:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(163,255,18,0.5); }
   .btn-pay:disabled { opacity: 0.7; cursor: not-allowed; }
+
+  /* EMPTY STATE */
   #empty-cart-state { display: none; text-align: center; padding: 80px 20px; }
   #empty-cart-state svg { width: 64px; height: 64px; color: var(--silver-glass); margin: 0 auto 16px; }
+  #empty-cart-state h2 { font-family: var(--font-display); font-size: 28px; margin-bottom: 12px; }
+  #empty-cart-state p { color: var(--text-muted); margin-bottom: 32px; font-size: 16px; }
+
+  /* LOADER & TOAST */
   #page-loader { position: fixed; inset: 0; background: #FAFBFC; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.4s; }
   .spinner { width: 40px; height: 40px; border: 3px solid rgba(163,255,18,0.2); border-top-color: var(--bright-lime); border-radius: 50%; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
   #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
   .toast { background: var(--ink-black); color: #fff; padding: 16px 20px; border-radius: 12px; display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.4s; border-left: 4px solid var(--bright-lime); }
   .toast.show { transform: translateX(0); }
@@ -73,122 +120,334 @@
 </style>
 </head>
 <body>
+
 <div id="toast-container"></div>
-<div id="page-loader"><div class="spinner"></div><p style="margin-top:16px; font-family:var(--font-display); font-weight:600;">Preparing checkout...</p></div>
+
+<div id="page-loader">
+  <div class="spinner"></div>
+  <p style="margin-top:16px; font-family:var(--font-display); font-weight:600;">Preparing checkout...</p>
+</div>
+
 <header class="header-wrapper">
   <div class="nav-top">
-    <a href="index.html" class="nav-brand"><svg viewBox="0 0 60 74"><path d="M30 4 L54 46 H6 Z" fill="#030407" /><path d="M30 22 L44 46 H16 Z" fill="#A3FF12" /><path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" /><path d="M20 56 H40 V60 H20 Z" fill="#030407" /></svg>FORESTBASE</a>
+    <a href="index.html" class="nav-brand">
+      <svg viewBox="0 0 60 74">
+        <path d="M30 4 L54 46 H6 Z" fill="#030407" />
+        <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
+        <path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" />
+        <path d="M20 56 H40 V60 H20 Z" fill="#030407" />
+      </svg>
+      FORESTBASE
+    </a>
     <div class="secure-badge"><i data-lucide="lock"></i> Secure 256-bit SSL Checkout</div>
   </div>
 </header>
+
 <div class="container">
-  <div id="empty-cart-state"><i data-lucide="shopping-bag"></i><h2>Your cart is empty</h2><p>Looks like you haven't uncovered any mysteries yet.</p><a href="browse.html" class="btn-pay" style="display:inline-flex; width:auto; padding:16px 32px; margin-top:20px;">Explore</a></div>
+  
+  <!-- EMPTY CART STATE -->
+  <div id="empty-cart-state">
+    <i data-lucide="shopping-bag"></i>
+    <h2>Your cart is empty</h2>
+    <p>Looks like you haven't uncovered any mysteries yet.</p>
+    <a href="browse.html" class="btn-pay" style="display:inline-flex; width:auto; padding:16px 32px;">Explore the Forest</a>
+  </div>
+
+  <!-- CHECKOUT FORM -->
   <div class="checkout-layout" id="checkout-layout" style="display: none;">
+    
     <div class="checkout-forms">
+      
+      <!-- CONTACT -->
       <div class="checkout-section">
         <h2 class="section-title"><i data-lucide="mail"></i> Contact Details</h2>
-        <div class="form-group"><label>Email</label><input type="email" id="checkout-email" required /></div>
-        <div class="form-row">
-          <div class="form-group"><label>First Name</label><input type="text" id="checkout-firstname" required /></div>
-          <div class="form-group"><label>Last Name</label><input type="text" id="checkout-lastname" required /></div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="checkout-email" placeholder="you@example.com" required />
         </div>
-        <div class="form-group"><label>Phone Number (For Driver)</label><input type="tel" id="checkout-phone" placeholder="+27 82 123 4567" required /></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="checkout-firstname" placeholder="John" required />
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" id="checkout-lastname" placeholder="Doe" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Phone Number (For Delivery Driver)</label>
+          <input type="tel" id="checkout-phone" placeholder="+27 82 123 4567" required />
+        </div>
       </div>
+
+      <!-- DELIVERY LOCATION -->
       <div class="checkout-section">
         <h2 class="section-title"><i data-lucide="map-pin"></i> Delivery Location</h2>
-        <div class="form-group"><label>Search Address or Click Map</label><input type="text" id="checkout-address" required /></div>
+        
+        <div class="form-group">
+          <label>Search Address or Click the Map</label>
+          <input type="text" id="checkout-address" placeholder="Start typing your street address..." required />
+        </div>
+
         <div id="delivery-map"></div>
+        
         <input type="hidden" id="checkout-lat" />
         <input type="hidden" id="checkout-lng" />
-        <p style="font-size:13px; color:var(--text-muted); display:flex; align-items:center; gap:6px;"><i data-lucide="info" style="width:16px;"></i> Drag the pin to your exact delivery spot.</p>
+
+        <p class="map-note">
+          <i data-lucide="info" style="width:16px; height:16px;"></i>
+          Drag the pin to your exact delivery spot. This ensures the driver finds you.
+        </p>
       </div>
+
+      <!-- PAYMENT -->
       <div class="checkout-section">
-        <h2 class="section-title"><i data-lucide="credit-card"></i> Payment</h2>
-        <label class="payment-option">
-          <input type="radio" checked />
-          <div class="pay-info"><strong>Pay securely with Yoco</strong><span>Card, EFT, or Apple Pay</span></div>
-          <svg viewBox="0 0 100 30" fill="none"><text x="0" y="22" fill="#111827" font-weight="900" font-family="Arial" font-size="22">yoco</text></svg>
-        </label>
+        <h2 class="section-title"><i data-lucide="credit-card"></i> Payment Method</h2>
+        <div class="payment-methods">
+          
+          <label class="payment-option active">
+            <input type="radio" name="payment" checked />
+            <div class="pay-info">
+              <strong>Pay securely with Yoco</strong>
+              <span>Card, Instant EFT, or Apple Pay</span>
+            </div>
+            <svg class="pay-icon" viewBox="0 0 100 30" fill="none"><text x="0" y="22" fill="#111827" font-weight="900" font-family="Arial" font-size="22">yoco</text></svg>
+          </label>
+
+        </div>
       </div>
+
     </div>
+
+    <!-- RIGHT: SUMMARY -->
     <div class="summary-card">
       <h2 class="summary-title">Order Summary</h2>
+      
       <div id="order-items-container"></div>
+
       <div class="totals">
-        <div class="total-row"><span>Subtotal</span><span id="summary-subtotal">R 0.00</span></div>
-        <div class="total-row"><span>Delivery</span><span style="color: #059669;">Free</span></div>
-        <div class="total-row grand-total"><span>Total</span><span id="summary-total">R 0.00</span></div>
+        <div class="total-row">
+          <span>Subtotal</span>
+          <span id="summary-subtotal">R 0.00</span>
+        </div>
+        <div class="total-row">
+          <span>Delivery</span>
+          <span style="color: #059669; font-weight: 600;">Free</span>
+        </div>
+        <div class="total-row">
+          <span>VAT</span>
+          <span>Included</span>
+        </div>
+        <div class="total-row grand-total">
+          <span>Total</span>
+          <span id="summary-total">R 0.00</span>
+        </div>
       </div>
-      <button class="btn-pay" id="pay-btn" onclick="processPayment()"><i data-lucide="lock"></i> Pay R 0.00</button>
+
+      <button class="btn-pay" id="pay-btn" onclick="processPayment()">
+        <i data-lucide="lock" style="width:20px;"></i> Pay R 0.00
+      </button>
+
+      <p style="text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 16px;">
+        By placing this order, you agree to FORESTBASE's <a href="legal.html" style="text-decoration: underline;">Terms of Service</a>.
+      </p>
     </div>
+
   </div>
 </div>
+
 <script>
 (function(){
-  var firebaseConfig = { apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk", authDomain: "starlane-stream.firebaseapp.com", projectId: "starlane-stream", storageBucket: "starlane-stream.firebasestorage.app", messagingSenderId: "115625325145", appId: "1:115625325145:web:b14025df503bbe2b7d7748" };
+  var firebaseConfig = {
+    apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
+    authDomain: "starlane-stream.firebaseapp.com",
+    projectId: "starlane-stream",
+    storageBucket: "starlane-stream.firebasestorage.app",
+    messagingSenderId: "115625325145",
+    appId: "1:115625325145:web:b14025df503bbe2b7d7748"
+  };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-  var auth = firebase.auth(); var db = firebase.firestore();
-  var currentUser = null; var globalTotal = 0;
+  var auth = firebase.auth();
+  var db = firebase.firestore();
+
+  var currentUser = null;
+  var globalTotal = 0; 
+  var hasSelectedLocation = false; // Tracks if the user moved the pin
+
   function money(v){ return 'R ' + parseFloat(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function refreshIcons(){if(window.lucide)lucide.createIcons();}
-  window.showToast = function(msg, icon) {
-    var t = document.createElement('div'); t.className = 'toast';
-    t.innerHTML = `<i data-lucide="${icon || 'check-circle'}"></i> <span>${msg}</span>`;
-    document.getElementById('toast-container').appendChild(t); refreshIcons();
-    setTimeout(() => t.classList.add('show'), 10);
-    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
+
+  window.showToast = function(message, icon) {
+    var container = document.getElementById('toast-container');
+    var toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<i data-lucide="${icon || 'check-circle'}"></i> <span>${message}</span>`;
+    container.appendChild(toast);
+    refreshIcons();
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3500);
   };
+
   auth.onAuthStateChanged(function(user) {
-    if (user) { currentUser = user; if (user.email) document.getElementById('checkout-email').value = user.email; }
+    if (user) {
+      currentUser = user;
+      if (user.email) document.getElementById('checkout-email').value = user.email;
+      if (user.displayName) {
+        var names = user.displayName.split(' ');
+        document.getElementById('checkout-firstname').value = names[0] || '';
+        if (names.length > 1) document.getElementById('checkout-lastname').value = names.slice(1).join(' ');
+      }
+    }
   });
+
   function initMap() {
-    new LocationPicker('delivery-map', { provider: 'leaflet', value: '-26.2041, 28.0473', zoom: 12, search: true, latInput: '#checkout-lat', lngInput: '#checkout-lng', addressInput: '#checkout-address' });
+    // We removed the default coordinate so they MUST drop a pin or search
+    new LocationPicker('delivery-map', {
+      provider: 'leaflet',
+      zoom: 5, // Starts zoomed out over South Africa
+      search: true,
+      latInput: '#checkout-lat',
+      lngInput: '#checkout-lng',
+      addressInput: '#checkout-address',
+      onChange: function() {
+        // This fires when the user drops a pin or searches an address
+        hasSelectedLocation = true;
+      }
+    });
   }
+
   function loadCart() {
     var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
+    
     if (cart.length === 0) {
       document.getElementById('checkout-layout').style.display = 'none';
       document.getElementById('empty-cart-state').style.display = 'block';
-      document.getElementById('page-loader').style.display = 'none'; return;
+      document.getElementById('page-loader').style.display = 'none';
+      return;
     }
+
     document.getElementById('checkout-layout').style.display = 'grid';
-    var container = document.getElementById('order-items-container'); container.innerHTML = ''; globalTotal = 0;
+    document.getElementById('page-loader').style.display = 'none';
+    
+    var container = document.getElementById('order-items-container');
+    container.innerHTML = '';
+    globalTotal = 0;
+
     cart.forEach(function(item) {
-      var itemTotal = item.price * item.quantity; globalTotal += itemTotal;
-      var img = item.imageUrl || item.imageCover || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop';
+      var itemTotal = item.price * item.quantity;
+      globalTotal += itemTotal;
+      
+      var displayImg = item.imageUrl || item.imageCover || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop';
+
       container.innerHTML += `
         <div class="order-item">
-          <div class="order-img" style="background-image:url('${img}')"></div>
-          <div class="order-info"><h4>${item.name}</h4><p>Qty: ${item.quantity}</p></div>
+          <div class="order-img" style="background-image:url('${displayImg}')"></div>
+          <div class="order-info">
+            <h4>${item.name}</h4>
+            <p>Qty: ${item.quantity}</p>
+          </div>
           <div class="order-price">${money(itemTotal)}</div>
-        </div>`;
+        </div>
+      `;
     });
+
     document.getElementById('summary-subtotal').textContent = money(globalTotal);
     document.getElementById('summary-total').textContent = money(globalTotal);
-    document.getElementById('pay-btn').innerHTML = `<i data-lucide="lock"></i> Pay ${money(globalTotal)}`;
-    initMap(); document.getElementById('page-loader').style.display = 'none'; refreshIcons();
+    document.getElementById('pay-btn').innerHTML = `<i data-lucide="lock" style="width:20px;"></i> Pay ${money(globalTotal)}`;
+
+    initMap();
+    refreshIcons();
   }
+
   window.processPayment = function() {
-    if (!currentUser) { showToast('Please sign in.', 'alert-circle'); window.location.href = 'login.html?redirect=checkout.html'; return; }
-    var address = document.getElementById('checkout-address').value; var lat = document.getElementById('checkout-lat').value; var lng = document.getElementById('checkout-lng').value; var phone = document.getElementById('checkout-phone').value;
-    if (!address || !lat || !lng) { showToast('Please select a location.', 'alert-circle'); return; }
-    if (!phone) { showToast('Please enter phone.', 'alert-circle'); return; }
-    var btn = document.getElementById('pay-btn'); btn.disabled = true; btn.innerHTML = 'Processing...';
+    if (!currentUser) {
+      showToast('Please sign in to complete your order.', 'alert-circle');
+      window.location.href = 'login.html?redirect=checkout.html';
+      return;
+    }
+
+    var address = document.getElementById('checkout-address').value;
+    var lat = document.getElementById('checkout-lat').value;
+    var lng = document.getElementById('checkout-lng').value;
+    var phone = document.getElementById('checkout-phone').value;
+
+    // Force the user to actually select their location
+    if (!hasSelectedLocation || !lat || !lng) {
+      showToast('Please search your address or drop a pin on the map.', 'alert-circle');
+      return;
+    }
+    if (!phone) {
+      showToast('Please enter your phone number for the driver.', 'alert-circle');
+      return;
+    }
+
+    var btn = document.getElementById('pay-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;border-color:rgba(3,4,7,0.3);border-top-color:#030407;margin-right:8px;"></div> Processing...';
+
     var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
     var sellerIds = [...new Set(cart.map(item => item.sellerId).filter(id => id))];
+
+    // 1. Create Order in Firestore as "pending"
     db.collection('orders').add({
-      buyerId: currentUser.uid, buyerEmail: currentUser.email, items: cart, sellerIds: sellerIds, total: globalTotal, status: 'pending', deliveryAddress: address, deliveryLat: lat, deliveryLng: lng, deliveryPhone: phone, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(function(docRef) {
-      fetch('https://forestbase.onrender.com/api/create-yoco-checkout', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: docRef.id, userId: currentUser.uid, userEmail: currentUser.email, price: globalTotal, returnUrl: window.location.origin + '/account.html' })
-      }).then(res => res.json()).then(data => {
-        if (data.redirectUrl) { localStorage.removeItem('forestbase_cart'); window.location.href = data.redirectUrl; }
-        else throw new Error(data.error);
-      }).catch(err => { showToast(err.message, 'alert-circle'); btn.disabled = false; btn.innerHTML = `Pay ${money(globalTotal)}`; });
+      buyerId: currentUser.uid,
+      buyerEmail: currentUser.email,
+      items: cart,
+      sellerIds: sellerIds,
+      total: globalTotal, // Saved to DB securely
+      status: 'pending',
+      deliveryAddress: address,
+      deliveryLat: lat,
+      deliveryLng: lng,
+      deliveryPhone: phone,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(function(docRef) {
+      console.log("Order created:", docRef.id);
+      
+      // 2. Call Render Backend (No price sent! It fetches the order and calculates it)
+      fetch('/api/create-yoco-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: docRef.id,
+          userId: currentUser.uid,
+          userEmail: currentUser.email,
+          returnUrl: window.location.origin + '/account.html'
+        })
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.redirectUrl) {
+          localStorage.removeItem('forestbase_cart'); // Clear cart before redirect
+          window.location.href = data.redirectUrl; // Send to Yoco
+        } else {
+          throw new Error(data.error || 'Failed to generate payment link');
+        }
+      })
+      .catch(function(error) {
+        console.error("Yoco Error: ", error);
+        showToast('Payment gateway error. Please try again.', 'alert-circle');
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="lock" style="width:20px;"></i> Pay ${money(globalTotal)}`;
+        refreshIcons();
+      });
+
+    })
+    .catch(function(error) {
+      console.error("Error saving order: ", error);
+      showToast("Could not place order: " + error.message, 'alert-circle');
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="lock" style="width:20px;"></i> Pay ${money(globalTotal)}`;
+      refreshIcons();
     });
   };
-  document.addEventListener('DOMContentLoaded', loadCart);
+
+  document.addEventListener('DOMContentLoaded', function() {
+    loadCart();
+    refreshIcons();
+  });
 })();
 </script>
 </body>
