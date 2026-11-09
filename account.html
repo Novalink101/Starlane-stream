@@ -44,14 +44,14 @@
   
   .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; width: 100%; flex: 1; }
 
-  /* ── NAVBAR (Simplified for Account) ── */
+  /* NAVBAR */
   .nav { background: var(--ink-black); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
   .nav-brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: #fff; letter-spacing:-0.03em; }
   .nav-brand svg { width: 28px; height: 34px; }
   .nav-back { color: var(--silver-glass); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
   .nav-back:hover { color: var(--bright-lime); }
 
-  /* ── DASHBOARD LAYOUT ── */
+  /* DASHBOARD LAYOUT */
   .dashboard { display: grid; grid-template-columns: 280px 1fr; gap: 32px; align-items: start; }
   @media (max-width: 800px) { .dashboard { grid-template-columns: 1fr; } }
 
@@ -120,12 +120,10 @@
 </head>
 <body>
 
-<!-- LOADER -->
 <div id="loader">
   <div class="spinner"></div>
 </div>
 
-<!-- NAVBAR -->
 <nav class="nav">
   <a href="index.html" class="nav-brand">
     <svg viewBox="0 0 60 74">
@@ -142,7 +140,6 @@
 <div class="container">
   <div class="dashboard">
     
-    <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="profile-card">
         <div class="avatar" id="user-avatar">?</div>
@@ -166,24 +163,17 @@
       </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main class="content-area">
       
-      <!-- TAB: ORDERS -->
       <div id="tab-orders" class="tab-content active">
         <h1 class="page-title">Order History</h1>
         <p class="page-sub">Track your recent purchases and view order details.</p>
-
-        <div id="orders-container">
-          <!-- Orders injected here by JS -->
-        </div>
+        <div id="orders-container"></div>
       </div>
 
-      <!-- TAB: WISHLIST -->
       <div id="tab-wishlist" class="tab-content">
         <h1 class="page-title">Your Wishlist</h1>
         <p class="page-sub">Items you are keeping an eye on.</p>
-
         <div class="empty-state">
           <i data-lucide="heart"></i>
           <h3>Your wishlist is empty</h3>
@@ -192,11 +182,9 @@
         </div>
       </div>
 
-      <!-- TAB: SETTINGS -->
       <div id="tab-settings" class="tab-content">
         <h1 class="page-title">Account Settings</h1>
         <p class="page-sub">Manage your personal information and security.</p>
-
         <div class="settings-form">
           <div class="form-group">
             <label>Full Name</label>
@@ -210,7 +198,6 @@
             <label>Password</label>
             <input type="password" value="********" disabled />
           </div>
-          
           <div style="display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap;">
             <button class="btn btn-primary" onclick="alert('Password reset link sent to your email!')">Reset Password</button>
           </div>
@@ -223,9 +210,6 @@
 
 <script>
 (function(){
-  // ═══════════════════════════════════════════════
-  // 1. FIREBASE INITIALIZATION
-  // ═══════════════════════════════════════════════
   var firebaseConfig = {
     apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
     authDomain: "starlane-stream.firebaseapp.com",
@@ -241,41 +225,28 @@
   var currentUser = null;
   function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
-  // ═══════════════════════════════════════════════
-  // 2. AUTHENTICATION GUARD & PROFILE LOAD
-  // ═══════════════════════════════════════════════
   auth.onAuthStateChanged(function(user) {
     if (user) {
       currentUser = user;
-      
-      // Update UI with User Data
       var name = user.displayName || user.email.split('@')[0];
       var email = user.email || '';
-      var initial = name.charAt(0).toUpperCase();
-
-      document.getElementById('user-avatar').textContent = initial;
+      
+      document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
       document.getElementById('user-name').textContent = name;
       document.getElementById('user-email').textContent = email;
       document.getElementById('settings-name').value = name;
       document.getElementById('settings-email').value = email;
 
-      // Hide Loader
       var loader = document.getElementById('loader');
       loader.style.opacity = '0';
       setTimeout(function() { loader.style.display = 'none'; }, 400);
 
-      // Fetch Real Orders
       loadOrders(user.uid);
-
     } else {
-      // Not logged in -> Redirect to login
       window.location.href = 'login.html?redirect=account.html';
     }
   });
 
-  // ═══════════════════════════════════════════════
-  // 3. FETCH LIVE ORDERS FROM FIRESTORE
-  // ═══════════════════════════════════════════════
   function loadOrders(userId) {
     var container = document.getElementById('orders-container');
 
@@ -284,7 +255,6 @@
       .orderBy('createdAt', 'desc')
       .get()
       .then(function(snapshot) {
-        
         if (snapshot.empty) {
           container.innerHTML = `
             <div class="empty-state">
@@ -299,23 +269,18 @@
         }
 
         container.innerHTML = '';
-
         snapshot.forEach(function(doc) {
           var order = doc.data();
-          
-          // Format Date
           var dateStr = "Just now";
           if (order.createdAt) {
             var d = order.createdAt.toDate();
             dateStr = d.toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
           }
 
-          // Status styling
           var statusClass = 'status-pending';
           if (order.status === 'paid') statusClass = 'status-paid';
           if (order.status === 'shipped') statusClass = 'status-shipped';
 
-          // Build items HTML
           var itemsHTML = '';
           if (order.items && Array.isArray(order.items)) {
             order.items.forEach(function(item) {
@@ -353,13 +318,23 @@
       })
       .catch(function(error) {
         console.error("Error loading orders: ", error);
-        container.innerHTML = `<p style="color:red;">Failed to load orders. Check your Firestore indexes.</p>`;
+        
+        // Check if the error is a missing index error
+        if (error.code === 'failed-precondition') {
+          container.innerHTML = `
+            <div class="empty-state">
+              <i data-lucide="database"></i>
+              <h3>Database Indexing</h3>
+              <p>Your order history is being indexed. Please wait a moment and refresh the page.</p>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `<p style="color:red; padding: 20px; text-align: center;">Failed to load orders. Please try again later.</p>`;
+        }
+        if (window.lucide) lucide.createIcons();
       });
   }
 
-  // ═══════════════════════════════════════════════
-  // 4. TAB SWITCHING & SIGN OUT
-  // ═══════════════════════════════════════════════
   var navItems = document.querySelectorAll('.nav-item[data-target]');
   var tabContents = document.querySelectorAll('.tab-content');
 
@@ -368,18 +343,13 @@
       navItems.forEach(function(nav) { nav.classList.remove('active'); });
       tabContents.forEach(function(content) { content.classList.remove('active'); });
       this.classList.add('active');
-      var targetId = this.getAttribute('data-target');
-      document.getElementById(targetId).classList.add('active');
+      document.getElementById(this.getAttribute('data-target')).classList.add('active');
     });
   });
 
   document.getElementById('signout-btn').addEventListener('click', function() {
     if(confirm('Are you sure you want to sign out?')) {
-      auth.signOut().then(function() {
-        window.location.href = 'index.html';
-      }).catch(function(error) {
-        alert('Error signing out: ' + error.message);
-      });
+      auth.signOut().then(function() { window.location.href = 'index.html'; });
     }
   });
 
