@@ -82,7 +82,6 @@
   .checkbox-group input { width: 20px; height: 20px; accent-color: var(--bright-lime); cursor: pointer; }
   .checkbox-group label { margin-bottom: 0; cursor: pointer; font-weight: 500; }
 
-  /* MULTI IMAGE UPLOAD ZONES */
   .image-upload-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
   @media (max-width: 768px) { .image-upload-row { grid-template-columns: 1fr; } }
   
@@ -95,7 +94,6 @@
   
   .upload-preview { width: 100%; height: 160px; background-size: cover; background-position: center; border-radius: 8px; display: none; position: relative; }
   
-  /* REMOVE IMAGE BUTTON */
   .btn-remove-img { position: absolute; top: 8px; right: 8px; background: rgba(220, 38, 38, 0.9); color: #fff; border: none; border-radius: 50%; width: 28px; height: 28px; display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 10; transition: 0.2s; }
   .btn-remove-img:hover { background: var(--danger); transform: scale(1.1); }
   .upload-preview:hover .btn-remove-img { display: flex; }
@@ -131,7 +129,6 @@
   .btn-icon-sm.edit:hover { background: #F3F4F6; color: var(--bright-lime); }
   .btn-icon-sm.delete:hover { background: #FEF2F2; color: var(--danger); }
 
-  /* MODAL STYLES */
   .modal-overlay { position: fixed; inset: 0; background: rgba(3,4,7,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
   .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
   .modal-content { background: #fff; border-radius: 20px; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 32px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
@@ -193,7 +190,7 @@
           <input type="number" id="edit-p-price" required min="1" step="0.01" />
         </div>
         <div class="form-group">
-          <label>Old Price (Optional - leave blank to remove)</label>
+          <label>Old Price (Optional)</label>
           <input type="number" id="edit-p-old-price" min="1" step="0.01" />
         </div>
 
@@ -215,11 +212,10 @@
         </div>
 
         <div class="form-group full-width">
-          <label>External Link (Optional - leave blank to remove)</label>
+          <label>External Link (Optional)</label>
           <input type="url" id="edit-p-external-link" placeholder="https://instagram.com/yourstore" />
         </div>
 
-        <!-- 3 IMAGE EDIT ZONES -->
         <div class="form-group full-width">
           <label>Product Images (Click to replace, or hover to Remove)</label>
           <div class="image-upload-row">
@@ -290,7 +286,6 @@
       </div>
     </div>
 
-    <!-- TAB: INVENTORY -->
     <div id="tab-inventory" class="tab-content active">
       <div class="stats-grid">
         <div class="stat-card">
@@ -367,12 +362,12 @@
             </div>
 
             <div class="form-group full-width">
-              <label>External Link (Optional - Instagram / TikTok)</label>
+              <label>External Link (Optional)</label>
               <input type="url" id="p-external-link" placeholder="https://instagram.com/yourstore" />
             </div>
 
             <div class="form-group full-width">
-              <label>Product Images (Cover, Front, Back)</label>
+              <label>Product Images</label>
               <div class="image-upload-row">
                 <div class="upload-zone" id="zone-cover">
                   <input type="file" id="file-cover" accept="image/*" required />
@@ -415,7 +410,6 @@
       </div>
     </div>
 
-    <!-- TAB: ORDERS -->
     <div id="tab-orders" class="tab-content">
       <div class="panel">
         <h2 class="panel-title"><i data-lucide="truck"></i> Orders to Fulfill</h2>
@@ -447,17 +441,17 @@
   var auth = firebase.auth();
   var db = firebase.firestore();
 
-  var RENDER_URL = 'https://forestbase.onrender.com';
-
   var currentUser = null;
   var unsubscribeInventory = null;
   var unsubscribeOrders = null;
   var currentEditProduct = null;
+  
+  // SECURITY FIX: Global object to store products safely without inline string issues
+  window.inventoryData = {}; 
 
   function money(v){ return 'R ' + parseFloat(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function refreshIcons(){if(window.lucide)lucide.createIcons();}
 
-  // TABS
   var navItems = document.querySelectorAll('.nav-item[data-target]');
   var tabContents = document.querySelectorAll('.tab-content');
   navItems.forEach(function(item) {
@@ -469,7 +463,6 @@
     });
   });
 
-  // AUTH
   auth.onAuthStateChanged(function(user) {
     if (!user) {
       window.location.href = 'login.html?redirect=seller-studio.html';
@@ -489,7 +482,6 @@
     }
   });
 
-  // MULTI-IMAGE UPLOAD PREVIEW (Add Form)
   function setupImagePreview(fileId, zoneId, previewId, contentId) {
     var fileInput = document.getElementById(fileId);
     var uploadZone = document.getElementById(zoneId);
@@ -515,15 +507,12 @@
   setupImagePreview('file-cover', 'zone-cover', 'preview-cover', 'content-cover');
   setupImagePreview('file-front', 'zone-front', 'preview-front', 'content-front');
   setupImagePreview('file-back', 'zone-back', 'preview-back', 'content-back');
-
-  // MULTI-IMAGE UPLOAD PREVIEW (Edit Form)
   setupImagePreview('edit-file-cover', 'edit-zone-cover', 'edit-preview-cover', 'edit-content-cover');
   setupImagePreview('edit-file-front', 'edit-zone-front', 'edit-preview-front', 'edit-content-front');
   setupImagePreview('edit-file-back', 'edit-zone-back', 'edit-preview-back', 'edit-content-back');
 
-  // GLOBAL REMOVE IMAGE LOGIC
   window.removeImage = function(event, type) {
-    event.stopPropagation(); // Stop the upload zone from opening the file picker
+    event.stopPropagation();
     if (type === 'cover') {
       document.getElementById('edit-file-cover').value = '';
       document.getElementById('edit-preview-cover').style.backgroundImage = 'none';
@@ -542,7 +531,6 @@
     }
   };
 
-  // INVENTORY
   function listenToInventory() {
     if (unsubscribeInventory) unsubscribeInventory();
     unsubscribeInventory = db.collection('products').where('sellerId', '==', currentUser.uid).onSnapshot(function(snapshot) {
@@ -569,10 +557,12 @@
 
       productsArray.forEach(function(item) {
         totalValue += parseFloat(item.price || 0);
+        
+        // SECURITY FIX: Store item globally, only pass ID to onclick
+        window.inventoryData[item.id] = item; 
+        
         var viralBadge = item.isViral ? `<br><span class="status-badge status-viral" style="margin-top:4px; display:inline-block; font-size:10px;">Trending</span>` : '';
         var coverImg = item.imageCover || item.imageUrl || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop';
-
-        var itemString = encodeURIComponent(JSON.stringify(item));
 
         var tr = document.createElement('tr');
         tr.innerHTML = `
@@ -590,7 +580,7 @@
           <td style="font-family: var(--mono); font-weight: 600;">${money(item.price)}</td>
           <td><span class="status-badge status-paid">Active</span></td>
           <td style="display:flex; gap:6px;">
-            <button class="btn-icon-sm edit" onclick="openEditModal('${itemString}')"><i data-lucide="edit-2" style="width:14px;"></i></button>
+            <button class="btn-icon-sm edit" onclick="openEditModal('${item.id}')"><i data-lucide="edit-2" style="width:14px;"></i></button>
             <button class="btn-icon-sm delete" onclick="deleteProduct('${item.id}')"><i data-lucide="trash-2" style="width:14px;"></i></button>
           </td>
         `;
@@ -603,7 +593,6 @@
     });
   }
 
-  // ORDERS
   function listenToOrders() {
     if (unsubscribeOrders) unsubscribeOrders();
     unsubscribeOrders = db.collection('orders')
@@ -661,12 +650,11 @@
       });
   }
 
-  // --- OPEN EDIT MODAL ---
-  window.openEditModal = function(itemString) {
-    var item = JSON.parse(decodeURIComponent(itemString));
+  window.openEditModal = function(id) {
+    var item = window.inventoryData[id];
+    if(!item) return;
     currentEditProduct = item;
     
-    // Populate ALL text fields
     document.getElementById('edit-p-id').value = item.id;
     document.getElementById('edit-p-name').value = item.name;
     document.getElementById('edit-p-price').value = item.price;
@@ -678,12 +666,10 @@
     document.getElementById('edit-p-is-viral').checked = item.isViral || false;
     document.getElementById('edit-p-external-link').value = item.externalLink || '';
 
-    // Reset all file inputs
     document.getElementById('edit-file-cover').value = '';
     document.getElementById('edit-file-front').value = '';
     document.getElementById('edit-file-back').value = '';
 
-    // Show existing images (if they exist)
     var cover = item.imageCover || item.imageUrl;
     if (cover) {
       document.getElementById('edit-preview-cover').style.backgroundImage = `url('${cover}')`;
@@ -720,18 +706,15 @@
     document.getElementById('edit-modal').classList.remove('open');
   };
 
-  // --- SAVE EDIT CHANGES ---
   document.getElementById('edit-product-form').addEventListener('submit', function(e) {
     e.preventDefault();
     var btn = document.getElementById('edit-submit-btn');
     var id = document.getElementById('edit-p-id').value;
     
-    // Check if any image previews are visible. If not, and no new file uploaded, the image is removed.
     var coverVisible = document.getElementById('edit-preview-cover').style.display !== 'none';
     var frontVisible = document.getElementById('edit-preview-front').style.display !== 'none';
     var backVisible = document.getElementById('edit-preview-back').style.display !== 'none';
 
-    // Gather text fields. If they are empty, we save null/blank to remove them from DB.
     var updatedData = {
       name: document.getElementById('edit-p-name').value,
       price: parseFloat(document.getElementById('edit-p-price').value),
@@ -742,7 +725,6 @@
       badge: document.getElementById('edit-p-badge').value || null,
       isViral: document.getElementById('edit-p-is-viral').checked,
       externalLink: document.getElementById('edit-p-external-link').value || null,
-      // If image is not visible and no new file is uploading, we set it to null
       imageCover: coverVisible ? currentEditProduct.imageCover || currentEditProduct.imageUrl : null,
       imageFront: frontVisible ? currentEditProduct.imageFront : null,
       imageBack: backVisible ? currentEditProduct.imageBack : null,
@@ -756,7 +738,6 @@
     btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Saving...';
     btn.disabled = true;
 
-    // If no new images selected, just update text (and remove images if they were deleted)
     if (!fileCover && !fileFront && !fileBack) {
       db.collection('products').doc(id).update(updatedData)
         .then(finishEdit)
@@ -764,7 +745,6 @@
       return;
     }
 
-    // If new images WERE selected, upload them
     var formData = new FormData();
     var queue = []; 
 
@@ -772,7 +752,8 @@
     if (fileFront) { formData.append('images', fileFront); queue.push('imageFront'); }
     if (fileBack) { formData.append('images', fileBack); queue.push('imageBack'); }
 
-    fetch(RENDER_URL + '/api/upload-image', { method: 'POST', body: formData })
+    // SECURITY FIX: Relative URL
+    fetch('/api/upload-image', { method: 'POST', body: formData })
       .then(res => res.json())
       .then(data => {
         if (!data.success) throw new Error('Image upload failed');
@@ -807,7 +788,6 @@
     }, 1500);
   }
 
-  // ADD PRODUCT
   document.getElementById('add-product-form').addEventListener('submit', function(e) {
     e.preventDefault();
     var btn = document.getElementById('submit-btn');
@@ -826,7 +806,8 @@
     if (fileFront) formData.append('images', fileFront);
     if (fileBack) formData.append('images', fileBack);
 
-    fetch(RENDER_URL + '/api/upload-image', { method: 'POST', body: formData })
+    // SECURITY FIX: Relative URL
+    fetch('/api/upload-image', { method: 'POST', body: formData })
     .then(function(response) { return response.json(); })
     .then(function(data) {
       if (!data.success) throw new Error(data.error || 'Image upload failed');
