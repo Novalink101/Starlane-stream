@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#ffffff" />
+<title>Order Confirmed · FORESTBASE</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.0/dist/confetti.browser.min.js"></script>
+
+<style>
+  :root { 
+    --ink-black: #030407;
+    --silver-glass: #AAB0C4;
+    --bright-lime: #A3FF12;
+    
+    --bg: #FAFBFC;
+    --surface: #FFFFFF;
+    --border: #E2E5EB;
+    --text: #111827;
+    --text-muted: #6B7280;
+    
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    background: var(--bg); 
+    color: var(--text); 
+    font-family: var(--font-body); 
+    display: flex; 
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center; 
+    min-height: 100vh; 
+    padding: 24px;
+    text-align: center;
+  }
+  a { text-decoration: none; color: inherit; }
+
+  .success-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 60px 40px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Glowing Top Border */
+  .success-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--bright-lime);
+    box-shadow: 0 0 20px var(--bright-lime);
+  }
+
+  .icon-wrapper {
+    width: 80px; height: 80px;
+    background: rgba(163,255,18,0.15);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    color: var(--bright-lime);
+  }
+  .icon-wrapper svg { width: 40px; height: 40px; stroke-width: 3; }
+
+  .success-title {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--ink-black);
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+
+  .success-sub {
+    font-size: 16px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  .order-box {
+    background: var(--bg);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .order-box .label { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+  .order-box .value { font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--ink-black); }
+
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 16px; border-radius: 12px;
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    transition: 0.2s; border: none; font-family: var(--font-display);
+  }
+  .btn-primary { background: var(--ink-black); color: #fff; }
+  .btn-primary:hover { background: #1F222C; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+  
+  .btn-ghost { background: var(--surface); color: var(--ink-black); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--bg); }
+</style>
+</head>
+<body>
+
+<div class="success-card">
+  <div class="icon-wrapper">
+    <i data-lucide="check"></i>
+  </div>
+  
+  <h1 class="success-title">Order Confirmed!</h1>
+  <p class="success-sub">Your mystery is on its way. We've sent a receipt to your email and the seller has been notified to ship your item.</p>
+
+  <div class="order-box">
+    <span class="label">Order Reference</span>
+    <span class="value" id="order-id">#FB-000000</span>
+  </div>
+
+  <div class="btn-group">
+    <a href="account.html" class="btn btn-primary">
+      <i data-lucide="package" style="width:18px;"></i> View My Orders
+    </a>
+    <a href="browse.html" class="btn btn-ghost">
+      Continue Shopping
+    </a>
+  </div>
+</div>
+
+<script>
+  // Trigger Confetti on page load
+  function fireConfetti() {
+    var duration = 3000;
+    var end = Date.now() + duration;
+
+    (function frame() {
+      confetti({
+        particleCount: 5,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#A3FF12', '#030407', '#AAB0C4']
+      });
+      confetti({
+        particleCount: 5,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#A3FF12', '#030407', '#AAB0C4']
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    }());
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    fireConfetti();
+
+    // Read Order ID from URL if available
+    var urlParams = new URLSearchParams(window.location.search);
+    var orderId = urlParams.get('orderId');
+    if (orderId) {
+      document.getElementById('order-id').textContent = '#' + orderId.slice(0, 8).toUpperCase();
+    }
+
+    if (window.lucide) lucide.createIcons();
+  });
+</script>
+</body>
+</html>
