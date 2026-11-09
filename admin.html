@@ -77,14 +77,25 @@
   th { font-size: 12px; text-transform: uppercase; color: var(--text-muted); padding: 16px; border-bottom: 1px solid var(--border); }
   td { padding: 16px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 14px; }
   
+  .product-cell { display: flex; align-items: center; gap: 12px; }
+  .product-img { width: 40px; height: 40px; border-radius: 8px; background: var(--surface-2) center/cover; flex-shrink: 0; }
+  .product-info h4 { font-weight: 600; color: var(--ink-black); font-size: 14px; }
+  .product-info p { font-size: 12px; color: var(--text-muted); }
+
   .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
   .status-pending { background: #FEF3C7; color: #D97706; }
   .status-paid { background: rgba(163,255,18,0.15); color: #5c9e00; }
   .status-shipped { background: #DBEAFE; color: #2563EB; }
   .status-cancelled { background: #FEF2F2; color: #DC2626; }
 
+  .btn-action { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; }
+  .btn-edit { background: #F3F4F6; color: var(--ink-black); margin-right: 4px; }
+  .btn-edit:hover { background: var(--bright-lime); }
+  .btn-delete { background: #FEF2F2; color: var(--danger); }
+  .btn-delete:hover { background: var(--danger); color: #fff; }
   .btn-map { background: #F3F4F6; color: var(--ink-black); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
   .btn-map:hover { background: #E5E7EB; }
+  
   .empty-row { text-align: center; padding: 40px; color: var(--text-muted); font-size: 15px; }
 </style>
 </head>
@@ -103,9 +114,9 @@
       FOREST<span>BASE</span>
     </a>
 
-    <!-- ADMIN NAVIGATION LINKS -->
     <div class="nav-menu">
-      <a href="admin.html" class="nav-item active"><i data-lucide="shield-check"></i> Command Center</a>
+      <div class="nav-item active" data-target="tab-overview"><i data-lucide="shield-check"></i> Command Center</div>
+      <div class="nav-item" data-target="tab-products"><i data-lucide="package"></i> Manage Products</div>
       <a href="admin-payments.html" class="nav-item"><i data-lucide="banknote"></i> Payments & Payouts</a>
       <a href="admin-notifications.html" class="nav-item"><i data-lucide="bell"></i> Broadcast Notifications</a>
       <a href="index.html" class="nav-item"><i data-lucide="store"></i> View Storefront</a>
@@ -120,44 +131,66 @@
     
     <div class="page-header">
       <div>
-        <h1 class="page-title">Admin Command Center</h1>
+        <h1 class="page-title" id="page-title">Admin Command Center</h1>
         <p class="page-sub">Live Platform Overview · <span style="color: #059669; font-weight: 600;">Database Connected</span></p>
       </div>
     </div>
 
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-title">Total Revenue (Pending/Paid)</div>
-        <div class="stat-value" id="stat-revenue">R 0.00</div>
-        <div class="stat-trend"><i data-lucide="trending-up"></i> Live database</div>
+    <!-- TAB: OVERVIEW -->
+    <div id="tab-overview" class="tab-content active">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-title">Total Revenue (Pending/Paid)</div>
+          <div class="stat-value" id="stat-revenue">R 0.00</div>
+          <div class="stat-trend"><i data-lucide="trending-up"></i> Live database</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Total Orders</div>
+          <div class="stat-value" id="stat-orders">0</div>
+          <div class="stat-trend" style="color: var(--text-muted);">Processed via checkout</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Active Products</div>
+          <div class="stat-value" id="stat-products">0</div>
+          <div class="stat-trend" style="color: var(--text-muted);">Listed in the forest</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-title">Total Orders</div>
-        <div class="stat-value" id="stat-orders">0</div>
-        <div class="stat-trend" style="color: var(--text-muted);">Processed via checkout</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">Active Products</div>
-        <div class="stat-value" id="stat-products">0</div>
-        <div class="stat-trend" style="color: var(--text-muted);">Listed in the forest</div>
+
+      <div class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i data-lucide="shopping-cart"></i> Recent Orders</h2></div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Buyer</th>
+                <th>Total</th>
+                <th>Delivery Info</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="orders-body"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <div class="panel">
-      <div class="panel-header"><h2 class="panel-title"><i data-lucide="shopping-cart"></i> Recent Orders</h2></div>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Buyer</th>
-              <th>Total</th>
-              <th>Delivery Info</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="orders-body"></tbody>
-        </table>
+    <!-- TAB: MANAGE PRODUCTS -->
+    <div id="tab-products" class="tab-content">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><i data-lucide="package"></i> Global Product Moderation</h2>
+        </div>
+        <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">View, edit the price, or remove any product listed on FORESTBASE.</p>
+        
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Product</th><th>Seller</th><th>Price</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="admin-products-body"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -182,11 +215,31 @@
   function money(v){ return 'R ' + parseFloat(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function refreshIcons(){if(window.lucide)lucide.createIcons();}
 
+  // TABS
+  var navItems = document.querySelectorAll('.nav-item[data-target]');
+  var tabContents = document.querySelectorAll('.tab-content');
+  var pageTitle = document.getElementById('page-title');
+
+  navItems.forEach(function(item) {
+    item.addEventListener('click', function() {
+      navItems.forEach(function(nav) { nav.classList.remove('active'); });
+      tabContents.forEach(function(content) { content.classList.remove('active'); });
+      this.classList.add('active');
+      
+      var target = this.getAttribute('data-target');
+      document.getElementById(target).classList.add('active');
+      
+      if (target === 'tab-products') pageTitle.textContent = 'Product Management';
+      else pageTitle.textContent = 'Admin Command Center';
+    });
+  });
+
+  // AUTH GUARD
   auth.onAuthStateChanged(function(user) {
     if (!user) {
       window.location.href = 'login.html?redirect=admin.html';
     } else if (!ADMIN_EMAILS.includes(user.email)) {
-      alert("Access Denied.");
+      alert("Access Denied. You do not have administrator privileges.");
       window.location.href = 'index.html';
     } else {
       document.getElementById('loader').style.opacity = '0';
@@ -198,13 +251,17 @@
 
       loadStats();
       loadRecentOrders();
+      loadAllProducts();
     }
   });
 
+  // --- LOAD STATS ---
   function loadStats() {
     db.collection('orders').get().then(function(snapshot) {
       var totalRevenue = 0;
-      snapshot.forEach(function(doc) { totalRevenue += parseFloat(doc.data().total || 0); });
+      snapshot.forEach(function(doc) {
+        totalRevenue += parseFloat(doc.data().total || 0);
+      });
       document.getElementById('stat-revenue').textContent = money(totalRevenue);
       document.getElementById('stat-orders').textContent = snapshot.size;
     });
@@ -214,6 +271,7 @@
     });
   }
 
+  // --- LOAD RECENT ORDERS ---
   function loadRecentOrders() {
     var tbody = document.getElementById('orders-body');
     db.collection('orders').orderBy('createdAt', 'desc').limit(10).get().then(function(snapshot) {
@@ -248,6 +306,57 @@
     });
   }
 
+  // --- LOAD ALL PRODUCTS (MODERATION) ---
+  function loadAllProducts() {
+    var tbody = document.getElementById('admin-products-body');
+    db.collection('products').orderBy('createdAt', 'desc').get().then(function(snapshot) {
+      if (snapshot.empty) { tbody.innerHTML = '<tr><td colspan="4" class="empty-row">No products in the forest yet.</td></tr>'; return; }
+      
+      tbody.innerHTML = '';
+      snapshot.forEach(function(doc) {
+        var p = doc.data();
+        var id = doc.id;
+        var coverImg = p.imageCover || p.imageUrl || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop';
+
+        tbody.innerHTML += `
+          <tr>
+            <td>
+              <div class="product-cell">
+                <div class="product-img" style="background-image:url('${coverImg}')"></div>
+                <div class="product-info"><h4>${p.name}</h4><p>${p.category}</p></div>
+              </div>
+            </td>
+            <td style="font-size: 13px; color: var(--text-muted);">${p.sellerEmail || 'Unknown'}</td>
+            <td style="font-family: var(--mono); font-weight:600;">${money(p.price)}</td>
+            <td>
+              <button class="btn-action btn-edit" onclick="editPrice('${id}', ${p.price})">Edit Price</button>
+              <button class="btn-action btn-delete" onclick="deleteProduct('${id}')">Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+    });
+  }
+
+  // --- EDIT & DELETE ACTIONS ---
+  window.editPrice = function(id, currentPrice) {
+    var newPrice = prompt("Enter new price (ZAR):", currentPrice);
+    if (newPrice !== null && !isNaN(newPrice) && newPrice > 0) {
+      db.collection('products').doc(id).update({ price: parseFloat(newPrice) })
+        .then(function() { alert('Price updated successfully!'); })
+        .catch(function(err) { alert('Error: ' + err.message); });
+    }
+  };
+
+  window.deleteProduct = function(id) {
+    if(confirm('Are you sure you want to permanently delete this product from the platform?')) {
+      db.collection('products').doc(id).delete()
+        .then(function() { alert('Product deleted.'); })
+        .catch(function(err) { alert('Error: ' + err.message); });
+    }
+  };
+
+  // SIGN OUT
   document.getElementById('admin-signout').addEventListener('click', function(e) {
     e.preventDefault();
     auth.signOut().then(function() { window.location.href = 'login.html'; });
