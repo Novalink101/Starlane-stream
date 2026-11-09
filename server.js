@@ -5,6 +5,7 @@ const admin = require('firebase-admin');
 const path = require('path');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
+const nodemailer = require('nodemailer'); // <-- NEW
 
 const app = express();
 
@@ -14,14 +15,14 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// Configure Multer (Stores files in memory, max 5MB per file)
+// Configure Multer
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 } 
 });
 
 // ==========================================
-// 2. CONFIGURATION (ENVIRONMENT VARIABLES)
+// 2. CONFIGURATION
 // ==========================================
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -29,17 +30,22 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// SETUP EMAIL TRANSPORTER (Using Gmail)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER, // Your Gmail address
+    pass: process.env.EMAIL_PASS  // The 16-letter App Password
+  }
+});
+
 let db = null;
 try {
   const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-  // Fix newlines in private key for Render
   if (serviceAccount.private_key) {
     serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
   }
-  
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
+  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
   db = admin.firestore();
   console.log("✅ Firebase Admin Initialized");
 } catch (error) {
@@ -51,37 +57,20 @@ try {
 // ==========================================
 
 // --- [ CLOUDINARY MULTI-IMAGE UPLOAD ] ---
-// Accepts up to 3 images under the field name 'images'
 app.post('/api/upload-image', upload.array('images', 3), async (req, res) => {
   try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ error: 'No images provided' });
-    }
-
+    if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No images provided' });
     var imageUrls = [];
-
-    // Loop through the uploaded files and push to Cloudinary
     for (var i = 0; i < req.files.length; i++) {
       var file = req.files[i];
-      
-      // Convert buffer to base64
       var b64 = Buffer.from(file.buffer).toString('base64');
       var dataURI = "data:" + file.mimetype + ";base64," + b64;
-
-      // Upload to Cloudinary
-      var result = await cloudinary.uploader.upload(dataURI, {
-        folder: 'forestbase_products',
-        resource_type: 'auto'
-      });
-
+      var result = await cloudinary.uploader.upload(dataURI, { folder: 'forestbase_products', resource_type: 'auto' });
       imageUrls.push(result.secure_url);
     }
-
-    // Return the array of secure URLs
     res.json({ success: true, urls: imageUrls });
-
   } catch (error) {
-    console.error('[Cloudinary Multi-Upload Error]', error);
+    console.error('[Cloudinary Error]', error);
     res.status(500).json({ error: 'Failed to upload images' });
   }
 });
@@ -90,13 +79,10 @@ app.post('/api/upload-image', upload.array('images', 3), async (req, res) => {
 app.post('/api/create-yoco-checkout', async (req, res) => {
   try {
     const { orderId, userId, userEmail, price, returnUrl } = req.body;
-
-    if (!orderId || !userId || !price) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
+    if (!orderId || !userId || !price) return res.status(400).json({ error: 'Missing fields' });
+    
     const domainUrl = process.env.FRONTEND_URL || 'https://forestbase.onrender.com';
-
+    
     const yocoRes = await fetch('https://payments.yoco.com/api/checkouts', {
       method: 'POST',
       headers: {
@@ -104,65 +90,117 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
         'Authorization': `Bearer ${process.env.YOCO_SECRET_KEY}`
       },
       body: JSON.stringify({
-        amount: Math.round(price * 100), // Convert Rands to cents
+        amount: Math.round(price * 100),
         currency: 'ZAR',
         cancelUrl: returnUrl || `${domainUrl}/checkout.html`,
         successUrl: returnUrl || `${domainUrl}/account.html`,
         failureUrl: returnUrl || `${domainUrl}/checkout.html`,
-        metadata: { 
-          orderId: orderId, 
-          userId: userId, 
-          userEmail: userEmail 
-        }
+        metadata: { orderId, userId, userEmail }
       })
     });
-
+    
     const yocoData = await yocoRes.json();
-
-    if (!yocoRes.ok) {
-      throw new Error(yocoData.message || 'Yoco rejected the request');
-    }
-
+    if (!yocoRes.ok) throw new Error(yocoData.message || 'Yoco rejected');
     res.json({ redirectUrl: yocoData.redirectUrl });
-
   } catch (err) {
-    console.error('[Yoco Checkout Error]', err);
+    console.error('[Yoco Error]', err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// --- [ YOCO PAYMENT: WEBHOOK ] ---
-// ⚠️ IMPORTANT: Add this URL to your Yoco Dashboard: https://forestbase.onrender.com/api/yoco-webhook
+// --- [ YOCO PAYMENT: WEBHOOK + EMAIL RECEIPT ] ---
 app.post('/api/yoco-webhook', async (req, res) => {
   try {
     if (!db) return res.status(500).json({ error: 'Database not initialized' });
-    
     const event = req.body;
-
-    // Ignore failed payments
-    if (event.type !== 'payment.succeeded') {
-      return res.status(200).json({ received: true, ignored: true });
-    }
+    
+    if (event.type !== 'payment.succeeded') return res.status(200).json({ received: true, ignored: true });
 
     const meta = event.payload.metadata || {};
     const { orderId, userId } = meta;
 
-    if (!userId || !orderId) {
-      return res.status(400).json({ error: 'Missing metadata' });
+    if (orderId) {
+      // 1. Update Order to Paid
+      await db.collection('orders').doc(orderId).update({
+        status: 'paid',
+        paidAt: admin.firestore.FieldValue.serverTimestamp(),
+        yocoPaymentId: event.payload.id
+      }).catch(e => console.log('Order not found'));
+
+      // 2. Fetch Order Details for Email
+      try {
+        const orderDoc = await db.collection('orders').doc(orderId).get();
+        const orderData = orderDoc.data();
+
+        if (orderData && orderData.buyerEmail) {
+          
+          // Build the HTML Email Receipt
+          let itemsHtml = '';
+          orderData.items.forEach(item => {
+            itemsHtml += `
+              <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">
+                  <img src="${item.imageUrl}" width="50" style="border-radius: 8px; vertical-align: middle; margin-right: 10px;">
+                  ${item.name} (x${item.quantity})
+                </td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">R ${(item.price * item.quantity).toFixed(2)}</td>
+              </tr>
+            `;
+          });
+
+          const mailOptions = {
+            from: '"FORESTBASE" <' + process.env.EMAIL_USER + '>',
+            to: orderData.buyerEmail,
+            subject: `Order Confirmed #${orderId.slice(0, 8).toUpperCase()}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #eee; border-radius: 16px; overflow: hidden;">
+                <div style="background: #030407; padding: 30px; text-align: center;">
+                  <h1 style="color: #A3FF12; margin: 0; font-size: 28px;">FORESTBASE</h1>
+                </div>
+                <div style="padding: 30px;">
+                  <h2 style="color: #111827; margin-top: 0;">Order Confirmed!</h2>
+                  <p style="color: #6B7280; font-size: 16px;">Thank you for shopping in the forest. Your mystery is on its way.</p>
+                  
+                  <table style="width: 100%; margin: 20px 0; text-align: left; border-collapse: collapse;">
+                    ${itemsHtml}
+                    <tr>
+                      <td style="padding: 20px 10px 10px; font-weight: bold;">Total</td>
+                      <td style="padding: 20px 10px 10px; text-align: right; font-weight: bold; color: #059669; font-size: 20px;">R ${orderData.total.toFixed(2)}</td>
+                    </tr>
+                  </table>
+
+                  <div style="background: #F1F3F7; padding: 20px; border-radius: 10px; margin-top: 20px;">
+                    <h4 style="margin: 0 0 10px; color: #111827;">Delivery Details</h4>
+                    <p style="margin: 0; color: #6B7280; font-size: 14px;">
+                      📍 ${orderData.deliveryAddress}<br>
+                      📞 ${orderData.deliveryPhone}
+                    </p>
+                  </div>
+                  
+                  <div style="text-align: center; margin-top: 30px;">
+                    <a href="https://forestbase.onrender.com/account.html" style="background: #A3FF12; color: #030407; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Track Your Order</a>
+                  </div>
+                </div>
+              </div>
+            `
+          };
+
+          // Send the email
+          transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+              console.log('[Email Error]', error);
+            } else {
+              console.log('📧 Email receipt sent to:', orderData.buyerEmail);
+            }
+          });
+        }
+      } catch (emailErr) {
+        console.log('[Email Fetch Error]', emailErr);
+      }
     }
 
-    // 1. Mark the e-commerce ORDER as paid in Firestore
-    await db.collection('orders').doc(orderId).update({
-      status: 'paid',
-      paidAt: admin.firestore.FieldValue.serverTimestamp(),
-      yocoPaymentId: event.payload.id
-    }).catch(e => console.log('Order doc not found:', e));
-
-    // 2. Log the payment success
-    console.log(`✅ [Webhook] Order ${orderId} marked as PAID for User ${userId}`);
-
+    console.log(`✅ [Webhook] Order ${orderId} marked as PAID`);
     res.status(200).json({ success: true });
-
   } catch (err) {
     console.error('[Webhook Error]', err);
     res.status(500).json({ error: err.message });
@@ -172,21 +210,8 @@ app.post('/api/yoco-webhook', async (req, res) => {
 // ==========================================
 // 4. STATIC FRONTEND HOSTING
 // ==========================================
-// Serves your HTML/CSS/JS files from the root folder
-app.use(express.static(__dirname, {
-  maxAge: '1d',
-  etag: true
-}));
+app.use(express.static(__dirname, { maxAge: '1d', etag: true }));
+app.get('*', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
 
-// Fallback: If a user goes to an unknown URL, load index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// ==========================================
-// 5. START SERVER
-// ==========================================
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`🚀 FORESTBASE Server running on port ${PORT}`);
-});
+app.listen(PORT, () => { console.log(`🚀 FORESTBASE Server running on port ${PORT}`); });
