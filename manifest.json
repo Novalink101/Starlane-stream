@@ -1,0 +1,21 @@
+{
+  "name": "FORESTBASE Marketplace",
+  "short_name": "FORESTBASE",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#030407",
+  "theme_color": "#030407",
+  "description": "Deep in the forest there's always a mystery. Shop the future of retail.",
+  "icons": [
+    {
+      "src": "https://img.sanishtech.com/u/251b3a473318c6a9f7ab2f46fe15fb1b.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://img.sanishtech.com/u/251b3a473318c6a9f7ab2f46fe15fb1b.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
