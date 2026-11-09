@@ -227,7 +227,7 @@
             <div class="upload-zone" id="edit-zone-cover">
               <input type="file" id="edit-file-cover" accept="image/*" />
               <div class="upload-preview" id="edit-preview-cover">
-                <button type="button" class="btn-remove-img" onclick="removeImage('cover')"><i data-lucide="x" style="width:14px;"></i></button>
+                <button type="button" class="btn-remove-img" onclick="removeImage(event, 'cover')"><i data-lucide="x" style="width:14px;"></i></button>
               </div>
               <div id="edit-content-cover"><i data-lucide="image"></i><p>Cover Image</p></div>
             </div>
@@ -235,7 +235,7 @@
             <div class="upload-zone" id="edit-zone-front">
               <input type="file" id="edit-file-front" accept="image/*" />
               <div class="upload-preview" id="edit-preview-front">
-                <button type="button" class="btn-remove-img" onclick="removeImage('front')"><i data-lucide="x" style="width:14px;"></i></button>
+                <button type="button" class="btn-remove-img" onclick="removeImage(event, 'front')"><i data-lucide="x" style="width:14px;"></i></button>
               </div>
               <div id="edit-content-front"><i data-lucide="camera"></i><p>Front View</p></div>
             </div>
@@ -243,7 +243,7 @@
             <div class="upload-zone" id="edit-zone-back">
               <input type="file" id="edit-file-back" accept="image/*" />
               <div class="upload-preview" id="edit-preview-back">
-                <button type="button" class="btn-remove-img" onclick="removeImage('back')"><i data-lucide="x" style="width:14px;"></i></button>
+                <button type="button" class="btn-remove-img" onclick="removeImage(event, 'back')"><i data-lucide="x" style="width:14px;"></i></button>
               </div>
               <div id="edit-content-back"><i data-lucide="camera"></i><p>Back View</p></div>
             </div>
@@ -522,7 +522,7 @@
   setupImagePreview('edit-file-back', 'edit-zone-back', 'edit-preview-back', 'edit-content-back');
 
   // GLOBAL REMOVE IMAGE LOGIC
-  window.removeImage = function(type) {
+  window.removeImage = function(event, type) {
     event.stopPropagation(); // Stop the upload zone from opening the file picker
     if (type === 'cover') {
       document.getElementById('edit-file-cover').value = '';
@@ -913,4 +913,4 @@
 })();
 </script>
 </body>
-      </html>
+</html>
