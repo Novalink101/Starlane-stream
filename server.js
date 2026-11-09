@@ -6,7 +6,7 @@ const path = require('path');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const nodemailer = require('nodemailer');
-const crypto = require('crypto'); // 🔒 ADDED FOR WEBHOOK SECURITY
+const crypto = require('crypto');
 
 const app = express();
 
@@ -14,8 +14,6 @@ const app = express();
 // 1. MIDDLEWARE
 // ==========================================
 app.use(cors());
-
-// 🔒 SECURITY FIX: Capture raw body for Yoco Webhook signature verification
 app.use(express.json({ 
   limit: '10mb',
   verify: (req, res, buf) => {
@@ -43,7 +41,7 @@ const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+    pass: process.env.EMAIL_PASS 
   }
 });
 
@@ -63,9 +61,75 @@ try {
 }
 
 // ==========================================
-// 3. API ROUTES
+// 3. HELPER FUNCTIONS
 // ==========================================
 
+// 🔥 We made the email logic a shared function so both the Webhook and the Success Page can use it.
+async function sendReceiptEmail(orderId, orderData) {
+  try {
+    if (!orderData || !orderData.buyerEmail) return;
+
+    let itemsHtml = '';
+    orderData.items.forEach(item => {
+      itemsHtml += `
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #eee;">
+            <img src="${item.imageUrl}" width="50" style="border-radius: 8px; vertical-align: middle; margin-right: 10px;">
+            ${item.name} (x${item.quantity})
+          </td>
+          <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">R ${(item.price * item.quantity).toFixed(2)}</td>
+        </tr>
+      `;
+    });
+
+    const mailOptions = {
+      from: '"FORESTBASE" <' + process.env.EMAIL_USER + '>',
+      to: orderData.buyerEmail,
+      subject: `Order Confirmed #${orderId.slice(0, 8).toUpperCase()}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #eee; border-radius: 16px; overflow: hidden;">
+          <div style="background: #030407; padding: 30px; text-align: center;">
+            <h1 style="color: #A3FF12; margin: 0; font-size: 28px;">FORESTBASE</h1>
+          </div>
+          <div style="padding: 30px;">
+            <h2 style="color: #111827; margin-top: 0;">Order Confirmed!</h2>
+            <p style="color: #6B7280; font-size: 16px;">Thank you for shopping in the forest. Your mystery is on its way.</p>
+            <table style="width: 100%; margin: 20px 0; text-align: left; border-collapse: collapse;">
+              ${itemsHtml}
+              <tr>
+                <td style="padding: 20px 10px 10px; font-weight: bold;">Total</td>
+                <td style="padding: 20px 10px 10px; text-align: right; font-weight: bold; color: #059669; font-size: 20px;">R ${orderData.total.toFixed(2)}</td>
+              </tr>
+            </table>
+            <div style="background: #F1F3F7; padding: 20px; border-radius: 10px; margin-top: 20px;">
+              <h4 style="margin: 0 0 10px; color: #111827;">Delivery Details</h4>
+              <p style="margin: 0; color: #6B7280; font-size: 14px;">
+                📍 ${orderData.deliveryAddress}<br>
+                📞 ${orderData.deliveryPhone}
+              </p>
+            </div>
+            <div style="text-align: center; margin-top: 30px;">
+              <a href="https://forestbase.onrender.com/account.html" style="background: #A3FF12; color: #030407; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Track Your Order</a>
+            </div>
+          </div>
+        </div>
+      `
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+      if (error) console.log('[Email Error]', error);
+      else console.log('📧 Email receipt sent to:', orderData.buyerEmail);
+    });
+  } catch (err) {
+    console.log('[Email Helper Error]', err);
+  }
+}
+
+// ==========================================
+// 4. API ROUTES
+// ==========================================
+
+// --- [ CLOUDINARY MULTI-IMAGE UPLOAD ] ---
 app.post('/api/upload-image', upload.array('images', 3), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No images provided' });
@@ -84,6 +148,7 @@ app.post('/api/upload-image', upload.array('images', 3), async (req, res) => {
   }
 });
 
+// --- [ YOCO PAYMENT: CREATE CHECKOUT (SECURE) ] ---
 app.post('/api/create-yoco-checkout', async (req, res) => {
   try {
     const { orderId, userId, userEmail, returnUrl } = req.body;
@@ -94,10 +159,10 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
     if (!orderDoc.exists) return res.status(404).json({ error: 'Order not found' });
 
     const orderData = orderDoc.data();
-    
     if (orderData.buyerId !== userId) return res.status(403).json({ error: 'Unauthorized order access' });
     if (orderData.status !== 'pending') return res.status(400).json({ error: 'Order already processed' });
 
+    // Server-side math
     var trueTotal = 0;
     if (orderData.items && Array.isArray(orderData.items)) {
       orderData.items.forEach(function(item) {
@@ -126,9 +191,66 @@ app.post('/api/create-yoco-checkout', async (req, res) => {
     const yocoData = await yocoRes.json();
     if (!yocoRes.ok) throw new Error(yocoData.message || 'Yoco rejected the request');
     
+    // 🔥 SAVE YOCO CHECKOUT ID (Used by the Verify endpoint)
+    await db.collection('orders').doc(orderId).update({
+      yocoCheckoutId: yocoData.id
+    });
+
     res.json({ redirectUrl: yocoData.redirectUrl });
   } catch (err) {
     console.error('[Yoco Checkout Error]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- [ YOCO PAYMENT: VERIFY PAYMENT (Fallback for slow webhooks) ] ---
+app.post('/api/verify-yoco-payment', async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    if (!orderId) return res.status(400).json({ error: 'Missing orderId' });
+    if (!db) return res.status(500).json({ error: 'Database not initialized' });
+
+    const orderDoc = await db.collection('orders').doc(orderId).get();
+    if (!orderDoc.exists) return res.status(404).json({ error: 'Order not found' });
+    const orderData = orderDoc.data();
+
+    // If webhook already caught it, just return success
+    if (orderData.status === 'paid') {
+      return res.json({ success: true, message: 'Already paid' });
+    }
+
+    if (!orderData.yocoCheckoutId) {
+      return res.status(400).json({ error: 'No Yoco Checkout ID found for this order.' });
+    }
+
+    // Ask Yoco directly
+    const yocoRes = await fetch(`https://payments.yoco.com/api/checkouts/${orderData.yocoCheckoutId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${process.env.YOCO_SECRET_KEY}`
+      }
+    });
+
+    if (!yocoRes.ok) throw new Error('Could not reach Yoco API to verify');
+    const yocoData = await yocoRes.json();
+
+    // Yoco Checkouts API status is usually 'successful', 'failed', 'cancelled', 'created'
+    if (yocoData.status === 'successful') {
+      await db.collection('orders').doc(orderId).update({
+        status: 'paid',
+        paidAt: admin.firestore.FieldValue.serverTimestamp(),
+        yocoPaymentId: yocoData.id
+      });
+
+      // Send the email since the webhook missed it!
+      await sendReceiptEmail(orderId, orderData);
+      
+      return res.json({ success: true, status: 'paid' });
+    } else {
+      return res.status(400).json({ error: 'Yoco reports payment is not successful yet. Status: ' + yocoData.status });
+    }
+  } catch (err) {
+    console.error('[Verify Error]', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -138,7 +260,7 @@ app.post('/api/yoco-webhook', async (req, res) => {
   try {
     if (!db) return res.status(500).json({ error: 'Database not initialized' });
 
-    // 🔒 SECURITY FIX: Verify the webhook signature (Prevents fake payments)
+    // 1. Verify the webhook signature
     const webhookId = req.headers['webhook-id'];
     const webhookTimestamp = req.headers['webhook-timestamp'];
     const webhookSignature = req.headers['webhook-signature'];
@@ -158,7 +280,6 @@ app.post('/api/yoco-webhook', async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized: Invalid signature' });
     }
 
-    // IF WE REACH HERE, THE REQUEST IS 100% FROM YOCO
     const event = req.body;
 
     if (event.type !== 'payment.succeeded') {
@@ -170,71 +291,17 @@ app.post('/api/yoco-webhook', async (req, res) => {
 
     if (!orderId) return res.status(400).json({ error: 'Missing order metadata' });
 
+    // 2. Mark order as paid
     await db.collection('orders').doc(orderId).update({
       status: 'paid',
       paidAt: admin.firestore.FieldValue.serverTimestamp(),
       yocoPaymentId: event.payload.id
     }).catch(e => console.log('Order not found or already updated'));
 
-    try {
-      const orderDoc = await db.collection('orders').doc(orderId).get();
-      const orderData = orderDoc.data();
-
-      if (orderData && orderData.buyerEmail) {
-        let itemsHtml = '';
-        orderData.items.forEach(item => {
-          itemsHtml += `
-            <tr>
-              <td style="padding: 10px; border-bottom: 1px solid #eee;">
-                <img src="${item.imageUrl}" width="50" style="border-radius: 8px; vertical-align: middle; margin-right: 10px;">
-                ${item.name} (x${item.quantity})
-              </td>
-              <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">R ${(item.price * item.quantity).toFixed(2)}</td>
-            </tr>
-          `;
-        });
-
-        const mailOptions = {
-          from: '"FORESTBASE" <' + process.env.EMAIL_USER + '>',
-          to: orderData.buyerEmail,
-          subject: `Order Confirmed #${orderId.slice(0, 8).toUpperCase()}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #eee; border-radius: 16px; overflow: hidden;">
-              <div style="background: #030407; padding: 30px; text-align: center;">
-                <h1 style="color: #A3FF12; margin: 0; font-size: 28px;">FORESTBASE</h1>
-              </div>
-              <div style="padding: 30px;">
-                <h2 style="color: #111827; margin-top: 0;">Order Confirmed!</h2>
-                <p style="color: #6B7280; font-size: 16px;">Thank you for shopping in the forest. Your mystery is on its way.</p>
-                <table style="width: 100%; margin: 20px 0; text-align: left; border-collapse: collapse;">
-                  ${itemsHtml}
-                  <tr>
-                    <td style="padding: 20px 10px 10px; font-weight: bold;">Total</td>
-                    <td style="padding: 20px 10px 10px; text-align: right; font-weight: bold; color: #059669; font-size: 20px;">R ${orderData.total.toFixed(2)}</td>
-                  </tr>
-                </table>
-                <div style="background: #F1F3F7; padding: 20px; border-radius: 10px; margin-top: 20px;">
-                  <h4 style="margin: 0 0 10px; color: #111827;">Delivery Details</h4>
-                  <p style="margin: 0; color: #6B7280; font-size: 14px;">
-                    📍 ${orderData.deliveryAddress}<br>
-                    📞 ${orderData.deliveryPhone}
-                  </p>
-                </div>
-                <div style="text-align: center; margin-top: 30px;">
-                  <a href="https://forestbase.onrender.com/account.html" style="background: #A3FF12; color: #030407; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Track Your Order</a>
-                </div>
-              </div>
-            </div>
-          `
-        };
-
-        transporter.sendMail(mailOptions, function(error, info){
-          if (error) console.log('[Email Error]', error);
-          else console.log('📧 Email receipt sent to:', orderData.buyerEmail);
-        });
-      }
-    } catch (emailErr) {
-      console.log('[Email Fetch Error]', emailErr);
+    // 3. Send Email
+    const orderDoc = await db.collection('orders').doc(orderId).get();
+    if (orderDoc.exists) {
+      await sendReceiptEmail(orderId, orderDoc.data());
     }
 
     console.log(`✅ [Webhook] Order ${orderId} marked as PAID`);
@@ -246,7 +313,7 @@ app.post('/api/yoco-webhook', async (req, res) => {
 });
 
 // ==========================================
-// 4. STATIC FRONTEND HOSTING & FALLBACK
+// 5. STATIC FRONTEND HOSTING & FALLBACK
 // ==========================================
 app.use(express.static(__dirname, { maxAge: '1d', etag: true }));
 
@@ -255,7 +322,7 @@ app.get('*', (req, res) => {
 });
 
 // ==========================================
-// 5. START SERVER
+// 6. START SERVER
 // ==========================================
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
