@@ -7,16 +7,18 @@
 <meta name="description" content="FORESTBASE — The future of e-commerce. Deep in the forest there's always a mystery." />
 <title>FORESTBASE — Deep in the forest there's always a mystery</title>
 
+<!-- PWA SETUP -->
+<link rel="manifest" href="manifest.json" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 74'%3E%3Cpath d='M30 4 L54 46 H6 Z' fill='%23030407'/%3E%3Cpath d='M30 22 L44 46 H16 Z' fill='%23A3FF12'/%3E%3Cpath d='M10 52 H50 V64 H10 Z' fill='%23AAB0C4'/%3E%3Cpath d='M20 56 H40 V60 H20 Z' fill='%23030407'/%3E%3C/svg%3E" />
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
-<!-- CONFETTI FOR NOTIFICATION THEMES -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.0/dist/confetti.browser.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -24,29 +26,15 @@
 
 <style>
 :root{
-  --ink-black: #030407;
-  --silver-glass: #AAB0C4;
-  --bright-lime: #A3FF12;
-  
-  --brand: var(--bright-lime);
-  --brand-ink: var(--ink-black);
-  --ink: var(--ink-black);
-  --ink-2: #12141A;
-  --surface: #FFFFFF;
-  --surface-2: #F1F3F7;
-  --line: #E2E5EB;
-  --danger: #DC2626;
-  
-  --font-display: 'Space Grotesk', system-ui, sans-serif;
-  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --ink-black: #030407; --silver-glass: #AAB0C4; --bright-lime: #A3FF12;
+  --brand: var(--bright-lime); --brand-ink: var(--ink-black);
+  --ink: var(--ink-black); --ink-2: #12141A; --surface: #FFFFFF;
+  --surface-2: #F1F3F7; --line: #E2E5EB; --danger: #DC2626;
+  --font-display: 'Space Grotesk', system-ui, sans-serif; --font-body: 'Inter', system-ui, -apple-system, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  
   --r-md:12px;--r-lg:16px;--r-full:999px;
-  --shadow-sm:0 2px 8px rgba(3,4,7,.06);
-  --shadow-md:0 8px 24px rgba(3,4,7,.12);
-  --shadow-lg:0 16px 40px rgba(3,4,7,.2);
-  --ease:cubic-bezier(.25,.8,.25,1);
-  --container:1300px;
+  --shadow-sm:0 2px 8px rgba(3,4,7,.06); --shadow-md:0 8px 24px rgba(3,4,7,.12); --shadow-lg:0 16px 40px rgba(3,4,7,.2);
+  --ease:cubic-bezier(.25,.8,.25,1); --container:1300px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;overflow-x:hidden;}
@@ -55,12 +43,7 @@ img,svg{display:block;max-width:100%}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:none}
 a{color:inherit;text-decoration:none}
-
-h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
-  font-family:var(--font-display);
-  letter-spacing:-0.02em;
-}
-
+h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{font-family:var(--font-display);letter-spacing:-0.02em;}
 .container{max-width:var(--container);margin:0 auto;padding:0 20px;width:100%}
 
 /* HEADER */
@@ -68,15 +51,11 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .nav-top{max-width:var(--container);margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
 .nav-brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--ink);letter-spacing:-0.03em;}
 .nav-brand svg{width:28px;height:34px;}
-
 .nav-search-form{flex:1;max-width:600px;position:relative;display:flex;}
 .nav-search-form input{width:100%;padding:14px 20px 14px 48px;border-radius:var(--r-full);border:2px solid transparent;background:var(--surface-2);font-size:14px;font-weight:500;transition:all .2s;box-shadow:inset 0 2px 4px rgba(0,0,0,0.02);}
 .nav-search-form input:focus{outline:none;border-color:var(--bright-lime);background:#fff;box-shadow:0 0 0 4px rgba(163,255,18,.2);}
 .nav-search-form svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--silver-glass);width:20px;height:20px;}
-
 .nav-actions{display:flex;gap:12px;align-items:center;}
-
-/* ADMIN BUTTONS */
 .admin-actions { display: none; gap: 8px; align-items: center; }
 .btn-admin { background: rgba(220, 38, 38, 0.1); color: var(--danger); border: 1px solid rgba(220, 38, 38, 0.2); padding: 8px 16px; border-radius: var(--r-md); font-size: 13px; font-weight: 700; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
 .btn-admin:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
@@ -86,7 +65,6 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .notif-btn { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: var(--surface-2); color: var(--ink-black); position: relative; transition: 0.2s; }
 .notif-btn:hover { background: var(--line); }
 .notif-badge { position: absolute; top: -2px; right: -2px; width: 12px; height: 12px; background: var(--bright-lime); border-radius: 50%; border: 2px solid #fff; display: none; }
-
 .notif-dropdown { position: absolute; top: calc(100% + 12px); right: 0; width: 320px; background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-lg); padding: 16px; display: none; z-index: 100; animation: dropIn 0.3s var(--ease); }
 .notif-dropdown.open { display: block; }
 @keyframes dropIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
@@ -108,7 +86,6 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .btn-accent:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.4), 0 0 15px rgba(163,255,18,0.4);}
 .btn-ghost{background:var(--surface-2);color:var(--ink-black);border:1px solid var(--line);}
 .btn-ghost:hover{background:var(--line);}
-
 .cart-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--ink-black);color:#fff;transition:all .2s;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
 .cart-btn:hover{background:var(--ink-2);transform:scale(1.05);}
 .cart-badge{position:absolute;top:-4px;right:-4px;background:var(--bright-lime);color:var(--ink-black);font-size:11px;font-weight:900;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;border:2px solid #fff;}
@@ -130,13 +107,11 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .hero-slide{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat;opacity:0;transition:opacity 1.5s ease-in-out, transform 6s linear;transform:scale(1);}
 .hero-slide.active{opacity:.55;transform:scale(1.05);}
 .hero-overlay{position:absolute;inset:0;z-index:1;background:radial-gradient(circle at 20% 50%, rgba(3,4,7,.95) 0%, rgba(3,4,7,.6) 60%, rgba(3,4,7,.9) 100%),linear-gradient(to top, #030407 0%, transparent 40%);pointer-events:none;}
-
 .hero-in{position:relative;z-index:2;max-width:var(--container);margin:0 auto;padding:0 20px;width:100%;}
 .hero-tag{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(163,255,18,.3);background:rgba(163,255,18,.1);color:var(--bright-lime);font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:8px 16px;border-radius:var(--r-full);margin-bottom:24px;backdrop-filter:blur(10px);}
 .hero h1{font-size:clamp(2.5rem,5.5vw,4.5rem);line-height:1.05;margin-bottom:20px;max-width:850px;text-shadow:0 10px 30px rgba(0,0,0,.8);}
 .hero h1 span{color:var(--bright-lime);text-shadow:0 0 40px rgba(163,255,18,.3);}
 .hero p{color:var(--silver-glass);font-size:clamp(1rem,1.5vw,1.2rem);max-width:600px;line-height:1.6;margin-bottom:40px;text-shadow:0 2px 10px rgba(0,0,0,.8);font-weight:400;}
-
 .hero-ctas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;max-width:1000px}
 .hero-card{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:28px;border-radius:var(--r-lg);background:rgba(3,4,7,.6);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);transition:all .3s var(--ease);text-decoration:none;color:#fff;position:relative;overflow:hidden;}
 .hero-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg, rgba(163,255,18,.1), transparent);opacity:0;transition:opacity .3s;}
@@ -169,7 +144,6 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .card-foot{margin-top:auto;padding-top:16px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
 .card-foot .price{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--ink-black);}
 .card-foot .price del{font-size:13px;color:#94A3B8;font-weight:500;margin-right:6px;}
-
 .card-actions { display: flex; gap: 8px; }
 .btn-add { background: var(--ink-black); color: #fff; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s; }
 .btn-add:hover { background: #1F222C; }
@@ -183,7 +157,6 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .sk-line { height: 14px; border-radius: 4px; background: linear-gradient(90deg, #EEF2F7, #E2E8F0, #EEF2F7); background-size: 200% 100%; animation: sk 1.4s infinite; }
 .sk-line.w80 { width: 80%; } .sk-line.w60 { width: 60%; }
 @keyframes sk { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
 .empty-state { grid-column: 1/-1; text-align: center; padding: 60px 20px; background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r-lg); color: var(--text-muted); }
 .empty-state svg { width: 48px; height: 48px; margin: 0 auto 16px; color: var(--silver-glass); }
 .empty-state h3 { font-family: var(--font-display); color: var(--ink-black); font-size: 20px; margin-bottom: 8px; }
@@ -217,7 +190,6 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .footer-col h4{font-family:var(--font-display);font-size:14px;margin-bottom:20px;color:#fff;}
 .footer-col a{display:block;padding:8px 0;transition:color .2s;}
 .footer-col a:hover{color:var(--bright-lime)}
-
 @keyframes fadeIn { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
 
 /* Mobile */
@@ -246,12 +218,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 <header class="header-wrapper">
   <div class="nav-top">
     <a href="index.html" class="nav-brand">
-      <svg viewBox="0 0 60 74">
-        <path d="M30 4 L54 46 H6 Z" fill="#030407" />
-        <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
-        <path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" />
-        <path d="M20 56 H40 V60 H20 Z" fill="#030407" />
-      </svg>
+      <svg viewBox="0 0 60 74"><path d="M30 4 L54 46 H6 Z" fill="#030407" /><path d="M30 22 L44 46 H16 Z" fill="#A3FF12" /><path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" /><path d="M20 56 H40 V60 H20 Z" fill="#030407" /></svg>
       FORESTBASE
     </a>
     
@@ -261,7 +228,6 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
     </form>
 
     <div class="nav-actions">
-      
       <div class="admin-actions" id="admin-actions">
         <a href="admin.html" class="btn-admin"><i data-lucide="shield" style="width:16px;"></i> Admin</a>
         <a href="admin-notifications.html" class="btn-admin"><i data-lucide="bell" style="width:16px;"></i> Broadcast</a>
@@ -306,12 +272,10 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 <section class="hero">
   <div class="hero-bg" id="heroBg"></div>
   <div class="hero-overlay"></div>
-
   <div class="hero-in">
     <span class="hero-tag"><i data-lucide="sparkles"></i> The Future of Retail</span>
     <h1>Deep in the forest.<br><span>There's always a mystery.</span></h1>
     <p>Shop exclusive future-tech, limited edition gadgets, and mystery drops. Premium sellers, lightning-fast delivery, and secure checkout.</p>
-
     <div class="hero-ctas">
       <a href="browse.html" class="hero-card">
         <span class="hc-icon"><i data-lucide="shopping-bag"></i></span>
@@ -332,20 +296,16 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
   </div>
 </section>
 
-<!-- TRENDING / VIRAL SECTION -->
 <section class="section" id="trending" style="padding-top: 40px; padding-bottom: 0;">
   <div class="container">
     <div class="section-head">
       <h2><i data-lucide="flame" style="color:#DB2777;"></i> As Seen on TikTok (Trending)</h2>
       <a href="browse.html?filter=viral" class="see-all">See all <i data-lucide="arrow-right" style="width:16px;"></i></a>
     </div>
-    <div class="grid" id="trendingGrid">
-      <!-- Injected by JS -->
-    </div>
+    <div class="grid" id="trendingGrid"></div>
   </div>
 </section>
 
-<!-- ALL PRODUCTS / MAIN SECTION -->
 <section class="section" id="shop">
   <div class="container">
     <div class="section-head">
@@ -353,9 +313,9 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
       <a href="browse.html" class="see-all">See all <i data-lucide="arrow-right" style="width:16px;"></i></a>
     </div>
     <div class="grid" id="productsGrid">
-      <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div><div class="sk-line w40"></div></div></div>
-      <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div><div class="sk-line w40"></div></div></div>
-      <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div><div class="sk-line w40"></div></div></div>
+      <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
+      <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
+      <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
     </div>
   </div>
 </section>
@@ -375,16 +335,12 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
     <div class="about-grid">
       <div class="about-text">
         <h2>About FORESTBASE</h2>
-        <p>FORESTBASE is not just another online store. It's a curated marketplace built for the future. We connect visionary sellers with buyers who crave the extraordinary—from cutting-edge future-tech to exclusive mystery drops you won't find anywhere else.</p>
-        <p>Our mission is simple: to create a secure, lightning-fast, and visually stunning platform where the next great product discovery is always just a click away.</p>
+        <p>FORESTBASE is not just another online store. It's a curated marketplace built for the future. We connect visionary sellers with buyers who crave the extraordinary.</p>
       </div>
-
       <div class="contact-card">
         <h3>Get in Touch</h3>
-        <p>Have a question, need support, or want to partner with us? Slide into our DMs. We are always active in the forest.</p>
-        <a href="https://www.instagram.com/forestbase_official?exln=MWtkbzFvb2s5ZG14dQ==" target="_blank" class="btn-instagram">
-          <i data-lucide="instagram"></i> @forestbase_official
-        </a>
+        <p>Have a question, need support, or want to partner with us? Slide into our DMs.</p>
+        <a href="https://www.instagram.com/forestbase_official?exln=MWtkbzFvb2s5ZG14dQ==" target="_blank" class="btn-instagram"><i data-lucide="instagram"></i> @forestbase_official</a>
       </div>
     </div>
   </div>
@@ -394,15 +350,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
   <div class="container">
     <div class="footer-grid">
       <div>
-        <div class="footer-brand">
-          <svg viewBox="0 0 60 74">
-            <path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" />
-            <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
-            <path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" />
-            <path d="M20 56 H40 V60 H20 Z" fill="#030407" />
-          </svg>
-          FORESTBASE
-        </div>
+        <div class="footer-brand"><svg viewBox="0 0 60 74"><path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" /><path d="M30 22 L44 46 H16 Z" fill="#A3FF12" /><path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" /><path d="M20 56 H40 V60 H20 Z" fill="#030407" /></svg>FORESTBASE</div>
         <p class="footer-desc">Deep in the forest there's always a mystery. The futuristic marketplace for buyers and sellers.</p>
       </div>
       <div class="footer-col">
@@ -459,13 +407,10 @@ window.showToast = function(message, icon) {
   container.appendChild(toast);
   refreshIcons();
   setTimeout(() => toast.classList.add('show'), 10);
-  setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 400);
-  }, 3500);
+  setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3500);
 };
 
-// --- NOTIFICATION BELL & THEMES ---
+// --- NOTIFICATION BELL & THEMES (WITH SCHEDULING LOGIC) ---
 function listenForNotifications(user) {
   if (!user) return;
   db.collection('global_notifications').orderBy('createdAt', 'desc').limit(5).onSnapshot(function(snapshot) {
@@ -478,9 +423,15 @@ function listenForNotifications(user) {
     var lastSeen = localStorage.getItem('forestbase_last_notif') || 0;
     var hasUnread = false;
     var html = '';
+    var now = Date.now();
 
     snapshot.forEach(function(doc) {
       var n = doc.data();
+      
+      // CHECK SCHEDULE
+      var startMs = n.activeFrom ? n.activeFrom.toMillis() : 0;
+      if (now < startMs) return; // Don't show if it's scheduled for the future
+
       var time = n.createdAt ? n.createdAt.toMillis() : Date.now();
       if (time > lastSeen) hasUnread = true;
       var timeStr = n.createdAt ? n.createdAt.toDate().toLocaleDateString() : 'Just now';
@@ -494,14 +445,16 @@ function listenForNotifications(user) {
       `;
     });
 
+    if (html === '') { wrapper.style.display = 'none'; return; }
+
     wrapper.style.display = 'block';
     list.innerHTML = html;
 
     if (hasUnread) {
       badge.style.display = 'block';
-      
-      // Trigger the theme animation based on the latest notification
       var latestNotif = snapshot.docs[0].data();
+      
+      // THEME ANIMATIONS
       if (latestNotif.theme === 'snow') {
         confetti({ particleCount: 200, spread: 160, origin: { y: 0 }, colors: ['#FFFFFF', '#E2E8F0'] });
       } else if (latestNotif.theme === 'hearts') {
@@ -528,16 +481,10 @@ $('notif-btn').addEventListener('click', function(e) {
   $('notif-dropdown').classList.toggle('open');
   $('notif-badge').style.display = 'none';
 });
-$('close-notif').addEventListener('click', function() {
-  $('notif-dropdown').classList.remove('open');
-});
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.notif-wrapper')) {
-    $('notif-dropdown').classList.remove('open');
-  }
-});
+$('close-notif').addEventListener('click', function() { $('notif-dropdown').classList.remove('open'); });
+document.addEventListener('click', function(e) { if (!e.target.closest('.notif-wrapper')) { $('notif-dropdown').classList.remove('open'); } });
 
-// --- AUTHENTICATION & ADMIN GUARD ---
+// --- AUTHENTICATION ---
 auth.onAuthStateChanged(function(user) {
   var userBtn = $('user-btn');
   var userIcon = $('user-icon');
@@ -549,13 +496,7 @@ auth.onAuthStateChanged(function(user) {
     userIcon.setAttribute('data-lucide', 'user-check');
     userIcon.style.color = 'var(--bright-lime)';
     userText.textContent = 'Account';
-    
-    if (ADMIN_EMAILS.includes(user.email)) {
-      adminActions.style.display = 'flex';
-    } else {
-      adminActions.style.display = 'none';
-    }
-    
+    if (ADMIN_EMAILS.includes(user.email)) { adminActions.style.display = 'flex'; } else { adminActions.style.display = 'none'; }
     listenForNotifications(user);
   } else {
     userBtn.href = "login.html";
@@ -568,48 +509,24 @@ auth.onAuthStateChanged(function(user) {
   refreshIcons();
 });
 
-// --- CART BADGE ---
 function updateCartBadge() {
   var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
   var total = cart.reduce((sum, item) => sum + item.quantity, 0);
   $('cart-count').textContent = total;
 }
 
-// --- 12-IMAGE HERO CAROUSEL ---
+// --- HERO CAROUSEL ---
 var HERO_IMAGES = [
-  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1600&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1600&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?w=1600&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1600&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1600&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1531297172866-3020c13c9d4a?w=1600&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1600&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1600&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=1600&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&q=80&auto=format&fit=crop'
+  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1600&q=80&auto=format&fit=crop', 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1600&q=80&auto=format&fit=crop', 'https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?w=1600&q=80&auto=format&fit=crop', 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&q=80&auto=format&fit=crop', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1600&q=80&auto=format&fit=crop', 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1600&q=80&auto=format&fit=crop', 'https://images.unsplash.com/photo-1531297172866-3020c13c9d4a?w=1600&q=80&auto=format&fit=crop', 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1600&q=80&auto=format&fit=crop', 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1600&q=80&auto=format&fit=crop', 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&q=80&auto=format&fit=crop', 'https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=1600&q=80&auto=format&fit=crop', 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&q=80&auto=format&fit=crop'
 ];
 var heroIndex = 0;
-
 function initCarousel(){
-  var heroBg = $('heroBg');
-  heroBg.innerHTML = '';
-  var slides = [];
-
+  var heroBg = $('heroBg'); heroBg.innerHTML = ''; var slides = [];
   HERO_IMAGES.forEach(function(url, i){
-    var slide = document.createElement('div');
-    slide.className = 'hero-slide' + (i === 0 ? ' active' : '');
-    slide.style.backgroundImage = "url('" + url + "')";
-    heroBg.appendChild(slide);
-    slides.push(slide);
+    var slide = document.createElement('div'); slide.className = 'hero-slide' + (i === 0 ? ' active' : '');
+    slide.style.backgroundImage = "url('" + url + "')"; heroBg.appendChild(slide); slides.push(slide);
   });
-
-  setInterval(function(){
-    var next = (heroIndex + 1) % slides.length;
-    slides.forEach(function(s, idx){ s.classList.toggle('active', idx === next); });
-    heroIndex = next;
-  }, 4000);
+  setInterval(function(){ var next = (heroIndex + 1) % slides.length; slides.forEach(function(s, idx){ s.classList.toggle('active', idx === next); }); heroIndex = next; }, 4000);
 }
 
 // --- RENDER PRODUCT CARD ---
@@ -617,116 +534,63 @@ function createProductCard(p, index) {
   var card = document.createElement('div');
   card.className = 'card-item';
   card.style.animationDelay = (index * 0.05) + 's';
-
   var badgeHTML = '';
-  if (p.isViral) {
-    badgeHTML = `<span class="card-badge viral">🔥 Trending</span>`;
-  } else if (p.badge) {
-    badgeHTML = `<span class="card-badge ${p.badge.toLowerCase()==='sale'?'sale':''}">${p.badge}</span>`;
-  }
-
+  if (p.isViral) { badgeHTML = `<span class="card-badge viral">🔥 Trending</span>`; } 
+  else if (p.badge) { badgeHTML = `<span class="card-badge ${p.badge.toLowerCase()==='sale'?'sale':''}">${p.badge}</span>`; }
   var priceHTML = p.oldPrice ? `<del>${money(p.oldPrice)}</del> ${money(p.price)}` : money(p.price);
   var displayImg = p.imageCover || p.imageUrl || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop';
-
   card.innerHTML = `
-    <div class="card-img" style="background-image:url('${displayImg}')">
-      ${badgeHTML}
-    </div>
+    <div class="card-img" style="background-image:url('${displayImg}')">${badgeHTML}</div>
     <div class="card-body">
       <div class="card-title">${p.name || 'Unnamed Product'}</div>
-      <div class="card-rating">
-        <i data-lucide="star"></i> ${p.rating || 5.0} <span>(${p.reviews || 0})</span>
-      </div>
+      <div class="card-rating"><i data-lucide="star"></i> ${p.rating || 5.0} <span>(${p.reviews || 0})</span></div>
       <div class="card-foot">
         <span class="price">${priceHTML}</span>
         <div class="card-actions">
-          <button class="btn-add" onclick="event.stopPropagation(); quickAdd('${p.id}', '${p.name}', ${p.price}, '${displayImg}', '${p.sellerId}')">
-            Add
-          </button>
-          <button class="btn-buy" onclick="event.stopPropagation(); buyNow('${p.id}', '${p.name}', ${p.price}, '${displayImg}', '${p.sellerId}')">
-            Buy
-          </button>
+          <button class="btn-add" onclick="event.stopPropagation(); quickAdd('${p.id}', '${p.name}', ${p.price}, '${displayImg}', '${p.sellerId}')">Add</button>
+          <button class="btn-buy" onclick="event.stopPropagation(); buyNow('${p.id}', '${p.name}', ${p.price}, '${displayImg}', '${p.sellerId}')">Buy</button>
         </div>
       </div>
-    </div>
-  `;
-
-  card.addEventListener('click', function(e) {
-    if(e.target.tagName !== 'BUTTON') {
-      window.location.href = 'product.html?id=' + p.id;
-    }
-  });
-
+    </div>`;
+  card.addEventListener('click', function(e) { if(e.target.tagName !== 'BUTTON') { window.location.href = 'product.html?id=' + p.id; } });
   return card;
 }
 
-// --- FETCH PRODUCTS (Trending & Main) ---
 function loadProducts() {
-  var trendingGrid = $('trendingGrid');
-  var productsGrid = $('productsGrid');
-
-  // 1. Fetch Trending
+  var trendingGrid = $('trendingGrid'); var productsGrid = $('productsGrid');
   db.collection('products').where('isViral', '==', true).limit(4).get().then(function(snapshot) {
-    trendingGrid.innerHTML = '';
-    if (snapshot.empty) { document.getElementById('trending').style.display = 'none'; return; }
-    var index = 0;
-    snapshot.forEach(function(doc) {
-      var p = doc.data(); p.id = doc.id;
-      trendingGrid.appendChild(createProductCard(p, index));
-      index++;
-    });
-    refreshIcons();
+    trendingGrid.innerHTML = ''; if (snapshot.empty) { document.getElementById('trending').style.display = 'none'; return; }
+    var index = 0; snapshot.forEach(function(doc) { var p = doc.data(); p.id = doc.id; trendingGrid.appendChild(createProductCard(p, index)); index++; }); refreshIcons();
   });
-
-  // 2. Fetch Main Grid
   db.collection('products').orderBy('createdAt', 'desc').limit(4).get().then(function(snapshot) {
-    productsGrid.innerHTML = '';
-    if (snapshot.empty) {
-      productsGrid.innerHTML = `<div class="empty-state"><h3>No mysteries found yet</h3><p>Be the first to <a href="seller-studio.html" style="color:var(--bright-lime); text-decoration:underline;">upload a product</a>!</p></div>`;
-      refreshIcons(); return;
-    }
-    var index = 0;
-    snapshot.forEach(function(doc) {
-      var p = doc.data(); p.id = doc.id;
-      productsGrid.appendChild(createProductCard(p, index));
-      index++;
-    });
-    refreshIcons();
+    productsGrid.innerHTML = ''; if (snapshot.empty) { productsGrid.innerHTML = `<div class="empty-state"><h3>No mysteries found yet</h3><p>Be the first to <a href="seller-studio.html" style="color:var(--bright-lime); text-decoration:underline;">upload a product</a>!</p></div>`; refreshIcons(); return; }
+    var index = 0; snapshot.forEach(function(doc) { var p = doc.data(); p.id = doc.id; productsGrid.appendChild(createProductCard(p, index)); index++; }); refreshIcons();
   });
 }
 
-// --- CART ACTIONS ---
 window.quickAdd = function(id, name, price, imageUrl, sellerId) {
-  var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
-  var existing = cart.find(item => item.id === id);
-
-  if (existing) { existing.quantity += 1; } 
-  else { cart.push({ id, name, price, imageUrl, sellerId, quantity: 1 }); }
-
-  localStorage.setItem('forestbase_cart', JSON.stringify(cart));
-  updateCartBadge();
-  showToast('Added to cart!', 'shopping-bag');
+  var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]'); var existing = cart.find(item => item.id === id);
+  if (existing) { existing.quantity += 1; } else { cart.push({ id, name, price, imageUrl, sellerId, quantity: 1 }); }
+  localStorage.setItem('forestbase_cart', JSON.stringify(cart)); updateCartBadge(); showToast('Added to cart!', 'shopping-bag');
 };
 
 window.buyNow = function(id, name, price, imageUrl, sellerId) {
-  var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
-  var existing = cart.find(item => item.id === id);
-
-  if (existing) { existing.quantity += 1; } 
-  else { cart.push({ id, name, price, imageUrl, sellerId, quantity: 1 }); }
-
-  localStorage.setItem('forestbase_cart', JSON.stringify(cart));
-  window.location.href = 'checkout.html';
+  var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]'); var existing = cart.find(item => item.id === id);
+  if (existing) { existing.quantity += 1; } else { cart.push({ id, name, price, imageUrl, sellerId, quantity: 1 }); }
+  localStorage.setItem('forestbase_cart', JSON.stringify(cart)); window.location.href = 'checkout.html';
 };
 
-// --- INIT ---
 document.addEventListener('DOMContentLoaded', function(){
-  refreshIcons();
-  initCarousel();
-  loadProducts(); 
-  updateCartBadge();
+  refreshIcons(); initCarousel(); loadProducts(); updateCartBadge();
+  
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW failed', err));
+    });
+  }
 });
 })();
 </script>
 </body>
-  </html>
+</html>
