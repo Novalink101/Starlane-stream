@@ -409,10 +409,12 @@
   setupImagePreview('file-front', 'zone-front', 'preview-front', 'content-front');
   setupImagePreview('file-back', 'zone-back', 'preview-back', 'content-back');
 
-  // INVENTORY
+  // INVENTORY (BYPASSING COMPOSITE INDEX - NO ORDERBY)
   function listenToInventory() {
     if (unsubscribeInventory) unsubscribeInventory();
-    unsubscribeInventory = db.collection('products').where('sellerId', '==', currentUser.uid).orderBy('createdAt', 'desc').onSnapshot(function(snapshot) {
+    
+    // We removed .orderBy('createdAt', 'desc') to stop the index error
+    unsubscribeInventory = db.collection('products').where('sellerId', '==', currentUser.uid).onSnapshot(function(snapshot) {
       var tbody = document.getElementById('inventory-body');
       tbody.innerHTML = '';
       var totalValue = 0;
@@ -424,8 +426,19 @@
         return;
       }
 
+      // Put products in array and sort them manually
+      var productsArray = [];
       snapshot.forEach(function(doc) {
         var item = doc.data();
+        item.id = doc.id;
+        item._time = item.createdAt ? item.createdAt.toMillis() : 0; 
+        productsArray.push(item);
+      });
+
+      // Sort newest first
+      productsArray.sort(function(a, b) { return b._time - a._time; });
+
+      productsArray.forEach(function(item) {
         totalValue += parseFloat(item.price || 0);
         
         var viralBadge = item.isViral ? `<br><span class="status-badge status-viral" style="margin-top:4px; display:inline-block; font-size:10px;">Trending</span>` : '';
@@ -438,7 +451,7 @@
               <div class="product-img" style="background-image:url('${coverImg}')"></div>
               <div class="product-info">
                 <h4>${item.name}</h4>
-                <p>SKU-${doc.id.slice(0, 6).toUpperCase()}</p>
+                <p>SKU-${item.id.slice(0, 6).toUpperCase()}</p>
                 ${viralBadge}
               </div>
             </div>
@@ -446,10 +459,11 @@
           <td style="font-size: 14px; color: var(--text-muted);">${item.category}<br><span style="font-size:11px;">📍 ${item.shipsFrom || 'Unknown'}</span></td>
           <td style="font-family: var(--mono); font-weight: 600;">${money(item.price)}</td>
           <td><span class="status-badge status-paid">Active</span></td>
-          <td><button class="btn-icon-sm delete" onclick="deleteProduct('${doc.id}')"><i data-lucide="trash-2" style="width:14px;"></i></button></td>
+          <td><button class="btn-icon-sm delete" onclick="deleteProduct('${item.id}')"><i data-lucide="trash-2" style="width:14px;"></i></button></td>
         `;
         tbody.appendChild(tr);
       });
+      
       document.getElementById('stat-products').textContent = snapshot.size;
       document.getElementById('stat-value').textContent = money(totalValue);
       refreshIcons();
@@ -565,12 +579,10 @@
         shipsFrom: shipsFromVal,
         isViral: isViral,
         externalLink: externalLink,
-        // Store the 3 distinct images
         imageCover: coverUrl,
         imageFront: frontUrl,
         imageBack: backUrl,
-        // Backwards compatibility for older pages
-        imageUrl: coverUrl,
+        imageUrl: coverUrl, // For backwards compatibility
         price: parseFloat(document.getElementById('p-price').value),
         oldPrice: oldPriceVal ? parseFloat(oldPriceVal) : null,
         description: document.getElementById('p-desc').value,
