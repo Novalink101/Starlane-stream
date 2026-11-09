@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://starlane-stream.onrender.com/sitemap.xml
+# Point search engines to the sitemap
+Sitemap: https://forestbase.onrender.com/sitemap.xml
