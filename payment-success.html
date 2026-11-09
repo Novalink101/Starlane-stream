@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#030407" />
+<title>Payment Status · FORESTBASE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<style>
+  :root { 
+    --ink-black: #030407; --bright-lime: #A3FF12; --surface: #FFFFFF; 
+    --border: #E2E5EB; --text: #111827; --text-muted: #6B7280; 
+    --danger: #DC2626; --success: #059669;
+    --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #FAFBFC; color: var(--text); font-family: var(--font-body); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 48px 32px; max-width: 500px; width: 100%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+  
+  .icon-box { width: 88px; height: 88px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
+  .icon-box.loading { background: var(--surface); border: 2px solid var(--border); color: var(--ink-black); }
+  .icon-box.success { background: rgba(163,255,18,0.15); border: 2px solid var(--bright-lime); color: var(--success); }
+  .icon-box.error { background: rgba(220,38,38,0.1); border: 2px solid rgba(220,38,38,0.3); color: var(--danger); }
+  .icon-box svg { width: 40px; height: 40px; }
+
+  h1 { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--ink-black); margin-bottom: 12px; }
+  p { color: var(--text-muted); font-size: 15px; line-height: 1.6; margin-bottom: 32px; }
+  
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(3,4,7,0.1); border-top-color: var(--ink-black); border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; border-radius: 12px; font-family: var(--font-display); font-size: 16px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; transition: 0.2s; margin-bottom: 12px; }
+  .btn-primary { background: var(--ink-black); color: #fff; }
+  .btn-primary:hover { background: var(--bright-lime); color: var(--ink-black); }
+  .btn-ghost { background: var(--surface); color: var(--ink-black); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: #FAFBFC; }
+  
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  
+  <!-- LOADING -->
+  <div id="state-loading">
+    <div class="icon-box loading"><div class="spinner"></div></div>
+    <h1>Verifying Payment...</h1>
+    <p>Please wait while we confirm your transaction with Yoco. Do not close this page.</p>
+  </div>
+
+  <!-- SUCCESS -->
+  <div id="state-success" class="hidden">
+    <div class="icon-box success"><i data-lucide="check-circle"></i></div>
+    <h1>Payment Successful!</h1>
+    <p>Your order has been confirmed. A receipt has been sent to your email.</p>
+    <a href="account.html" class="btn btn-primary"><i data-lucide="package"></i> View My Orders</a>
+    <a href="browse.html" class="btn btn-ghost">Continue Shopping</a>
+  </div>
+
+  <!-- ERROR -->
+  <div id="state-error" class="hidden">
+    <div class="icon-box error"><i data-lucide="alert-circle"></i></div>
+    <h1>Verification Failed</h1>
+    <p id="error-msg">We could not confirm your payment. If you were charged, please contact support.</p>
+    <a href="account.html" class="btn btn-primary"><i data-lucide="layout-grid"></i> Check My Orders</a>
+    <a href="checkout.html" class="btn btn-ghost">Try Again</a>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  function $(id){ return document.getElementById(id); }
+  function refreshIcons(){ if(window.lucide) lucide.createIcons(); }
+  refreshIcons();
+
+  var urlParams = new URLSearchParams(window.location.search);
+  var orderId = urlParams.get('orderId');
+
+  if (!orderId) {
+    $('state-loading').classList.add('hidden');
+    $('state-error').classList.remove('hidden');
+    $('error-msg').textContent = 'No order reference found in the URL.';
+    return;
+  }
+
+  // Call backend to manually verify the payment with Yoco
+  fetch('/api/verify-yoco-payment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderId: orderId })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.success) {
+      $('state-loading').classList.add('hidden');
+      $('state-success').classList.remove('hidden');
+      // Clear cart locally now that payment is confirmed
+      localStorage.removeItem('forestbase_cart');
+    } else {
+      throw new Error(data.error || 'Payment not confirmed by Yoco.');
+    }
+  })
+  .catch(function(err) {
+    $('state-loading').classList.add('hidden');
+    $('state-error').classList.remove('hidden');
+    $('error-msg').textContent = err.message;
+  });
+  
+  refreshIcons();
+})();
+</script>
+</body>
+</html>
