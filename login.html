@@ -4,13 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#030407" />
-<meta name="color-scheme" content="dark" />
 <title>Sign In · FORESTBASE</title>
 
-<!-- GOOGLE FONTS -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -18,24 +16,23 @@
 
 <style>
   :root { 
-    --ink-black: #030407;
+    --ink-black: #050608;
+    --surface: #0F1115;
+    --surface-glass: rgba(15, 17, 21, 0.6);
     --silver-glass: #AAB0C4;
     --bright-lime: #A3FF12;
-    
-    --surface: #12141A;
-    --surface-2: #1A1D24;
-    --border: rgba(255, 255, 255, 0.1);
-    --text: #FFFFFF;
-    --text-muted: var(--silver-glass);
+    --lime-glow: rgba(163, 255, 18, 0.15);
+    --border-glass: rgba(255, 255, 255, 0.08);
     
     --font-display: 'Space Grotesk', sans-serif;
-    --font-body: 'Inter', system-ui, sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --smooth: cubic-bezier(0.16, 1, 0.3, 1);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   
   body { 
     background: var(--ink-black); 
-    color: var(--text); 
+    color: #fff; 
     font-family: var(--font-body); 
     display: flex; 
     align-items: center; 
@@ -48,96 +45,96 @@
   a { text-decoration: none; color: inherit; }
   .hidden { display: none !important; }
 
-  /* Futuristic Dark Starfield */
-  .starfield { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--ink-black); overflow: hidden; }
-  .stars-1 { position: absolute; inset: -50%; background-image: radial-gradient(1.5px 1.5px at 10% 20%, rgba(163,255,18,.15), transparent 100%), radial-gradient(1px 1px at 85% 15%, rgba(170,176,196,.1), transparent 100%); background-size: 200px 200px; animation: drift 40s linear infinite; }
-  .stars-2 { position: absolute; inset: -50%; background-image: radial-gradient(1px 1px at 20% 30%, rgba(163,255,18,.3), transparent 100%), radial-gradient(2px 2px at 60% 10%, rgba(170,176,196,.15), transparent 100%); background-size: 300px 300px; animation: drift 20s linear infinite reverse; }
-  @keyframes drift { 0% { transform: translateY(0) translateX(0); } 100% { transform: translateY(-200px) translateX(-100px); } }
+  /* Glowing Mesh Background */
+  .bg-glow { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+  .bg-glow::before {
+    content: ''; position: absolute; top: -20%; left: 50%; transform: translateX(-50%);
+    width: 100vw; height: 100vw;
+    background: radial-gradient(circle at 50% 50%, rgba(163,255,18,0.08) 0%, transparent 50%);
+    filter: blur(80px);
+  }
 
-  .nav-back { position: absolute; top: 24px; left: 24px; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text-muted); transition: 0.2s; z-index: 10; }
+  .nav-back { 
+    position: absolute; top: 32px; left: 32px; 
+    display: flex; align-items: center; gap: 8px; 
+    font-size: 14px; font-weight: 500; color: var(--silver-glass); 
+    transition: 0.3s; z-index: 10; 
+  }
   .nav-back:hover { color: var(--bright-lime); transform: translateX(-4px); }
 
+  /* Glass Auth Card */
   .auth-card { 
-    background: rgba(18, 20, 26, 0.85); 
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border); 
+    background: var(--surface-glass); 
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border-glass); 
     border-radius: 24px; 
-    padding: 40px 32px; 
+    padding: 48px 40px; 
     width: 100%; 
     max-width: 440px; 
-    box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.6);
     position: relative;
     z-index: 1;
+    animation: cardIn 0.6s var(--smooth) backwards;
   }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-  .logo-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
-  .logo-wrap svg { width: 48px; height: 58px; filter: drop-shadow(0 8px 16px rgba(163,255,18,0.15)); }
+  .logo-wrap { display: flex; justify-content: center; margin-bottom: 24px; }
+  .logo-wrap svg { width: 44px; height: 54px; filter: drop-shadow(0 8px 16px rgba(163,255,18,0.2)); }
 
-  .auth-tagline { font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bright-lime); text-align: center; margin-bottom: 12px; }
-  .auth-title { font-family: var(--font-display); font-size: 26px; font-weight: 700; text-align: center; letter-spacing: -0.5px; margin-bottom: 8px; color: #fff; }
-  .auth-sub { font-size: 14px; color: var(--text-muted); text-align: center; margin-bottom: 28px; font-weight: 400; }
+  .auth-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 8px; color: #fff; }
+  .auth-sub { font-size: 14px; color: var(--silver-glass); text-align: center; margin-bottom: 32px; }
 
-  .tabs { display: flex; background: var(--ink-black); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin-bottom: 24px; }
-  .tabs button { flex: 1; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-muted); background: transparent; border: none; cursor: pointer; transition: 0.2s; font-family: var(--font-body); }
-  .tabs button.active { background: var(--surface-2); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+  /* Tabs */
+  .tabs { display: flex; background: rgba(0,0,0,0.4); border: 1px solid var(--border-glass); border-radius: 12px; padding: 4px; margin-bottom: 28px; }
+  .tabs button { flex: 1; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--silver-glass); background: transparent; border: none; cursor: pointer; transition: 0.3s; font-family: var(--font-body); }
+  .tabs button.active { background: rgba(255,255,255,0.08); color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
 
-  .form-group { margin-bottom: 16px; }
-  .form-group label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px; }
+  .form-group { margin-bottom: 20px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--silver-glass); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
   .form-group input { 
-    width: 100%; padding: 14px 16px; 
-    border: 1px solid var(--border); border-radius: 12px; 
+    width: 100%; padding: 16px; 
+    border: 1px solid var(--border-glass); border-radius: 12px; 
     font-size: 15px; font-family: var(--font-body); 
-    background: rgba(3, 4, 7, 0.6); color: #fff; 
-    transition: 0.2s; 
+    background: rgba(0,0,0,0.2); color: #fff; 
+    transition: 0.3s var(--smooth); 
   }
-  .form-group input::placeholder { color: rgba(170, 176, 196, 0.4); }
-  .form-group input:focus { outline: none; border-color: var(--bright-lime); box-shadow: 0 0 0 3px rgba(163,255,18,0.15); background: var(--ink-black); }
+  .form-group input::placeholder { color: rgba(255,255,255,0.2); }
+  .form-group input:focus { outline: none; border-color: var(--bright-lime); background: rgba(0,0,0,0.4); box-shadow: 0 0 0 4px var(--lime-glow); }
 
-  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; border: none; font-family: var(--font-display); letter-spacing: 0.02em; }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.3s var(--smooth); border: none; font-family: var(--font-display); }
+  .btn-primary { background: var(--bright-lime); color: var(--ink-black); }
+  .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px var(--lime-glow); }
+  .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
   
-  .btn-primary { 
-    background: var(--bright-lime); 
-    color: var(--ink-black); 
-    box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1) inset; 
-  }
-  .btn-primary:hover:not(:disabled) { 
-    transform: translateY(-2px); 
-    box-shadow: 0 12px 32px rgba(0,0,0,0.8), 0 0 20px rgba(163,255,18,0.3); 
-  }
-  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-  
-  .btn-google { 
-    background: rgba(255, 255, 255, 0.05); 
-    color: #fff; 
-    border: 1px solid var(--border); 
-    margin-top: 12px; 
-    font-family: var(--font-body);
-    font-weight: 600;
-  }
-  .btn-google:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
+  .btn-google { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border-glass); margin-top: 16px; font-family: var(--font-body); font-weight: 500; }
+  .btn-google:hover { background: rgba(255,255,255,0.1); }
 
-  .divider { display: flex; align-items: center; gap: 16px; margin: 20px 0; color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; }
-  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .divider { display: flex; align-items: center; gap: 16px; margin: 24px 0; color: var(--silver-glass); font-size: 12px; font-weight: 600; text-transform: uppercase; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border-glass); }
 
-  .spinner { width: 18px; height: 18px; border: 2px solid rgba(3,4,7,0.3); border-top-color: var(--ink-black); border-radius: 50%; animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  
-  .forgot-link { display: block; text-align: right; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-top: -8px; margin-bottom: 16px; cursor: pointer; transition: 0.2s; }
+  .forgot-link { display: block; text-align: right; font-size: 13px; font-weight: 500; color: var(--silver-glass); margin-top: -8px; margin-bottom: 24px; cursor: pointer; transition: 0.2s; }
   .forgot-link:hover { color: var(--bright-lime); }
   
-  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--surface-2); color: #fff; padding: 14px 24px; border-radius: 12px; font-weight: 600; font-size: 14px; opacity: 0; transition: 0.3s; z-index: 100; pointer-events: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--border); text-align: center; width: 90%; max-width: 400px; }
+  .spinner { width: 20px; height: 20px; border: 2px solid rgba(3,4,7,0.3); border-top-color: var(--ink-black); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--surface); color: #fff; padding: 14px 24px; border-radius: 12px; font-weight: 500; font-size: 14px; opacity: 0; transition: 0.4s var(--smooth); z-index: 100; pointer-events: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--border-glass); text-align: center; width: 90%; max-width: 400px; }
   #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  @media (max-width: 600px) {
+    .auth-card { padding: 32px 24px; }
+    .nav-back { top: 20px; left: 20px; }
+  }
 </style>
 </head>
 <body>
 
-<div class="starfield"><div class="stars-1"></div><div class="stars-2"></div></div>
+<div class="bg-glow"></div>
 
-<a href="index.html" class="nav-back"><i data-lucide="arrow-left" size="18"></i> Back to site</a>
+<a href="index.html" class="nav-back"><i data-lucide="arrow-left" size="18"></i> Back to store</a>
 
 <div class="auth-card">
   <div class="logo-wrap">
-    <!-- NEW FORESTBASE LOGO -->
     <svg viewBox="0 0 60 74" aria-hidden="true">
       <path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" />
       <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
@@ -146,7 +143,6 @@
     </svg>
   </div>
 
-  <div class="auth-tagline">Deep in the forest there's always a mystery</div>
   <h1 class="auth-title" id="auth-title">Welcome back</h1>
   <p class="auth-sub" id="auth-sub">Sign in to continue to FORESTBASE.</p>
 
@@ -203,7 +199,7 @@
 
   var isSignup = false;
   var redirectUrl = new URLSearchParams(window.location.search).get('redirect') || 'index.html';
-  var isProcessing = false; // Prevents redirect loops
+  var isProcessing = false;
 
   var titleEl = document.getElementById('auth-title');
   var subEl = document.getElementById('auth-sub');
@@ -227,7 +223,7 @@
     
     if (isSignup) {
       titleEl.textContent = 'Create an account';
-      subEl.textContent = 'Join FORESTBASE to unlock mystery drops and track orders.';
+      subEl.textContent = 'Join FORESTBASE to unlock mystery drops.';
       tabSignup.classList.add('active');
       tabLogin.classList.remove('active');
       nameGroup.classList.remove('hidden');
@@ -247,7 +243,6 @@
   tabLogin.addEventListener('click', function() { setMode(false); });
   tabSignup.addEventListener('click', function() { setMode(true); });
 
-  // 1. EMAIL / PASSWORD LOGIN
   form.addEventListener('submit', function(e) {
     e.preventDefault();
     var email = document.getElementById('email-input').value;
@@ -285,7 +280,6 @@
     }
   });
 
-  // 2. GOOGLE LOGIN (Mobile Safe)
   document.getElementById('google-btn').addEventListener('click', function() {
     var provider = new firebase.auth.GoogleAuthProvider();
     var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -306,7 +300,6 @@
     }
   });
 
-  // 3. FORGOT PASSWORD
   forgotLink.addEventListener('click', function() {
     var email = document.getElementById('email-input').value;
     if (!email) return showToast('Please enter your email address first.');
@@ -324,7 +317,6 @@
     setMode(true);
   }
 
-  // 4. SMART REDIRECT & GOOGLE REDIRECT HANDLER
   auth.getRedirectResult().then(function(result) {
     if (result.user) {
       showToast('Signed in with Google!');
@@ -338,7 +330,6 @@
     }
   });
 
-  // 5. CHECK CURRENT LOGIN STATE
   auth.onAuthStateChanged(function(user) {
     if (isProcessing) return;
     
