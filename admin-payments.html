@@ -58,7 +58,6 @@
   .page-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; }
   .page-sub { font-size: 15px; color: var(--text-muted); margin-top: 4px; }
 
-  /* TABS */
   .tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
   .tab-btn { padding: 16px 24px; font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--text-muted); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; transition: 0.2s; margin-bottom: -1px; }
   .tab-btn:hover { color: var(--ink-black); }
@@ -111,6 +110,7 @@
     <div class="nav-menu">
       <a href="admin.html" class="nav-item"><i data-lucide="shield-check"></i> Command Center</a>
       <a href="admin-payments.html" class="nav-item active"><i data-lucide="banknote"></i> Payments & Payouts</a>
+      <a href="admin-emails.html" class="nav-item"><i data-lucide="mail"></i> Email Marketing</a>
       <a href="admin-notifications.html" class="nav-item"><i data-lucide="bell"></i> Broadcast Notifications</a>
       <a href="index.html" class="nav-item"><i data-lucide="store"></i> View Storefront</a>
     </div>
@@ -129,7 +129,6 @@
       </div>
     </div>
 
-    <!-- STATS -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-title">Total Gross Revenue</div>
@@ -140,18 +139,16 @@
         <div class="stat-value" id="stat-profit" style="color: var(--success);">R 0.00</div>
       </div>
       <div class="stat-card">
-        <div class="stat-title">Owed to Sellers (88%)</div>
+        <div class="stat-title">Currently Owed to Sellers</div>
         <div class="stat-value" id="stat-owed" style="color: var(--danger);">R 0.00</div>
       </div>
     </div>
 
-    <!-- TABS -->
     <div class="tabs">
       <button class="tab-btn active" data-target="tab-sellers">Seller Payouts</button>
       <button class="tab-btn" data-target="tab-buyers">Active Buyers</button>
     </div>
 
-    <!-- TAB: SELLER PAYOUTS -->
     <div id="tab-sellers" class="tab-content active">
       <div class="panel">
         <div class="panel-header">
@@ -165,8 +162,9 @@
                 <th>Seller Email</th>
                 <th>Total Sales</th>
                 <th>Platform Fee (12%)</th>
-                <th>Net Payout (88%)</th>
-                <th>Status</th>
+                <th>Net Sales (88%)</th>
+                <th>Already Paid</th>
+                <th>Owed Now</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -176,7 +174,6 @@
       </div>
     </div>
 
-    <!-- TAB: ACTIVE BUYERS -->
     <div id="tab-buyers" class="tab-content">
       <div class="panel">
         <div class="panel-header">
@@ -223,7 +220,6 @@
   function money(v){ return 'R ' + parseFloat(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function refreshIcons(){if(window.lucide)lucide.createIcons();}
 
-  // TABS
   var tabBtns = document.querySelectorAll('.tab-btn');
   var tabContents = document.querySelectorAll('.tab-content');
   tabBtns.forEach(btn => {
@@ -235,7 +231,6 @@
     });
   });
 
-  // AUTH GUARD
   auth.onAuthStateChanged(function(user) {
     if (user && ADMIN_EMAILS.includes(user.email)) {
       document.getElementById('loader').style.opacity = '0';
@@ -254,12 +249,22 @@
     var gross = 0; 
     var sellers = {}; 
     var buyers = {};
+    var totalPayouts = {}; // Track payouts by seller email
 
-    db.collection('orders').get().then(function(snapshot) {
+    // 1. Fetch Payouts first to calculate what's already been paid
+    db.collection('payouts').get().then(function(payoutSnap) {
+      payoutSnap.forEach(function(doc) {
+        var p = doc.data();
+        if (!totalPayouts[p.email]) totalPayouts[p.email] = 0;
+        totalPayouts[p.email] += parseFloat(p.amount || 0);
+      });
+
+      // 2. Fetch Orders
+      return db.collection('orders').get();
+    }).then(function(snapshot) {
       snapshot.forEach(function(doc) {
         var order = doc.data();
         
-        // Only count fully paid/shipped orders
         if (order.status !== 'paid' && order.status !== 'shipped') return;
         
         gross += parseFloat(order.total || 0);
@@ -279,10 +284,14 @@
         });
       });
 
-      // Update Top Stats
+      // Calculate Total Owed globally (Gross * 88% - Total Payouts)
+      var totalPaidOut = Object.values(totalPayouts).reduce((a, b) => a + b, 0);
+      var globalOwed = (gross * 0.88) - totalPaidOut;
+      if (globalOwed < 0) globalOwed = 0;
+
       document.getElementById('stat-gross').textContent = money(gross);
       document.getElementById('stat-profit').textContent = money(gross * 0.12);
-      document.getElementById('stat-owed').textContent = money(gross * 0.88);
+      document.getElementById('stat-owed').textContent = money(globalOwed);
 
       // Render Buyers Table
       globalBuyers = Object.values(buyers);
@@ -319,19 +328,33 @@
         sellersBody.innerHTML = '';
 
         if (globalSellers.length === 0) {
-          sellersBody.innerHTML = '<tr><td colspan="6" class="empty-row">No paid sales yet.</td></tr>';
+          sellersBody.innerHTML = '<tr><td colspan="7" class="empty-row">No paid sales yet.</td></tr>';
           return;
         }
 
         globalSellers.forEach(s => {
+          var netSales = s.total * 0.88;
+          var alreadyPaid = totalPayouts[s.email] || 0;
+          var owedNow = netSales - alreadyPaid;
+          if (owedNow < 0) owedNow = 0; // Prevent negative balances
+
+          var statusBadge = owedNow > 0 
+            ? `<span class="status-badge status-owed">Owed</span>` 
+            : `<span class="status-badge status-paid">Paid Up</span>`;
+
+          var actionBtn = owedNow > 0 
+            ? `<button class="btn-payout" onclick="markPaid('${s.email}', ${owedNow})">Mark Paid</button>` 
+            : `<span style="color:var(--text-muted); font-size:12px;">Settled</span>`;
+
           sellersBody.innerHTML += `
             <tr>
               <td style="font-weight:600;">${s.email}</td>
               <td style="font-family:var(--mono);">${money(s.total)}</td>
               <td style="font-family:var(--mono); color:var(--success);">${money(s.total * 0.12)}</td>
-              <td style="font-family:var(--mono); font-weight:700;">${money(s.total * 0.88)}</td>
-              <td><span class="status-badge status-owed">Owed</span></td>
-              <td><button class="btn-payout" onclick="markPaid('${s.email}', ${s.total * 0.88})">Mark Paid</button></td>
+              <td style="font-family:var(--mono);">${money(netSales)}</td>
+              <td style="font-family:var(--mono); color:var(--text-muted);">${money(alreadyPaid)}</td>
+              <td style="font-family:var(--mono); font-weight:700; color:var(--danger);">${money(owedNow)}</td>
+              <td>${actionBtn}</td>
             </tr>
           `;
         });
@@ -347,7 +370,8 @@
         paidAt: firebase.firestore.FieldValue.serverTimestamp(),
         status: 'completed'
       }).then(function() {
-        alert('Payout logged successfully!');
+        alert('Payout logged successfully! Reloading balances...');
+        loadFinancials(); // Reload the table to show the new 0 balance
       }).catch(function(err) {
         alert('Error: ' + err.message);
       });
@@ -355,7 +379,7 @@
   };
 
   window.exportSellersCSV = function() {
-    var csv = "Seller Email,Total Sales,Platform Fee (12%),Net Payout (88%)\n";
+    var csv = "Seller Email,Total Sales,Platform Fee (12%),Net Sales (88%)\n";
     globalSellers.forEach(s => {
       csv += `${s.email},${s.total.toFixed(2)},${(s.total * 0.12).toFixed(2)},${(s.total * 0.88).toFixed(2)}\n`;
     });
