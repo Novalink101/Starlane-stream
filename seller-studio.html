@@ -128,7 +128,7 @@
   /* MODAL STYLES */
   .modal-overlay { position: fixed; inset: 0; background: rgba(3,4,7,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
   .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
-  .modal-content { background: #fff; border-radius: 20px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 32px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+  .modal-content { background: #fff; border-radius: 20px; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 32px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
   .modal-close { position: absolute; top: 24px; right: 24px; background: var(--surface-2); border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
   .modal-close:hover { background: var(--border); }
   .modal-title { font-family: var(--font-display); font-size: 24px; font-weight: 700; margin-bottom: 24px; }
@@ -141,7 +141,7 @@
   Connecting to Seller Database...
 </div>
 
-<!-- EDIT PRODUCT MODAL -->
+<!-- FULL EDIT PRODUCT MODAL -->
 <div class="modal-overlay" id="edit-modal">
   <div class="modal-content">
     <button class="modal-close" onclick="closeEditModal()"><i data-lucide="x" style="width:18px;"></i></button>
@@ -150,12 +150,38 @@
     <form id="edit-product-form">
       <input type="hidden" id="edit-p-id" />
       
-      <div class="form-group">
-        <label>Product Name</label>
-        <input type="text" id="edit-p-name" required />
-      </div>
-
       <div class="form-grid">
+        <div class="form-group full-width">
+          <label>Product Name</label>
+          <input type="text" id="edit-p-name" required />
+        </div>
+
+        <div class="form-group">
+          <label>Category</label>
+          <select id="edit-p-category">
+            <option>Electronics</option>
+            <option>Future Tech</option>
+            <option>Mystery Drops</option>
+            <option>Fashion Accessories & Jewelry</option>
+            <option>Tech & Phone Accessories</option>
+            <option>Home & Kitchen Gadgets</option>
+            <option>Beauty & Personal Care</option>
+            <option>Pet Supplies</option>
+            <option>Fitness & Wellness</option>
+            <option>Baby & Kids Accessories</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Ships From</label>
+          <select id="edit-p-ships-from">
+            <option value="South Africa (Local)">South Africa (Local)</option>
+            <option value="China (Asia)">China (Asia)</option>
+            <option value="USA">USA</option>
+            <option value="Europe">Europe</option>
+          </select>
+        </div>
+
         <div class="form-group">
           <label>Current Price (ZAR)</label>
           <input type="number" id="edit-p-price" required min="1" step="0.01" />
@@ -164,28 +190,63 @@
           <label>Old Price (Optional)</label>
           <input type="number" id="edit-p-old-price" min="1" step="0.01" />
         </div>
-      </div>
 
-      <div class="form-group">
-        <label>Description</label>
-        <textarea id="edit-p-desc" required></textarea>
-      </div>
-
-      <!-- Option to replace cover image -->
-      <div class="form-group">
-        <label>Replace Cover Image (Optional)</label>
-        <div class="upload-zone" id="edit-upload-zone" style="padding: 16px;">
-          <input type="file" id="edit-p-image-file" accept="image/*" />
-          <div class="upload-preview" id="edit-upload-preview" style="height: 100px;"></div>
-          <div id="edit-upload-content">
-            <i data-lucide="image" style="width: 20px; height: 20px; margin-bottom: 4px;"></i>
-            <p style="font-size: 12px;">Click to upload new cover</p>
+        <div class="form-group">
+          <label>Badge (Optional)</label>
+          <select id="edit-p-badge">
+            <option value="">None</option>
+            <option value="Sale">Sale</option>
+            <option value="New">New</option>
+            <option value="Mystery Drop">Mystery Drop</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Marketing Boost</label>
+          <div class="checkbox-group">
+            <input type="checkbox" id="edit-p-is-viral" />
+            <label for="edit-p-is-viral">🔥 Boost as Trending / Viral</label>
           </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label>External Link (Optional)</label>
+          <input type="url" id="edit-p-external-link" placeholder="https://instagram.com/yourstore" />
+        </div>
+
+        <!-- 3 IMAGE EDIT ZONES -->
+        <div class="form-group full-width">
+          <label>Product Images (Click to replace)</label>
+          <div class="image-upload-row">
+            
+            <div class="upload-zone" id="edit-zone-cover">
+              <input type="file" id="edit-file-cover" accept="image/*" />
+              <div class="upload-preview" id="edit-preview-cover"></div>
+              <div id="edit-content-cover"><i data-lucide="image"></i><p>Cover Image</p></div>
+            </div>
+
+            <div class="upload-zone" id="edit-zone-front">
+              <input type="file" id="edit-file-front" accept="image/*" />
+              <div class="upload-preview" id="edit-preview-front"></div>
+              <div id="edit-content-front"><i data-lucide="camera"></i><p>Front View</p></div>
+            </div>
+
+            <div class="upload-zone" id="edit-zone-back">
+              <input type="file" id="edit-file-back" accept="image/*" />
+              <div class="upload-preview" id="edit-preview-back"></div>
+              <div id="edit-content-back"><i data-lucide="camera"></i><p>Back View</p></div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Description</label>
+          <textarea id="edit-p-desc" required></textarea>
         </div>
       </div>
 
       <button type="submit" class="btn-submit" id="edit-submit-btn" style="width: 100%; justify-content: center;">
-        <i data-lucide="save"></i> Save Changes
+        <i data-lucide="save"></i> Save All Changes
       </button>
     </form>
   </div>
@@ -379,6 +440,7 @@
   var currentUser = null;
   var unsubscribeInventory = null;
   var unsubscribeOrders = null;
+  var currentEditProduct = null; // Stores the product being edited
 
   function money(v){ return 'R ' + parseFloat(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function refreshIcons(){if(window.lucide)lucide.createIcons();}
@@ -415,7 +477,7 @@
     }
   });
 
-  // MULTI-IMAGE UPLOAD PREVIEW
+  // MULTI-IMAGE UPLOAD PREVIEW (Add Form)
   function setupImagePreview(fileId, zoneId, previewId, contentId) {
     var fileInput = document.getElementById(fileId);
     var uploadZone = document.getElementById(zoneId);
@@ -436,30 +498,15 @@
       }
     });
   }
-
   setupImagePreview('file-cover', 'zone-cover', 'preview-cover', 'content-cover');
   setupImagePreview('file-front', 'zone-front', 'preview-front', 'content-front');
   setupImagePreview('file-back', 'zone-back', 'preview-back', 'content-back');
 
-  // EDIT MODAL PREVIEW
-  var editFileInput = document.getElementById('edit-p-image-file');
-  var editUploadZone = document.getElementById('edit-upload-zone');
-  var editUploadPreview = document.getElementById('edit-upload-preview');
-  var editUploadContent = document.getElementById('edit-upload-content');
+  // MULTI-IMAGE UPLOAD PREVIEW (Edit Form)
+  setupImagePreview('edit-file-cover', 'edit-zone-cover', 'edit-preview-cover', 'edit-content-cover');
+  setupImagePreview('edit-file-front', 'edit-zone-front', 'edit-preview-front', 'edit-content-front');
+  setupImagePreview('edit-file-back', 'edit-zone-back', 'edit-preview-back', 'edit-content-back');
 
-  editUploadZone.addEventListener('click', function() { editFileInput.click(); });
-  editFileInput.addEventListener('change', function(e) {
-    var file = e.target.files[0];
-    if (file) {
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        editUploadPreview.style.backgroundImage = `url('${e.target.result}')`;
-        editUploadPreview.style.display = 'block';
-        editUploadContent.style.display = 'none';
-      };
-      reader.readAsDataURL(file);
-    }
-  });
 
   // INVENTORY
   function listenToInventory() {
@@ -491,7 +538,6 @@
         var viralBadge = item.isViral ? `<br><span class="status-badge status-viral" style="margin-top:4px; display:inline-block; font-size:10px;">Trending</span>` : '';
         var coverImg = item.imageCover || item.imageUrl || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop';
 
-        // Convert product to JSON string to pass into the edit function safely
         var itemString = encodeURIComponent(JSON.stringify(item));
 
         var tr = document.createElement('tr');
@@ -581,20 +627,53 @@
       });
   }
 
-  // --- EDIT PRODUCT LOGIC ---
+  // --- EDIT PRODUCT LOGIC (FULLY LOADED) ---
   window.openEditModal = function(itemString) {
     var item = JSON.parse(decodeURIComponent(itemString));
+    currentEditProduct = item;
     
+    // Populate text fields
     document.getElementById('edit-p-id').value = item.id;
     document.getElementById('edit-p-name').value = item.name;
     document.getElementById('edit-p-price').value = item.price;
     document.getElementById('edit-p-old-price').value = item.oldPrice || '';
     document.getElementById('edit-p-desc').value = item.description;
+    document.getElementById('edit-p-category').value = item.category;
+    document.getElementById('edit-p-ships-from').value = item.shipsFrom || 'South Africa (Local)';
+    document.getElementById('edit-p-badge').value = item.badge || '';
+    document.getElementById('edit-p-is-viral').checked = item.isViral || false;
+    document.getElementById('edit-p-external-link').value = item.externalLink || '';
+
+    // Reset all 3 file inputs
+    document.getElementById('edit-file-cover').value = '';
+    document.getElementById('edit-file-front').value = '';
+    document.getElementById('edit-file-back').value = '';
+
+    // Show existing images as previews
+    var cover = item.imageCover || item.imageUrl;
+    if (cover) {
+      document.getElementById('edit-preview-cover').style.backgroundImage = `url('${cover}')`;
+      document.getElementById('edit-preview-cover').style.display = 'block';
+      document.getElementById('edit-content-cover').style.display = 'none';
+    }
     
-    // Reset file input
-    document.getElementById('edit-p-image-file').value = '';
-    document.getElementById('edit-upload-preview').style.display = 'none';
-    document.getElementById('edit-upload-content').style.display = 'block';
+    if (item.imageFront) {
+      document.getElementById('edit-preview-front').style.backgroundImage = `url('${item.imageFront}')`;
+      document.getElementById('edit-preview-front').style.display = 'block';
+      document.getElementById('edit-content-front').style.display = 'none';
+    } else {
+      document.getElementById('edit-preview-front').style.display = 'none';
+      document.getElementById('edit-content-front').style.display = 'block';
+    }
+
+    if (item.imageBack) {
+      document.getElementById('edit-preview-back').style.backgroundImage = `url('${item.imageBack}')`;
+      document.getElementById('edit-preview-back').style.display = 'block';
+      document.getElementById('edit-content-back').style.display = 'none';
+    } else {
+      document.getElementById('edit-preview-back').style.display = 'none';
+      document.getElementById('edit-content-back').style.display = 'block';
+    }
 
     document.getElementById('edit-modal').classList.add('open');
     refreshIcons();
@@ -604,74 +683,86 @@
     document.getElementById('edit-modal').classList.remove('open');
   };
 
-  // SAVE EDIT CHANGES
+  // SAVE EDIT CHANGES (Handling Multi-Image Uploads)
   document.getElementById('edit-product-form').addEventListener('submit', function(e) {
     e.preventDefault();
     var btn = document.getElementById('edit-submit-btn');
     var id = document.getElementById('edit-p-id').value;
-    var newName = document.getElementById('edit-p-name').value;
-    var newPrice = parseFloat(document.getElementById('edit-p-price').value);
-    var newOldPrice = document.getElementById('edit-p-old-price').value;
-    var newDesc = document.getElementById('edit-p-desc').value;
-    var newFile = document.getElementById('edit-p-image-file').files[0];
+    
+    // Gather text fields
+    var updatedData = {
+      name: document.getElementById('edit-p-name').value,
+      price: parseFloat(document.getElementById('edit-p-price').value),
+      oldPrice: document.getElementById('edit-p-old-price').value ? parseFloat(document.getElementById('edit-p-old-price').value) : null,
+      description: document.getElementById('edit-p-desc').value,
+      category: document.getElementById('edit-p-category').value,
+      shipsFrom: document.getElementById('edit-p-ships-from').value,
+      badge: document.getElementById('edit-p-badge').value || null,
+      isViral: document.getElementById('edit-p-is-viral').checked,
+      externalLink: document.getElementById('edit-p-external-link').value || null
+    };
+
+    // Gather image files (if any were uploaded)
+    var fileCover = document.getElementById('edit-file-cover').files[0];
+    var fileFront = document.getElementById('edit-file-front').files[0];
+    var fileBack = document.getElementById('edit-file-back').files[0];
 
     btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Saving...';
     btn.disabled = true;
 
-    // If they uploaded a new image, upload it first
-    if (newFile) {
-      var formData = new FormData();
-      formData.append('images', newFile);
-
-      fetch(RENDER_URL + '/api/upload-image', { method: 'POST', body: formData })
-        .then(res => res.json())
-        .then(data => {
-          if (!data.success) throw new Error('Image upload failed');
-          return data.urls[0]; // The new cover image URL
-        })
-        .then(newImageUrl => {
-          // Update Firestore with the new image
-          return db.collection('products').doc(id).update({
-            name: newName,
-            price: newPrice,
-            oldPrice: newOldPrice ? parseFloat(newOldPrice) : null,
-            description: newDesc,
-            imageCover: newImageUrl,
-            imageUrl: newImageUrl
-          });
-        })
-        .then(() => { finishEdit(); })
-        .catch(err => { alert("Error: " + err.message); btn.innerHTML = '<i data-lucide="save"></i> Save Changes'; btn.disabled = false; });
-
-    } else {
-      // Update Firestore WITHOUT changing the image
-      db.collection('products').doc(id).update({
-        name: newName,
-        price: newPrice,
-        oldPrice: newOldPrice ? parseFloat(newOldPrice) : null,
-        description: newDesc
-      }).then(() => { finishEdit(); })
-        .catch(err => { alert("Error: " + err.message); btn.innerHTML = '<i data-lucide="save"></i> Save Changes'; btn.disabled = false; });
+    // If no new images were selected, just update the text data
+    if (!fileCover && !fileFront && !fileBack) {
+      db.collection('products').doc(id).update(updatedData)
+        .then(finishEdit)
+        .catch(err => { alert("Error: " + err.message); btn.innerHTML = '<i data-lucide="save"></i> Save All Changes'; btn.disabled = false; });
+      return;
     }
 
-    function finishEdit() {
-      btn.innerHTML = '<i data-lucide="check"></i> Saved!';
-      btn.style.background = 'var(--bright-lime)';
-      btn.style.color = 'var(--ink-black)';
-      refreshIcons();
-      
-      setTimeout(() => {
-        closeEditModal();
-        btn.innerHTML = '<i data-lucide="save"></i> Save Changes';
-        btn.style.background = 'var(--ink-black)';
-        btn.style.color = '#fff';
-        btn.disabled = false;
-        refreshIcons();
-      }, 1500);
-    }
+    // If new images WERE selected, upload them to Render/Cloudinary
+    var formData = new FormData();
+    var queue = []; // Tracks which images are being uploaded in order
+
+    if (fileCover) { formData.append('images', fileCover); queue.push('imageCover'); }
+    if (fileFront) { formData.append('images', fileFront); queue.push('imageFront'); }
+    if (fileBack) { formData.append('images', fileBack); queue.push('imageBack'); }
+
+    fetch(RENDER_URL + '/api/upload-image', { method: 'POST', body: formData })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.success) throw new Error('Image upload failed');
+        
+        // Map the returned URLs back to their specific fields
+        data.urls.forEach((url, index) => {
+          var field = queue[index];
+          if (field === 'imageCover') { updatedData.imageCover = url; updatedData.imageUrl = url; }
+          if (field === 'imageFront') { updatedData.imageFront = url; }
+          if (field === 'imageBack') { updatedData.imageBack = url; }
+        });
+
+        return db.collection('products').doc(id).update(updatedData);
+      })
+      .then(finishEdit)
+      .catch(err => { alert("Error: " + err.message); btn.innerHTML = '<i data-lucide="save"></i> Save All Changes'; btn.disabled = false; });
   });
 
-  // ADD PRODUCT
+  function finishEdit() {
+    var btn = document.getElementById('edit-submit-btn');
+    btn.innerHTML = '<i data-lucide="check"></i> Saved!';
+    btn.style.background = 'var(--bright-lime)';
+    btn.style.color = 'var(--ink-black)';
+    refreshIcons();
+    
+    setTimeout(() => {
+      closeEditModal();
+      btn.innerHTML = '<i data-lucide="save"></i> Save All Changes';
+      btn.style.background = 'var(--ink-black)';
+      btn.style.color = '#fff';
+      btn.disabled = false;
+      refreshIcons();
+    }, 1500);
+  }
+
+  // ADD PRODUCT (Standard)
   document.getElementById('add-product-form').addEventListener('submit', function(e) {
     e.preventDefault();
     var btn = document.getElementById('submit-btn');
@@ -777,4 +868,4 @@
 })();
 </script>
 </body>
-</html>
+                  </html>
