@@ -42,15 +42,17 @@
   }
   a { text-decoration: none; color: inherit; }
 
-  /* ── HEADER ── */
+  /* HEADER */
   .header-wrapper{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
   .nav-top{max-width:1300px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
   .nav-brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--ink-black);letter-spacing:-0.03em;}
   .nav-brand svg{width:28px;height:34px;}
+  
   .nav-search{flex:1;max-width:600px;position:relative;display:flex;}
   .nav-search input{width:100%;padding:12px 20px 12px 48px;border-radius:999px;border:2px solid transparent;background:var(--surface-2);font-size:14px;font-weight:500;transition:all .2s;}
   .nav-search input:focus{outline:none;border-color:var(--bright-lime);background:#fff;box-shadow:0 0 0 4px rgba(163,255,18,.2);}
   .nav-search svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--silver-glass);width:20px;height:20px;}
+
   .nav-actions{display:flex;gap:12px;align-items:center;}
   .btn-icon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--surface-2);color:var(--ink-black);transition:0.2s;}
   .btn-icon:hover{background:var(--border);}
@@ -58,7 +60,7 @@
   .cart-btn:hover{background:#1F222C;transform:scale(1.05);}
   .cart-badge{position:absolute;top:-4px;right:-4px;background:var(--bright-lime);color:var(--ink-black);font-size:11px;font-weight:900;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;border:2px solid #fff;}
 
-  /* ── LAYOUT ── */
+  /* LAYOUT */
   .breadcrumbs { max-width: 1300px; margin: 0 auto; padding: 24px 20px 0; font-size: 13px; color: var(--text-muted); display: flex; gap: 8px; align-items: center; }
   .container { max-width: 1300px; margin: 0 auto; padding: 24px 20px 60px; width: 100%; flex: 1; }
   
@@ -109,9 +111,6 @@
   .trust-item { display: flex; align-items: center; gap: 6px; }
   .trust-item svg { width: 16px; height: 16px; color: var(--bright-lime); }
 
-  /* Footer */
-  .footer{background:var(--ink-black);color:var(--silver-glass);padding:40px 20px;text-align:center;font-size:13px;margin-top:auto;}
-  
   /* Loader */
   #page-loader { position: fixed; inset: 0; background: #FAFBFC; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.4s; }
   .spinner { width: 40px; height: 40px; border: 3px solid rgba(163,255,18,0.2); border-top-color: var(--bright-lime); border-radius: 50%; animation: spin 1s linear infinite; }
@@ -148,7 +147,8 @@
       <a href="login.html" class="btn-icon" id="user-btn">
         <i data-lucide="user" id="user-icon" style="width:20px; height:20px;"></i>
       </a>
-      <a href="checkout.html" class="cart-btn">
+      <!-- CART POINTS TO CART.HTML NOW -->
+      <a href="cart.html" class="cart-btn">
         <i data-lucide="shopping-bag" style="width:20px; height:20px;"></i>
         <span class="cart-badge" id="cart-count">0</span>
       </a>
@@ -216,15 +216,9 @@
   </div>
 </div>
 
-<footer class="footer">
-  © <span id="year"></span> FORESTBASE. All rights reserved. Deep in the forest there's always a mystery.
-</footer>
-
 <script>
 (function(){
-  // ═══════════════════════════════════════════════
   // 1. FIREBASE INITIALIZATION
-  // ═══════════════════════════════════════════════
   var firebaseConfig = {
     apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
     authDomain: "starlane-stream.firebaseapp.com",
@@ -239,10 +233,9 @@
 
   var currentProduct = null;
   function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function refreshIcons(){if(window.lucide)lucide.createIcons();}
 
-  // ═══════════════════════════════════════════════
-  // 2. CART BADGE UPDATER (Runs on every page load)
-  // ═══════════════════════════════════════════════
+  // 2. CART BADGE UPDATER
   function updateCartBadge() {
     var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
     var totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -250,14 +243,11 @@
     if(badge) badge.textContent = totalItems;
   }
 
-  // ═══════════════════════════════════════════════
   // 3. FETCH PRODUCT BY URL ID
-  // ═══════════════════════════════════════════════
   function loadProduct() {
     var urlParams = new URLSearchParams(window.location.search);
     var productId = urlParams.get('id');
 
-    // If no ID is passed, redirect to home
     if (!productId) {
       window.location.href = 'index.html';
       return;
@@ -294,7 +284,7 @@
           oldPriceEl.style.display = 'block';
         }
 
-        // Handle Reviews (Default if none)
+        // Handle Reviews
         var rating = currentProduct.rating || 5.0;
         var reviews = currentProduct.reviews || 0;
         document.getElementById('p-reviews').textContent = `${rating} (${reviews} reviews)`;
@@ -305,7 +295,7 @@
         setTimeout(function() {
           loader.style.display = 'none';
           document.getElementById('product-container').style.display = 'block';
-          if (window.lucide) lucide.createIcons();
+          refreshIcons();
         }, 400);
 
       })
@@ -314,9 +304,7 @@
       });
   }
 
-  // ═══════════════════════════════════════════════
   // 4. QUANTITY SELECTOR
-  // ═══════════════════════════════════════════════
   var qtyInput = document.getElementById('qty-input');
   
   document.getElementById('qty-minus').addEventListener('click', function() {
@@ -329,9 +317,7 @@
     if (val < 10) qtyInput.value = val + 1;
   });
 
-  // ═══════════════════════════════════════════════
-  // 5. REAL CART LOGIC (localStorage)
-  // ═══════════════════════════════════════════════
+  // 5. ADD TO CART LOGIC
   window.addToCart = function(action) {
     if(!currentProduct) return;
 
@@ -346,6 +332,7 @@
     } else {
       cart.push({
         id: currentProduct.id,
+        sellerId: currentProduct.sellerId, // IMPORTANT: So Seller Studio sees the order!
         name: currentProduct.name,
         price: currentProduct.price,
         imageUrl: currentProduct.imageUrl,
@@ -358,7 +345,7 @@
     updateCartBadge();
 
     if (action === 'buy') {
-      window.location.href = 'checkout.html';
+      window.location.href = 'cart.html'; // Send to cart page first
     } else {
       // UI Feedback
       var btn = document.querySelector('.btn-add');
@@ -366,22 +353,19 @@
       btn.innerHTML = '<i data-lucide="check" style="width:20px;"></i> Added!';
       btn.style.background = 'var(--bright-lime)';
       btn.style.color = 'var(--ink-black)';
-      if (window.lucide) lucide.createIcons();
+      refreshIcons();
 
       setTimeout(function() {
         btn.innerHTML = originalText;
         btn.style.background = 'var(--ink-black)';
         btn.style.color = '#fff';
-        if (window.lucide) lucide.createIcons();
+        refreshIcons();
       }, 2000);
     }
   };
 
-  // ═══════════════════════════════════════════════
   // 6. INITIALIZE
-  // ═══════════════════════════════════════════════
   document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('year').textContent = new Date().getFullYear();
     updateCartBadge();
     loadProduct();
 
@@ -398,7 +382,7 @@
         userIcon.setAttribute('data-lucide', 'user');
         userIcon.style.color = 'var(--ink-black)';
       }
-      if (window.lucide) lucide.createIcons();
+      refreshIcons();
     });
   });
 })();
