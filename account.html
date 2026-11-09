@@ -80,7 +80,6 @@
   .order-details p { font-size: 13px; color: var(--text-muted); }
   .order-total { margin-left: auto; font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--ink-black); }
 
-  /* DELIVERY BOX */
   .delivery-box { background: var(--surface-2); border: 1px dashed var(--border); border-radius: 10px; padding: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
   .delivery-info h5 { font-size: 13px; font-weight: 700; color: var(--ink-black); margin-bottom: 4px; }
   .delivery-info p { font-size: 13px; color: var(--text-muted); line-height: 1.4; max-width: 300px; }
@@ -108,17 +107,9 @@
   .empty-state svg { width: 48px; height: 48px; color: var(--silver-glass); margin: 0 auto 16px; }
   .empty-state h3 { font-family: var(--font-display); font-size: 20px; margin-bottom: 8px; }
   .empty-state p { color: var(--text-muted); margin-bottom: 24px; font-size: 14px; }
-
-  #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-  .toast { background: var(--ink-black); color: #fff; padding: 16px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.4s var(--ease); border-left: 4px solid var(--bright-lime); }
-  .toast.show { transform: translateX(0); }
-  .toast svg { color: var(--bright-lime); width: 20px; height: 20px; }
-  .toast span { font-weight: 500; font-size: 14px; }
 </style>
 </head>
 <body>
-
-<div id="toast-container"></div>
 
 <div id="loader">
   <div class="spinner"></div>
@@ -177,6 +168,7 @@
         </div>
       </div>
 
+      <!-- ADMIN OVERVIEW TAB -->
       <div id="tab-admin-stats" class="tab-content">
         <h1 class="page-title">Platform Financials</h1>
         <p class="page-sub">Live overview of all transactions on FORESTBASE.</p>
@@ -187,12 +179,14 @@
         </div>
       </div>
 
+      <!-- ADMIN ORDERS TAB -->
       <div id="tab-admin-orders" class="tab-content">
         <h1 class="page-title">All Platform Orders</h1>
         <p class="page-sub">Master list of every order placed on the platform.</p>
         <div id="admin-orders-container"></div>
       </div>
 
+      <!-- SETTINGS TAB -->
       <div id="tab-settings" class="tab-content">
         <h1 class="page-title">Account Settings</h1>
         <p class="page-sub">Manage your personal information and security.</p>
@@ -229,17 +223,6 @@
   function money(v){ return 'R ' + parseFloat(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function refreshIcons(){if(window.lucide)lucide.createIcons();}
 
-  window.showToast = function(message, icon) {
-    var container = document.getElementById('toast-container');
-    var toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerHTML = `<i data-lucide="${icon || 'check-circle'}"></i> <span>${message}</span>`;
-    container.appendChild(toast);
-    refreshIcons();
-    setTimeout(() => toast.classList.add('show'), 10);
-    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3500);
-  };
-
   auth.onAuthStateChanged(function(user) {
     if (!user) { window.location.href = 'login.html?redirect=account.html'; return; }
 
@@ -257,6 +240,11 @@
       document.getElementById('admin-badge').style.display = 'inline-block';
       document.getElementById('user-menu').style.display = 'none';
       document.getElementById('admin-menu').style.display = 'flex';
+      
+      // FORCE THE CORRECT TAB TO SHOW IMMEDIATELY
+      document.getElementById('tab-orders').classList.remove('active');
+      document.getElementById('tab-admin-stats').classList.add('active');
+      
       loadAdminStats();
       loadAdminOrders();
     } else {
@@ -322,7 +310,7 @@
     });
   }
 
-  // USER LOGIC (WITH DELIVERY MAP BOX)
+  // USER LOGIC
   function loadUserOrders(userId) {
     var container = document.getElementById('orders-container');
     db.collection('orders').where('buyerId', '==', userId).orderBy('createdAt', 'desc').get().then(function(snapshot) {
@@ -358,7 +346,6 @@
           `;
         });
 
-        // Map Link logic
         var mapBtn = order.deliveryLat ? `
           <a href="https://www.google.com/maps/search/?api=1&query=${order.deliveryLat},${order.deliveryLng}" target="_blank" class="btn-map">
             <i data-lucide="map-pin" style="width:14px;"></i> View Map
@@ -376,7 +363,6 @@
             </div>
             <div class="order-items-list">${itemsHTML}</div>
             
-            <!-- DELIVERY DETAILS BOX -->
             <div class="delivery-box">
               <div class="delivery-info">
                 <h5>Delivery Details</h5>
@@ -396,24 +382,24 @@
   document.getElementById('save-settings-btn').addEventListener('click', function() {
     var newName = document.getElementById('settings-name').value.trim();
     var btn = this;
-    if (!newName) return showToast('Name cannot be empty', 'alert-circle');
+    if (!newName) return alert('Name cannot be empty');
     btn.textContent = 'Saving...'; btn.disabled = true;
     currentUser.updateProfile({ displayName: newName }).then(function() {
-      showToast('Profile updated!', 'check-circle');
+      alert('Profile updated!');
       document.getElementById('user-name').textContent = newName;
       document.getElementById('user-avatar').textContent = newName.charAt(0).toUpperCase();
       btn.textContent = 'Save Changes'; btn.disabled = false;
     }).catch(function(error) {
-      showToast(error.message, 'alert-circle'); btn.textContent = 'Save Changes'; btn.disabled = false;
+      alert(error.message); btn.textContent = 'Save Changes'; btn.disabled = false;
     });
   });
 
   document.getElementById('reset-pw-btn').addEventListener('click', function() {
     var btn = this; btn.textContent = 'Sending...'; btn.disabled = true;
     auth.sendPasswordResetEmail(currentUser.email).then(function() {
-      showToast('Password reset link sent!', 'mail'); btn.textContent = 'Reset Password'; btn.disabled = false;
+      alert('Password reset link sent!'); btn.textContent = 'Reset Password'; btn.disabled = false;
     }).catch(function(error) {
-      showToast(error.message, 'alert-circle'); btn.textContent = 'Reset Password'; btn.disabled = false;
+      alert(error.message); btn.textContent = 'Reset Password'; btn.disabled = false;
     });
   });
 
@@ -436,4 +422,4 @@
 })();
 </script>
 </body>
-  </html>
+                                                           </html>
