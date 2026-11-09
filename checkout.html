@@ -14,8 +14,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-<!-- 🔥 YOUR GOOGLE MAPS API KEY IS INSERTED HERE -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDI_C25zBDgfadfvIuAoaVh-VZ7VAzzhX4&libraries=places"></script>
+<!-- 🔥 FREE LOCATION PICKER (No API Key Required) -->
+<script src="https://cdn.jsdelivr.net/npm/location-picker@3"></script>
 
 <style>
   :root { 
@@ -49,6 +49,7 @@
   .form-group input { width: 100%; padding: 16px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; background: var(--surface-2); transition: 0.2s; }
   .form-group input:focus { outline: none; border-color: var(--bright-lime); background: #fff; box-shadow: 0 0 0 4px rgba(163,255,18,.15); }
   
+  /* 🔥 Location Picker container */
   #delivery-map { height: 300px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 16px; z-index: 1; }
   .map-note { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
   
@@ -130,6 +131,7 @@
       <div class="checkout-section">
         <h2 class="section-title"><i data-lucide="map-pin"></i> Delivery Location</h2>
         <div class="form-group"><label>Search Address or Click the Map</label><input type="text" id="checkout-address" placeholder="Start typing your address..." required /></div>
+        <!-- The free location picker renders here -->
         <div id="delivery-map"></div>
         <input type="hidden" id="checkout-lat" />
         <input type="hidden" id="checkout-lng" />
@@ -167,8 +169,6 @@
   var auth = firebase.auth(); var db = firebase.firestore();
   var currentUser = null; var globalTotal = 0; var hasSelectedLocation = false; var calculatedEDD = null;
 
-  var map, marker, geocoder, autocomplete;
-
   function money(v){ return 'R ' + parseFloat(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function refreshIcons(){if(window.lucide)lucide.createIcons();}
 
@@ -193,82 +193,20 @@
     }
   });
 
-  // 🔥 INITIALIZE GOOGLE MAPS
+  // 🔥 INITIALIZE FREE LOCATION PICKER
   function initMap() {
-    var defaultCenter = { lat: -26.2041, lng: 28.0473 }; // Johannesburg
-
-    map = new google.maps.Map(document.getElementById('delivery-map'), {
-      center: defaultCenter,
+    // The library automatically finds the element with id "delivery-map"
+    new LocationPicker('delivery-map', {
+      provider: 'leaflet', // Uses Leaflet + OpenStreetMap (Free)
       zoom: 12,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: false,
-      gestureHandling: 'greedy'
-    });
-
-    geocoder = new google.maps.Geocoder();
-
-    marker = new google.maps.Marker({
-      map: map,
-      position: defaultCenter,
-      draggable: true,
-      title: 'Drag to your exact location'
-    });
-
-    marker.addListener('dragend', function() {
-      var position = marker.getPosition();
-      document.getElementById('checkout-lat').value = position.lat();
-      document.getElementById('checkout-lng').value = position.lng();
-      hasSelectedLocation = true;
-
-      geocoder.geocode({ location: position }, function(results, status) {
-        if (status === 'OK' && results[0]) {
-          document.getElementById('checkout-address').value = results[0].formatted_address;
-        }
-      });
-    });
-
-    var input = document.getElementById('checkout-address');
-    autocomplete = new google.maps.places.Autocomplete(input);
-    autocomplete.bindTo('bounds', map);
-
-    // 🔥 FIX: Handle free-text search gracefully
-    autocomplete.addListener('place_changed', function() {
-      var place = autocomplete.getPlace();
-      var inputVal = document.getElementById('checkout-address').value;
-
-      // If the user just typed text and hit enter without selecting a dropdown item
-      if (!place.geometry || !place.geometry.location) {
-        geocoder.geocode({ address: inputVal }, function(results, status) {
-          if (status === 'OK' && results[0]) {
-            // We found a general location! Move the map there.
-            var loc = results[0].geometry.location;
-            map.setCenter(loc);
-            map.setZoom(15);
-            marker.setPosition(loc);
-            
-            document.getElementById('checkout-lat').value = loc.lat();
-            document.getElementById('checkout-lng').value = loc.lng();
-            document.getElementById('checkout-address').value = results[0].formatted_address;
-            hasSelectedLocation = true;
-            
-            showToast('Found general area. Please drag the pin to your exact house.', 'info');
-          } else {
-            showToast('Could not find this address. Please select from the dropdown or drag the pin manually.', 'alert-circle');
-          }
-        });
-        return;
+      search: true, // Enables Photon address search
+      latInput: '#checkout-lat',
+      lngInput: '#checkout-lng',
+      addressInput: '#checkout-address',
+      onChange: function() {
+        // This fires when the user moves the pin or selects an address
+        hasSelectedLocation = true;
       }
-
-      // Normal flow: They selected a valid item from the dropdown
-      map.setCenter(place.geometry.location);
-      map.setZoom(16);
-      marker.setPosition(place.geometry.location);
-
-      document.getElementById('checkout-lat').value = place.geometry.location.lat();
-      document.getElementById('checkout-lng').value = place.geometry.location.lng();
-      document.getElementById('checkout-address').value = place.formatted_address;
-      hasSelectedLocation = true;
     });
   }
 
