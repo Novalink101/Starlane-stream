@@ -13,7 +13,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<!-- ADDED FIREBASE STORAGE -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
 <style>
@@ -81,30 +80,12 @@
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--bright-lime); background: #fff; box-shadow: 0 0 0 3px rgba(163,255,18,0.15); }
 
   /* IMAGE UPLOAD ZONE */
-  .upload-zone {
-    border: 2px dashed var(--border);
-    border-radius: 12px;
-    padding: 32px;
-    text-align: center;
-    background: var(--surface-2);
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
+  .upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 32px; text-align: center; background: var(--surface-2); cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
   .upload-zone:hover { border-color: var(--bright-lime); background: #fff; }
   .upload-zone input[type="file"] { display: none; }
   .upload-zone svg { width: 32px; height: 32px; color: var(--silver-glass); margin: 0 auto 12px; }
   .upload-zone p { font-size: 14px; color: var(--text-muted); font-weight: 500; }
-  
-  .upload-preview {
-    width: 100%;
-    height: 200px;
-    background-size: cover;
-    background-position: center;
-    border-radius: 8px;
-    display: none;
-  }
+  .upload-preview { width: 100%; height: 200px; background-size: cover; background-position: center; border-radius: 8px; display: none; }
 
   .btn-submit { background: var(--ink-black); color: #fff; border: none; padding: 16px 32px; border-radius: 10px; font-family: var(--font-display); font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
   .btn-submit:hover:not(:disabled) { background: var(--bright-lime); color: var(--ink-black); }
@@ -123,6 +104,7 @@
   .status-pending { background: #FEF3C7; color: #D97706; }
   .status-paid { background: rgba(163,255,18,0.15); color: #5c9e00; }
   .status-shipped { background: #DBEAFE; color: #2563EB; }
+  .status-cancelled { background: #FEF2F2; color: #DC2626; }
 
   .btn-action { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: var(--bright-lime); color: var(--ink-black); transition: 0.2s; }
   .btn-action:hover { background: #BDFF53; }
@@ -141,28 +123,17 @@
   
   <aside class="sidebar">
     <a href="index.html" class="nav-brand">
-      <svg viewBox="0 0 60 74">
-        <path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" />
-        <path d="M30 22 L44 46 H16 Z" fill="#A3FF12" />
-        <path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" />
-        <path d="M20 56 H40 V60 H20 Z" fill="#030407" />
-      </svg>
+      <svg viewBox="0 0 60 74"><path d="M30 4 L54 46 H6 Z" fill="#FFFFFF" /><path d="M30 22 L44 46 H16 Z" fill="#A3FF12" /><path d="M10 52 H50 V64 H10 Z" fill="#AAB0C4" /><path d="M20 56 H40 V60 H20 Z" fill="#030407" /></svg>
       FOREST<span>BASE</span>
     </a>
 
     <div class="nav-menu">
-      <div class="nav-item active" data-target="tab-inventory">
-        <i data-lucide="package"></i> My Products
-      </div>
-      <div class="nav-item" data-target="tab-orders">
-        <i data-lucide="shopping-bag"></i> Orders
-      </div>
+      <div class="nav-item active" data-target="tab-inventory"><i data-lucide="package"></i> My Products</div>
+      <div class="nav-item" data-target="tab-orders"><i data-lucide="shopping-bag"></i> Orders</div>
     </div>
 
     <div class="sidebar-bottom">
-      <a href="index.html" class="nav-item">
-        <i data-lucide="arrow-left"></i> Back to Shop
-      </a>
+      <a href="index.html" class="nav-item"><i data-lucide="arrow-left"></i> Back to Shop</a>
     </div>
   </aside>
 
@@ -224,7 +195,6 @@
               <input type="number" id="p-old-price" placeholder="R 0.00" min="1" step="0.01" />
             </div>
 
-            <!-- NEW IMAGE UPLOADER -->
             <div class="form-group full-width">
               <label>Product Image</label>
               <div class="upload-zone" id="upload-zone">
@@ -253,9 +223,7 @@
         <h2 class="panel-title"><i data-lucide="list"></i> My Inventory</h2>
         <div class="table-wrapper">
           <table>
-            <thead>
-              <tr><th>Product</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr>
-            </thead>
+            <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="inventory-body"></tbody>
           </table>
         </div>
@@ -282,7 +250,6 @@
 
 <script>
 (function(){
-  // 1. FIREBASE INITIALIZATION
   var firebaseConfig = {
     apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
     authDomain: "starlane-stream.firebaseapp.com",
@@ -294,7 +261,7 @@
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var auth = firebase.auth();
   var db = firebase.firestore();
-  var storage = firebase.storage(); // Initialize Storage
+  var storage = firebase.storage();
 
   var currentUser = null;
   var unsubscribeInventory = null;
@@ -335,16 +302,13 @@
     }
   });
 
-  // 2. IMAGE UPLOAD PREVIEW LOGIC
+  // IMAGE UPLOAD
   var fileInput = document.getElementById('p-image-file');
   var uploadZone = document.getElementById('upload-zone');
   var uploadPreview = document.getElementById('upload-preview');
   var uploadContent = document.getElementById('upload-content');
 
-  uploadZone.addEventListener('click', function() {
-    fileInput.click();
-  });
-
+  uploadZone.addEventListener('click', function() { fileInput.click(); });
   fileInput.addEventListener('change', function(e) {
     var file = e.target.files[0];
     if (file) {
@@ -358,7 +322,7 @@
     }
   });
 
-  // 3. INVENTORY LISTENER
+  // INVENTORY
   function listenToInventory() {
     if (unsubscribeInventory) unsubscribeInventory();
     unsubscribeInventory = db.collection('products').where('sellerId', '==', currentUser.uid).orderBy('createdAt', 'desc').onSnapshot(function(snapshot) {
@@ -397,7 +361,7 @@
     });
   }
 
-  // 4. ORDERS LISTENER
+  // ORDERS
   function listenToOrders() {
     if (unsubscribeOrders) unsubscribeOrders();
     unsubscribeOrders = db.collection('orders')
@@ -417,7 +381,11 @@
           var myItems = order.items.filter(item => item.sellerId === currentUser.uid);
           var itemsHtml = myItems.map(item => `<div style="font-size:13px;">${item.quantity}x ${item.name}</div>`).join('');
           var myTotal = myItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-          var statusClass = order.status === 'paid' ? 'status-paid' : (order.status === 'shipped' ? 'status-shipped' : 'status-pending');
+          
+          var statusClass = 'status-pending';
+          if (order.status === 'paid') statusClass = 'status-paid';
+          if (order.status === 'shipped') statusClass = 'status-shipped';
+          if (order.status === 'cancelled') statusClass = 'status-cancelled';
 
           var tr = document.createElement('tr');
           tr.innerHTML = `
@@ -426,50 +394,46 @@
             <td>${itemsHtml}</td>
             <td style="font-family: var(--mono); font-weight:700;">${money(myTotal)}</td>
             <td><span class="status-badge ${statusClass}">${order.status || 'pending'}</span></td>
-            <td>${order.status === 'paid' ? `<button class="btn-action" onclick="markShipped('${doc.id}')">Mark Shipped</button>` : ''}</td>
+            <td>
+              ${order.status === 'paid' ? `
+                <button class="btn-action" onclick="markShipped('${doc.id}')">Mark Shipped</button>
+                <button class="btn-action" style="background:#FEF2F2; color:#DC2626; margin-top:4px;" onclick="cancelOrder('${doc.id}')">Cancel & Refund</button>
+              ` : ''}
+            </td>
           `;
           tbody.appendChild(tr);
         });
       });
   }
 
-  // 5. ADD PRODUCT (WITH IMAGE UPLOAD)
+  // ADD PRODUCT
   document.getElementById('add-product-form').addEventListener('submit', function(e) {
     e.preventDefault();
     var btn = document.getElementById('submit-btn');
     var file = fileInput.files[0];
     
-    if (!file) {
-      alert("Please upload an image for your product.");
-      return;
-    }
+    if (!file) { alert("Please upload an image for your product."); return; }
 
     btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Uploading Image...';
     btn.disabled = true;
 
-    // Upload image to Firebase Storage
     var storageRef = storage.ref('products/' + Date.now() + '_' + file.name);
     var uploadTask = storageRef.put(file);
 
-    uploadTask.on('state_changed', 
-      null, 
+    uploadTask.on('state_changed', null, 
       function(error) {
-        console.error("Upload error:", error);
         alert("Image upload failed: " + error.message);
         btn.innerHTML = '<i data-lucide="upload-cloud"></i> Publish Product';
         btn.disabled = false;
         refreshIcons();
       }, 
       function() {
-        // Upload complete! Get the URL
         uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
-          
           btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;border-color:rgba(255,255,255,0.3);border-top-color:#fff;margin-right:8px;"></div> Saving Product...';
 
           var oldPriceVal = document.getElementById('p-old-price').value;
           var badgeVal = document.getElementById('p-badge').value;
 
-          // Save to Firestore with the new image URL
           db.collection('products').add({
             sellerId: currentUser.uid,
             sellerEmail: currentUser.email,
@@ -477,30 +441,25 @@
             category: document.getElementById('p-category').value,
             price: parseFloat(document.getElementById('p-price').value),
             oldPrice: oldPriceVal ? parseFloat(oldPriceVal) : null,
-            imageUrl: downloadURL, // <-- The uploaded image URL
+            imageUrl: downloadURL,
             description: document.getElementById('p-desc').value,
             badge: badgeVal ? badgeVal : null,
             rating: 5.0,
             reviews: 0,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           }).then(function() {
-            
-            // Reset Form
             document.getElementById('add-product-form').reset();
             uploadPreview.style.display = 'none';
             uploadContent.style.display = 'block';
-
             btn.innerHTML = '<i data-lucide="check"></i> Published!';
             btn.style.background = 'var(--bright-lime)';
             refreshIcons();
-            
             setTimeout(function() {
               btn.innerHTML = '<i data-lucide="upload-cloud"></i> Publish Product';
               btn.style.background = 'var(--ink-black)';
               btn.disabled = false;
               refreshIcons();
             }, 2500);
-
           }).catch(function(error) {
             alert("Failed to save product: " + error.message);
             btn.innerHTML = '<i data-lucide="upload-cloud"></i> Publish Product';
@@ -513,9 +472,7 @@
   });
 
   window.deleteProduct = function(id) {
-    if(confirm('Permanently delete this product?')) {
-      db.collection('products').doc(id).delete();
-    }
+    if(confirm('Permanently delete this product?')) db.collection('products').doc(id).delete();
   };
 
   window.markShipped = function(orderId) {
@@ -525,7 +482,14 @@
     }
   };
 
+  window.cancelOrder = function(orderId) {
+    if(confirm('Are you sure? This will cancel the order and trigger a refund to the buyer.')) {
+      db.collection('orders').doc(orderId).update({ status: 'cancelled' })
+        .then(function() { alert('Order cancelled. The buyer has been notified.'); });
+    }
+  };
+
 })();
 </script>
 </body>
-  </html>
+</html>
