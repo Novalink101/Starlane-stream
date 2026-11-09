@@ -186,6 +186,20 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
 .feature-banner h2 { font-size: clamp(1.8rem, 3vw, 2.5rem); margin-bottom: 16px; position: relative; z-index: 1; }
 .feature-banner p { color: var(--silver-glass); max-width: 600px; margin: 0 auto 32px; font-size: 16px; position: relative; z-index: 1; }
 
+/* ABOUT & CONTACT SECTION */
+.about-section { padding: 80px 0; background: #fff; border-top: 1px solid var(--line); }
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+@media (max-width: 860px) { .about-grid { grid-template-columns: 1fr; gap: 40px; } }
+.about-text h2 { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; margin-bottom: 24px; color: var(--ink-black); line-height: 1.1; }
+.about-text p { font-size: 16px; color: var(--text-muted); line-height: 1.8; margin-bottom: 20px; }
+.contact-card { background: var(--ink-black); border-radius: 24px; padding: 48px; color: #fff; text-align: center; position: relative; overflow: hidden; }
+.contact-card::before { content: ''; position: absolute; top: -50%; left: 50%; transform: translateX(-50%); width: 300px; height: 300px; background: radial-gradient(circle, rgba(163,255,18,0.2), transparent 70%); pointer-events: none; }
+.contact-card h3 { font-family: var(--font-display); font-size: 24px; margin-bottom: 12px; position: relative; z-index: 1; }
+.contact-card p { color: var(--silver-glass); font-size: 15px; margin-bottom: 32px; position: relative; z-index: 1; }
+.btn-instagram { display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: #fff; padding: 16px 32px; border-radius: 50px; font-weight: 700; font-size: 16px; transition: all 0.3s; position: relative; z-index: 1; text-decoration: none; box-shadow: 0 10px 20px rgba(220, 39, 67, 0.3); }
+.btn-instagram:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(220, 39, 67, 0.5); }
+.btn-instagram svg { width: 24px; height: 24px; }
+
 /* FOOTER */
 .footer{background:var(--ink-black);color:var(--silver-glass);padding:80px 0 40px;margin-top:auto;font-size:14px}
 .footer-grid{display:grid;gap:40px;grid-template-columns:2fr 1fr 1fr 1fr}
@@ -210,6 +224,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
   .footer-grid { grid-template-columns: 1fr; gap: 32px; }
   .feature-banner { padding: 40px 20px; }
   .admin-actions { width: 100%; justify-content: flex-start; order: 4; margin-top: 10px; }
+  .contact-card { padding: 32px 24px; }
 }
 </style>
 </head>
@@ -334,6 +349,30 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
   </div>
 </section>
 
+<!-- NEW ABOUT & CONTACT SECTION -->
+<section class="about-section" id="about">
+  <div class="container">
+    <div class="about-grid">
+      
+      <div class="about-text">
+        <h2>About FORESTBASE</h2>
+        <p>FORESTBASE is not just another online store. It's a curated marketplace built for the future. We connect visionary sellers with buyers who crave the extraordinary—from cutting-edge future-tech to exclusive mystery drops you won't find anywhere else.</p>
+        <p>Our mission is simple: to create a secure, lightning-fast, and visually stunning platform where the next great product discovery is always just a click away. We handle the logistics, the security, and the payments, so you can focus on the mystery.</p>
+      </div>
+
+      <div class="contact-card">
+        <h3>Get in Touch</h3>
+        <p>Have a question, need support, or want to partner with us? Slide into our DMs. We are always active in the forest.</p>
+        
+        <a href="https://www.instagram.com/forestbase_official?exln=MWtkbzFvb2s5ZG14dQ==" target="_blank" class="btn-instagram">
+          <i data-lucide="instagram"></i> @forestbase_official
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <footer class="footer">
   <div class="container">
     <div class="footer-grid">
@@ -363,9 +402,9 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
       </div>
       <div class="footer-col">
         <h4>Support</h4>
-        <a href="legal.html">Help Center</a>
+        <a href="#about">About Us</a>
         <a href="account.html">Track Order</a>
-        <a href="legal.html">Returns</a>
+        <a href="https://www.instagram.com/forestbase_official?exln=MWtkbzFvb2s5ZG14dQ==" target="_blank">Instagram</a>
       </div>
     </div>
   </div>
@@ -471,22 +510,19 @@ auth.onAuthStateChanged(function(user) {
   var adminActions = $('admin-actions');
   
   if (user) {
-    // User is logged in
     userBtn.href = "account.html";
     userIcon.setAttribute('data-lucide', 'user-check');
     userIcon.style.color = 'var(--bright-lime)';
     userText.textContent = 'Account';
     
-    // Check if Admin
     if (ADMIN_EMAILS.includes(user.email)) {
-      adminActions.style.display = 'flex'; // Show admin buttons
+      adminActions.style.display = 'flex';
     } else {
-      adminActions.style.display = 'none'; // Hide for normal users
+      adminActions.style.display = 'none';
     }
     
     listenForNotifications(user);
   } else {
-    // User is logged out
     userBtn.href = "login.html";
     userIcon.setAttribute('data-lucide', 'user');
     userIcon.style.color = 'var(--ink-black)';
