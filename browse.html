@@ -42,16 +42,18 @@
   }
   a { text-decoration: none; color: inherit; }
 
-  /* ── HEADER ── */
+  /* HEADER */
   .header-wrapper{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
   .nav-top{max-width:1300px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
   .nav-brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--ink-black);letter-spacing:-0.03em;}
   .nav-brand svg{width:28px;height:34px;}
   
-  .nav-search{flex:1;max-width:600px;position:relative;display:flex;}
-  .nav-search input{width:100%;padding:12px 20px 12px 48px;border-radius:999px;border:2px solid transparent;background:var(--surface-2);font-size:14px;font-weight:500;transition:all .2s;}
-  .nav-search input:focus{outline:none;border-color:var(--bright-lime);background:#fff;box-shadow:0 0 0 4px rgba(163,255,18,.2);}
-  .nav-search svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--silver-glass);width:20px;height:20px;}
+  /* SEARCH BAR FORM */
+  .nav-search-form{flex:1;max-width:600px;position:relative;display:flex;}
+  .nav-search-form input{width:100%;padding:12px 20px 12px 48px;border-radius:999px;border:2px solid transparent;background:var(--surface-2);font-size:14px;font-weight:500;transition:all .2s;}
+  .nav-search-form input:focus{outline:none;border-color:var(--bright-lime);background:#fff;box-shadow:0 0 0 4px rgba(163,255,18,.2);}
+  .nav-search-form svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--silver-glass);width:20px;height:20px;}
+  .nav-search-form button{display:none;} /* Hidden submit button for enter key */
 
   .nav-actions{display:flex;gap:12px;align-items:center;}
   .btn-icon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--surface-2);color:var(--ink-black);transition:0.2s;}
@@ -60,7 +62,7 @@
   .cart-btn:hover{background:#1F222C;transform:scale(1.05);}
   .cart-badge{position:absolute;top:-4px;right:-4px;background:var(--bright-lime);color:var(--ink-black);font-size:11px;font-weight:900;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;border:2px solid #fff;}
 
-  /* ── LAYOUT ── */
+  /* LAYOUT */
   .container { max-width: 1300px; margin: 0 auto; padding: 32px 20px; width: 100%; flex: 1; display: grid; grid-template-columns: 240px 1fr; gap: 32px; align-items: start; }
   @media (max-width: 860px) { .container { grid-template-columns: 1fr; } }
 
@@ -101,7 +103,7 @@
   .btn-add { background: var(--ink-black); color: #fff; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s; }
   .btn-add:hover { background: var(--bright-lime); color: var(--ink-black); }
 
-  /* Skeletons & Empty States */
+  /* Loaders & Empty States */
   .skeleton { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
   .sk-img { aspect-ratio: 1/1; background: linear-gradient(90deg, #EEF2F7, #E2E8F0, #EEF2F7); background-size: 200% 100%; animation: sk 1.4s infinite; }
   .sk-body { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
@@ -114,9 +116,6 @@
   .empty-state svg { width: 48px; height: 48px; color: var(--silver-glass); margin: 0 auto 16px; }
   .empty-state h3 { font-family: var(--font-display); font-size: 20px; margin-bottom: 8px; }
   .empty-state p { color: var(--text-muted); font-size: 14px; }
-
-  /* Footer */
-  .footer{background:var(--ink-black);color:var(--silver-glass);padding:40px 20px;text-align:center;font-size:13px;margin-top:auto;}
 </style>
 </head>
 <body>
@@ -134,16 +133,18 @@
       FORESTBASE
     </a>
     
-    <div class="nav-search">
+    <!-- FORM SUBMITS TO ITSELF WITH SEARCH PARAM -->
+    <form class="nav-search-form" id="search-form" onsubmit="event.preventDefault(); executeSearch();">
       <i data-lucide="search"></i>
       <input type="text" id="search-bar" placeholder="Search the forest..." />
-    </div>
+      <button type="submit"></button>
+    </form>
 
     <div class="nav-actions">
       <a href="login.html" class="btn-icon" id="user-btn">
         <i data-lucide="user" id="user-icon" style="width:20px; height:20px;"></i>
       </a>
-      <a href="checkout.html" class="cart-btn">
+      <a href="cart.html" class="cart-btn">
         <i data-lucide="shopping-bag" style="width:20px; height:20px;"></i>
         <span class="cart-badge" id="cart-count">0</span>
       </a>
@@ -157,7 +158,7 @@
   <aside class="filters">
     <div class="filter-group">
       <div class="filter-title">Category</div>
-      <ul class="filter-list">
+      <ul class="filter-list" id="category-list">
         <li><label><input type="checkbox" class="filter-category" value="Electronics"> Electronics</label></li>
         <li><label><input type="checkbox" class="filter-category" value="Future Tech"> Future Tech</label></li>
         <li><label><input type="checkbox" class="filter-category" value="Mystery Drops"> Mystery Drops</label></li>
@@ -181,7 +182,7 @@
   <!-- MAIN CATALOG -->
   <main>
     <div class="catalog-header">
-      <h1 class="catalog-title">All Products <span id="product-count">(Loading...)</span></h1>
+      <h1 class="catalog-title" id="catalog-title">All Products <span id="product-count">(Loading...)</span></h1>
       <select class="sort-select" id="sort-select">
         <option value="newest">Sort by: Newest</option>
         <option value="price-asc">Price: Low to High</option>
@@ -194,20 +195,12 @@
       <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
       <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
       <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
-      <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
     </div>
   </main>
 </div>
 
-<footer class="footer">
-  © <span id="year"></span> FORESTBASE. All rights reserved. Deep in the forest there's always a mystery.
-</footer>
-
 <script>
 (function(){
-  // ═══════════════════════════════════════════════
-  // 1. FIREBASE INITIALIZATION
-  // ═══════════════════════════════════════════════
   var firebaseConfig = {
     apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
     authDomain: "starlane-stream.firebaseapp.com",
@@ -220,40 +213,47 @@
   var auth = firebase.auth();
   var db = firebase.firestore();
 
-  // State
   var allProducts = [];
   var filteredProducts = [];
   
   function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function refreshIcons(){if(window.lucide)lucide.createIcons();}
 
-  // ═══════════════════════════════════════════════
-  // 2. HEADER CART & AUTH LOGIC
-  // ═══════════════════════════════════════════════
+  // Update cart badge
   function updateCartBadge() {
     var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
     var total = cart.reduce((sum, item) => sum + item.quantity, 0);
     document.getElementById('cart-count').textContent = total;
   }
 
-  auth.onAuthStateChanged(function(user) {
-    var userBtn = document.getElementById('user-btn');
-    var userIcon = document.getElementById('user-icon');
-    if (user) {
-      userBtn.href = "account.html";
-      userIcon.setAttribute('data-lucide', 'user-check');
-      userIcon.style.color = 'var(--bright-lime)';
+  // Handle Search Submit (updates URL and filters)
+  window.executeSearch = function() {
+    var query = document.getElementById('search-bar').value.trim();
+    var url = new URL(window.location);
+    if (query) {
+      url.searchParams.set('search', query);
     } else {
-      userBtn.href = "login.html";
-      userIcon.setAttribute('data-lucide', 'user');
-      userIcon.style.color = 'var(--ink-black)';
+      url.searchParams.delete('search');
     }
-    refreshIcons();
-  });
+    window.history.pushState({}, '', url);
+    applyFiltersAndSort();
+  };
 
-  // ═══════════════════════════════════════════════
-  // 3. FETCH LIVE DATA FROM FIRESTORE
-  // ═══════════════════════════════════════════════
+  // Read URL parameters on load
+  var urlParams = new URLSearchParams(window.location.search);
+  var initialSearch = urlParams.get('search');
+  var initialCategory = urlParams.get('category');
+
+  if (initialSearch) {
+    document.getElementById('search-bar').value = initialSearch;
+    document.getElementById('catalog-title').innerHTML = `Search: "${initialSearch}" <span id="product-count">(Loading...)</span>`;
+  }
+  if (initialCategory) {
+    var cb = document.querySelector(`.filter-category[value="${initialCategory}"]`);
+    if (cb) cb.checked = true;
+  }
+
+  // Fetch products
   function fetchProducts() {
     db.collection('products')
       .orderBy('createdAt', 'desc')
@@ -263,8 +263,6 @@
         snapshot.forEach(function(doc) {
           allProducts.push({ id: doc.id, ...doc.data() });
         });
-        
-        // Initial Render
         applyFiltersAndSort();
       })
       .catch(function(error) {
@@ -273,27 +271,21 @@
       });
   }
 
-  // ═══════════════════════════════════════════════
-  // 4. FILTER & SORT LOGIC
-  // ═══════════════════════════════════════════════
+  // Filter and Sort Logic
   function applyFiltersAndSort() {
     var searchTerm = document.getElementById('search-bar').value.toLowerCase();
     var sortValue = document.getElementById('sort-select').value;
-    
-    // Get checked categories
     var checkedCats = Array.from(document.querySelectorAll('.filter-category:checked')).map(cb => cb.value);
-    
-    // Get price range
     var priceRange = document.querySelector('.filter-price:checked').value;
 
     filteredProducts = allProducts.filter(function(p) {
-      // Search
+      // Search Filter
       if (searchTerm && !p.name.toLowerCase().includes(searchTerm)) return false;
       
-      // Category
+      // Category Filter
       if (checkedCats.length > 0 && !checkedCats.includes(p.category)) return false;
       
-      // Price
+      // Price Filter
       if (priceRange !== 'all') {
         var parts = priceRange.split('-');
         var min = parseFloat(parts[0]);
@@ -304,20 +296,17 @@
       return true;
     });
 
-    // Sort
+    // Sorting
     if (sortValue === 'price-asc') {
       filteredProducts.sort((a, b) => a.price - b.price);
     } else if (sortValue === 'price-desc') {
       filteredProducts.sort((a, b) => b.price - a.price);
     }
-    // "newest" is default since we fetched ordered by createdAt
 
     renderProducts();
   }
 
-  // ═══════════════════════════════════════════════
-  // 5. RENDER PRODUCTS TO GRID
-  // ═══════════════════════════════════════════════
+  // Render
   function renderProducts() {
     var grid = document.getElementById('productsGrid');
     document.getElementById('product-count').textContent = `(${filteredProducts.length} items)`;
@@ -356,7 +345,7 @@
           </div>
           <div class="card-foot">
             <span class="price">${priceHTML}</span>
-            <button class="btn-add" onclick="quickAdd(event, '${p.id}')">
+            <button class="btn-add" onclick="quickAdd(event, '${p.id}', '${p.name}', ${p.price}, '${p.imageUrl}', '${p.sellerId}')">
               Add
             </button>
           </div>
@@ -375,33 +364,21 @@
     refreshIcons();
   }
 
-  // ═══════════════════════════════════════════════
-  // 6. QUICK ADD TO CART
-  // ═══════════════════════════════════════════════
-  window.quickAdd = function(e, productId) {
+  // Quick Add to Cart
+  window.quickAdd = function(e, productId, name, price, imageUrl, sellerId) {
     e.stopPropagation();
-    var product = allProducts.find(p => p.id === productId);
-    if(!product) return;
-
     var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
-    var existing = cart.find(item => item.id === product.id);
+    var existing = cart.find(item => item.id === productId);
 
     if (existing) {
       existing.quantity += 1;
     } else {
-      cart.push({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        imageUrl: product.imageUrl,
-        quantity: 1
-      });
+      cart.push({ id: productId, name, price, imageUrl, sellerId, quantity: 1 });
     }
 
     localStorage.setItem('forestbase_cart', JSON.stringify(cart));
     updateCartBadge();
 
-    // Visual feedback
     var btn = e.target.closest('.btn-add');
     var originalText = btn.innerHTML;
     btn.innerHTML = 'Added!';
@@ -415,10 +392,7 @@
     }, 1500);
   };
 
-  // ═══════════════════════════════════════════════
-  // 7. EVENT LISTENERS FOR FILTERS
-  // ═══════════════════════════════════════════════
-  document.getElementById('search-bar').addEventListener('input', applyFiltersAndSort);
+  // Event Listeners for Filters
   document.getElementById('sort-select').addEventListener('change', applyFiltersAndSort);
   document.querySelectorAll('.filter-category').forEach(cb => cb.addEventListener('change', applyFiltersAndSort));
   document.querySelectorAll('.filter-price').forEach(cb => cb.addEventListener('change', applyFiltersAndSort));
@@ -427,18 +401,37 @@
     document.getElementById('search-bar').value = '';
     document.querySelectorAll('.filter-category').forEach(cb => cb.checked = false);
     document.querySelector('.filter-price[value="all"]').checked = true;
+    
+    // Clear URL params
+    var url = new URL(window.location);
+    url.searchParams.delete('search');
+    url.searchParams.delete('category');
+    window.history.pushState({}, '', url);
+    
     applyFiltersAndSort();
   });
 
-  // ═══════════════════════════════════════════════
-  // 8. INIT
-  // ═══════════════════════════════════════════════
+  // Init
   document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('year').textContent = new Date().getFullYear();
     updateCartBadge();
     fetchProducts();
+
+    auth.onAuthStateChanged(function(user) {
+      var userBtn = document.getElementById('user-btn');
+      var userIcon = document.getElementById('user-icon');
+      if (user) {
+        userBtn.href = "account.html";
+        userIcon.setAttribute('data-lucide', 'user-check');
+        userIcon.style.color = 'var(--bright-lime)';
+      } else {
+        userBtn.href = "login.html";
+        userIcon.setAttribute('data-lucide', 'user');
+        userIcon.style.color = 'var(--ink-black)';
+      }
+      refreshIcons();
+    });
   });
 })();
 </script>
 </body>
-</html>
+                                                                                                      </html>
