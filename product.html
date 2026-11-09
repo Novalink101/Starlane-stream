@@ -25,7 +25,6 @@
   body { background: #FAFBFC; color: var(--text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; min-height: 100vh; }
   a { text-decoration: none; color: inherit; }
 
-  /* HEADER */
   .header-wrapper{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
   .nav-top{max-width:1300px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
   .nav-brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--ink-black);letter-spacing:-0.03em;}
@@ -41,7 +40,6 @@
   .cart-btn:hover{background:#1F222C;transform:scale(1.05);}
   .cart-badge{position:absolute;top:-4px;right:-4px;background:var(--bright-lime);color:var(--ink-black);font-size:11px;font-weight:900;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;border:2px solid #fff;}
 
-  /* LAYOUT */
   .breadcrumbs { max-width: 1300px; margin: 0 auto; padding: 24px 20px 0; font-size: 13px; color: var(--text-muted); display: flex; gap: 8px; align-items: center; }
   .container { max-width: 1300px; margin: 0 auto; padding: 24px 20px 60px; width: 100%; flex: 1; }
   .product-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-bottom: 60px; }
@@ -64,9 +62,15 @@
   .description { font-size: 15px; line-height: 1.6; color: var(--text-muted); }
   .meta-info { display: flex; gap: 20px; font-size: 13px; color: var(--text-muted); margin-top: 10px; }
   .meta-info span { display: flex; align-items: center; gap: 6px; }
-
-  /* 🔥 NEW: EDD BADGE STYLES */
   .edd-badge { background: rgba(163,255,18,0.1); border: 1px solid rgba(163,255,18,0.3); color: #5c9e00; padding: 12px 16px; border-radius: 10px; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; }
+
+  /* 🔥 SIZES UI */
+  .size-selector { margin-top: 16px; }
+  .size-label { font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block; color: var(--ink-black); }
+  .size-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+  .size-btn { padding: 10px 20px; border: 1px solid var(--border); border-radius: 8px; background: #fff; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.2s; }
+  .size-btn:hover { border-color: var(--ink-black); }
+  .size-btn.active { background: var(--ink-black); color: var(--bright-lime); border-color: var(--ink-black); }
 
   .actions { display: flex; flex-direction: column; gap: 16px; margin-top: 10px; }
   .qty-selector { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 10px; width: fit-content; overflow: hidden; }
@@ -177,7 +181,11 @@
         <span id="p-category"><i data-lucide="tag" style="width:14px;"></i> Loading...</span>
       </div>
 
-      <!-- 🔥 NEW EDD BADGE INJECTED HERE -->
+      <!-- 🔥 SIZE SELECTOR INJECTED HERE -->
+      <div class="size-selector" id="size-selector-wrap" style="display: none;">
+        <label class="size-label">Select Size</label>
+        <div class="size-buttons" id="size-buttons"></div>
+      </div>
 
       <div class="actions">
         <div class="qty-selector">
@@ -217,7 +225,7 @@
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   var auth = firebase.auth(); var db = firebase.firestore();
 
-  var currentProduct = null; var currentUser = null; var productReviews = [];
+  var currentProduct = null; var currentUser = null; var productReviews = []; var selectedSize = null;
 
   function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function refreshIcons(){if(window.lucide)lucide.createIcons();}
@@ -256,7 +264,25 @@
       document.getElementById('p-ships-from').innerHTML = `<i data-lucide="truck" style="width:14px;"></i> Ships from: ${currentProduct.shipsFrom || 'Local'}`;
       document.getElementById('p-category').innerHTML = `<i data-lucide="tag" style="width:14px;"></i> ${currentProduct.category || 'General'}`;
       
-      // 🔥 NEW: Calculate EDD for product page
+      // 🔥 POPULATE SIZES
+      if (currentProduct.sizes && currentProduct.sizes.length > 0) {
+        document.getElementById('size-selector-wrap').style.display = 'block';
+        var sizeContainer = document.getElementById('size-buttons');
+        sizeContainer.innerHTML = '';
+        currentProduct.sizes.forEach(function(size) {
+          var btn = document.createElement('button');
+          btn.className = 'size-btn';
+          btn.textContent = size;
+          btn.onclick = function() {
+            document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedSize = size;
+          };
+          sizeContainer.appendChild(btn);
+        });
+      }
+
+      // EDD Calculation
       var origin = currentProduct.shipsFrom || 'South Africa (Local)';
       var maxDays = 4;
       if (origin.includes('China')) maxDays = 21;
@@ -331,10 +357,36 @@
   document.getElementById('qty-plus').addEventListener('click', function() { var val = parseInt(qtyInput.value); if (val < 10) qtyInput.value = val + 1; });
 
   window.addToCart = function(action) {
-    if(!currentProduct) return; var qty = parseInt(qtyInput.value); var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]'); var existingItem = cart.find(item => item.id === currentProduct.id);
-    if (existingItem) { existingItem.quantity += qty; } else { cart.push({ id: currentProduct.id, sellerId: currentProduct.sellerId, name: currentProduct.name, price: currentProduct.price, imageUrl: currentProduct.imageCover || currentProduct.imageUrl, quantity: qty }); }
-    localStorage.setItem('forestbase_cart', JSON.stringify(cart)); updateCartBadge();
-    if (action === 'buy') { window.location.href = 'cart.html'; } else { showToast('Added to cart!', 'shopping-cart'); }
+    if(!currentProduct) return; 
+    
+    // 🔥 CHECK IF SIZES ARE REQUIRED
+    if (currentProduct.sizes && currentProduct.sizes.length > 0 && !selectedSize) {
+      return showToast('Please select a size first.', 'alert-circle');
+    }
+
+    var qty = parseInt(qtyInput.value); 
+    var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]');
+    var existingItem = cart.find(item => item.id === currentProduct.id && item.size === selectedSize);
+    
+    if (existingItem) { 
+      existingItem.quantity += qty; 
+    } else { 
+      cart.push({ 
+        id: currentProduct.id, 
+        sellerId: currentProduct.sellerId, 
+        name: currentProduct.name, 
+        price: currentProduct.price, 
+        imageUrl: currentProduct.imageCover || currentProduct.imageUrl, 
+        size: selectedSize || null, // Save chosen size
+        quantity: qty 
+      }); 
+    }
+    
+    localStorage.setItem('forestbase_cart', JSON.stringify(cart)); 
+    updateCartBadge();
+    
+    if (action === 'buy') { window.location.href = 'cart.html'; } 
+    else { showToast('Added to cart!', 'shopping-cart'); }
   };
 
   document.addEventListener('DOMContentLoaded', function() { updateCartBadge(); loadProduct(); });
