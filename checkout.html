@@ -14,8 +14,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-<!-- 🔥 Google Maps Script (Places Library for Autocomplete) -->
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places"></script>
+<!-- 🔥 YOUR GOOGLE MAPS API KEY HAS BEEN INSERTED HERE -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDI_C25zBDgfadfvIuAoaVh-VZ7VAzzhX4&libraries=places"></script>
 
 <style>
   :root { 
@@ -193,7 +193,7 @@
     }
   });
 
-  // 🔥 INITIALIZE GOOGLE MAPS (Legacy Marker for Demo Keys)
+  // 🔥 INITIALIZE GOOGLE MAPS
   function initMap() {
     var defaultCenter = { lat: -26.2041, lng: 28.0473 }; // Johannesburg
 
@@ -208,7 +208,6 @@
 
     geocoder = new google.maps.Geocoder();
 
-    // Use standard Marker (Works perfectly with demo keys)
     marker = new google.maps.Marker({
       map: map,
       position: defaultCenter,
@@ -369,4 +368,4 @@
 })();
 </script>
 </body>
-</html>
+  </html>
