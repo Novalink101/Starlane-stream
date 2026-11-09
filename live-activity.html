@@ -65,7 +65,7 @@
     <h1 class="page-title"><span class="live-dot"></span> Live Transaction Log</h1>
   </div>
   <div class="log-box" id="log-container">
-    <div style="padding: 40px; text-align: center; color: var(--text-muted);">Waiting for orders...</div>
+    <div style="padding: 40px; text-align: center; color: var(--text-muted);">Authenticating...</div>
   </div>
 </div>
 
@@ -80,41 +80,58 @@
     appId: "1:115625325145:web:b14025df503bbe2b7d7748"
   };
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var auth = firebase.auth();
   var db = firebase.firestore();
-
+  
+  var ADMIN_EMAILS = ['nylnathan340@gmail.com', 'customerservicesnovalink@gmail.com'];
   var container = document.getElementById('log-container');
 
-  // Listen to the database in real-time
-  db.collection('orders').orderBy('createdAt', 'desc').limit(15).onSnapshot(function(snapshot) {
-    if (snapshot.empty) {
-      container.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-muted);">No orders yet. Start the R 2.00 test.</div>';
-      return;
-    }
+  // AUTH GUARD: Wait until we know for sure if the user is an admin
+  auth.onAuthStateChanged(function(user) {
+    if (user && ADMIN_EMAILS.includes(user.email)) {
+      
+      // User is verified. Now it is safe to listen to the database.
+      db.collection('orders').orderBy('createdAt', 'desc').limit(15).onSnapshot(function(snapshot) {
+        if (snapshot.empty) {
+          container.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-muted);">No orders yet. Start the R 2.00 test.</div>';
+          return;
+        }
 
-    container.innerHTML = '';
-    
-    snapshot.forEach(function(doc) {
-      var order = doc.data();
-      var date = order.createdAt ? order.createdAt.toDate().toLocaleTimeString('en-ZA') : 'Just now';
-      var statusClass = 'status-' + (order.status || 'pending');
-      
-      var itemNames = order.items.map(function(i) { return i.name; }).join(', ');
-      
-      var div = document.createElement('div');
-      div.className = 'log-item';
-      div.innerHTML = `
-        <div class="log-time">${date}</div>
-        <div class="log-status ${statusClass}">${order.status || 'pending'}</div>
-        <div class="log-info">
-          <div class="log-title">${order.buyerEmail}</div>
-          <div class="log-desc">Order #${doc.id.slice(0,8).toUpperCase()} · ${itemNames}</div>
+        container.innerHTML = '';
+        
+        snapshot.forEach(function(doc) {
+          var order = doc.data();
+          var date = order.createdAt ? order.createdAt.toDate().toLocaleTimeString('en-ZA') : 'Just now';
+          var statusClass = 'status-' + (order.status || 'pending');
+          
+          var itemNames = order.items.map(function(i) { return i.name; }).join(', ');
+          
+          var div = document.createElement('div');
+          div.className = 'log-item';
+          div.innerHTML = `
+            <div class="log-time">${date}</div>
+            <div class="log-status ${statusClass}">${order.status || 'pending'}</div>
+            <div class="log-info">
+              <div class="log-title">${order.buyerEmail}</div>
+              <div class="log-desc">Order #${doc.id.slice(0,8).toUpperCase()} · ${itemNames}</div>
+            </div>
+            <div class="log-price">R ${parseFloat(order.total).toFixed(2)}</div>
+          `;
+          container.appendChild(div);
+        });
+      }, function(error) {
+        container.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--danger);">Error: ' + error.message + '</div>';
+      });
+
+    } else {
+      // User is not logged in or not an admin
+      container.innerHTML = `
+        <div style="padding: 40px; text-align: center;">
+          <p style="color: var(--danger); font-weight: 600; margin-bottom: 16px;">Access Denied. You are not logged in as an Admin.</p>
+          <a href="login.html?redirect=live-activity.html" style="background: var(--ink-black); color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">Log In Here</a>
         </div>
-        <div class="log-price">R ${parseFloat(order.total).toFixed(2)}</div>
       `;
-      container.appendChild(div);
-    });
-  }, function(error) {
-    container.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--danger);">Error connecting to database: ' + error.message + '</div>';
+    }
   });
 })();
 </script>
