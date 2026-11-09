@@ -16,7 +16,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
-<!-- ADDED FIRESTORE -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -47,14 +46,17 @@
   --container:1300px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
-body{font-family:var(--font-body);font-size:14px;line-height:1.55;color:var(--ink);background:#FAFBFC;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;overflow-x:hidden;}
+body{font-family:var(--font-body);font-size:14px;line-height:1.55;color:var(--ink);background:#FAFBFC;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;}
 img,svg{display:block;max-width:100%}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:none}
 a{color:inherit;text-decoration:none}
 
-h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{font-family:var(--font-display);letter-spacing:-0.02em;}
+h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{
+  font-family:var(--font-display);
+  letter-spacing:-0.02em;
+}
 
 .container{max-width:var(--container);margin:0 auto;padding:0 20px;width:100%}
 
@@ -67,7 +69,10 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{font-family:var(--fo
 .nav-search input{width:100%;padding:14px 20px 14px 48px;border-radius:var(--r-full);border:2px solid transparent;background:var(--surface-2);font-size:14px;font-weight:500;transition:all .2s;box-shadow:inset 0 2px 4px rgba(0,0,0,0.02);}
 .nav-search input:focus{outline:none;border-color:var(--bright-lime);background:#fff;box-shadow:0 0 0 4px rgba(163,255,18,.2);}
 .nav-search svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--silver-glass);width:20px;height:20px;}
+
 .nav-actions{display:flex;gap:12px;align-items:center;}
+
+/* TABS */
 .nav-tabs-wrapper{max-width:var(--container);margin:0 auto;padding:0 20px;display:flex;overflow-x:auto;scrollbar-width:none;}
 .nav-tabs-wrapper::-webkit-scrollbar{display:none;}
 .nav-tab{position:relative;display:inline-flex;align-items:center;gap:6px;padding:14px 20px;font-size:14px;font-weight:600;color:#525A6B;white-space:nowrap;cursor:pointer;transition:color .3s var(--ease);}
@@ -84,6 +89,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{font-family:var(--fo
 .btn-accent:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.4), 0 0 15px rgba(163,255,18,0.4);}
 .btn-ghost{background:var(--surface-2);color:var(--ink-black);border:1px solid var(--line);}
 .btn-ghost:hover{background:var(--line);}
+
 .cart-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--ink-black);color:#fff;transition:all .2s;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
 .cart-btn:hover{background:var(--ink-2);transform:scale(1.05);}
 .cart-badge{position:absolute;top:-4px;right:-4px;background:var(--bright-lime);color:var(--ink-black);font-size:11px;font-weight:900;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;border:2px solid #fff;}
@@ -99,6 +105,8 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{font-family:var(--fo
 .hero h1{font-size:clamp(2.5rem,5.5vw,4.5rem);line-height:1.05;margin-bottom:20px;max-width:850px;text-shadow:0 10px 30px rgba(0,0,0,.8);}
 .hero h1 span{color:var(--bright-lime);text-shadow:0 0 40px rgba(163,255,18,.3);}
 .hero p{color:var(--silver-glass);font-size:clamp(1rem,1.5vw,1.2rem);max-width:600px;line-height:1.6;margin-bottom:40px;text-shadow:0 2px 10px rgba(0,0,0,.8);font-weight:400;}
+
+/* Hero Cards */
 .hero-ctas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;max-width:1000px}
 .hero-card{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:28px;border-radius:var(--r-lg);background:rgba(3,4,7,.7);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);transition:all .3s var(--ease);text-decoration:none;color:#fff;position:relative;overflow:hidden;}
 .hero-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg, rgba(163,255,18,.1), transparent);opacity:0;transition:opacity .3s;}
@@ -108,7 +116,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{font-family:var(--fo
 .hc-t{font-size:20px;font-weight:700;position:relative;z-index:1;}
 .hc-s{font-size:13.5px;color:var(--silver-glass);line-height:1.5;position:relative;z-index:1;}
 
-/* PRODUCTS */
+/* SECTIONS & PRODUCT GRIDS */
 .section{padding:60px 0}
 .section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:30px}
 .section-head h2{font-size:clamp(1.5rem,2.5vw,2rem);display:flex;align-items:center;gap:12px;}
@@ -162,9 +170,47 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{font-family:var(--fo
 .footer-col a:hover{color:var(--bright-lime)}
 
 @keyframes fadeIn { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
+
+/* ═══════════════════════════════════════════════
+   MOBILE FIXES
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Fix Header */
+  .nav-top {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .nav-search {
+    order: 3; /* Move search to a new line */
+    width: 100%;
+    max-width: 100%;
+    margin-top: 12px;
+  }
+  .nav-brand { font-size: 18px; }
+  
+  /* Fix Hero Text */
+  .hero { padding: 60px 0 40px; }
+  .hero h1 { font-size: 2.2rem; }
+  
+  /* Fix Hero Cards (Stack them) */
+  .hero-ctas {
+    grid-template-columns: 1fr; /* 1 column instead of 3 */
+    gap: 16px;
+  }
+  .hero-card { padding: 20px; }
+  
+  /* Fix Footer */
+  .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+  
+  /* Fix Banner */
+  .feature-banner { padding: 40px 20px; }
+}
 </style>
 </head>
 <body>
+
+<div id="appShell">
 
 <header class="header-wrapper">
   <div class="nav-top">
@@ -188,6 +234,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{font-family:var(--fo
         <i data-lucide="user" id="user-icon" style="width:18px; height:18px;"></i> 
         <span id="user-text">Sign In</span>
       </a>
+      
       <a href="checkout.html" class="cart-btn">
         <i data-lucide="shopping-bag" style="width:20px; height:20px;"></i>
         <span class="cart-badge">3</span>
@@ -208,10 +255,12 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{font-family:var(--fo
 <section class="hero">
   <div class="hero-bg" id="heroBg"></div>
   <div class="hero-overlay"></div>
+
   <div class="hero-in">
     <span class="hero-tag"><i data-lucide="sparkles"></i> The Future of Retail</span>
     <h1>Deep in the forest.<br><span>There's always a mystery.</span></h1>
     <p>Shop exclusive future-tech, limited edition gadgets, and mystery drops. Premium sellers, lightning-fast delivery, and secure checkout.</p>
+
     <div class="hero-ctas">
       <a href="browse.html" class="hero-card">
         <span class="hc-icon"><i data-lucide="shopping-bag"></i></span>
@@ -239,10 +288,8 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{font-family:var(--fo
       <a href="browse.html" class="see-all">See all <i data-lucide="arrow-right" style="width:16px;"></i></a>
     </div>
     
-    <!-- PRODUCT GRID -->
     <div class="grid" id="productsGrid">
-      <!-- Skeletons (Shown while Firebase loads) -->
-      <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div><div class="sk-line w40"></div></div></div>
+      <!-- Skeletons -->
       <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div><div class="sk-line w40"></div></div></div>
       <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div><div class="sk-line w40"></div></div></div>
       <div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line w60"></div><div class="sk-line w40"></div></div></div>
@@ -297,13 +344,12 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{font-family:var(--fo
   </div>
 </footer>
 
+</div>
+
 <script>
 (function(){
 'use strict';
 
-// ═══════════════════════════════════════════════
-// 1. FIREBASE INITIALIZATION
-// ═══════════════════════════════════════════════
 var firebaseConfig = {
   apiKey: "AIzaSyAxki2vcYmVeZav7N1WybofdvN3n6Aa0rk",
   authDomain: "starlane-stream.firebaseapp.com",
@@ -315,15 +361,13 @@ var firebaseConfig = {
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
-var db = firebase.firestore(); // LIVE DATABASE
+var db = firebase.firestore();
 
 function $(id){return document.getElementById(id);}
 function refreshIcons(){if(window.lucide)lucide.createIcons();}
 function money(v){ return 'R ' + parseFloat(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
-// ═══════════════════════════════════════════════
-// 2. AUTHENTICATION
-// ═══════════════════════════════════════════════
+// HEADER AUTH
 auth.onAuthStateChanged(function(user) {
   var userBtn = $('user-btn');
   var userIcon = $('user-icon');
@@ -343,9 +387,7 @@ auth.onAuthStateChanged(function(user) {
   refreshIcons();
 });
 
-// ═══════════════════════════════════════════════
-// 3. HERO CAROUSEL
-// ═══════════════════════════════════════════════
+// HERO CAROUSEL
 var HERO_IMAGES = [
   'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1600&q=80&auto=format&fit=crop', 
   'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1600&q=80&auto=format&fit=crop', 
@@ -374,33 +416,29 @@ function initCarousel(){
   }, 5000);
 }
 
-// ═══════════════════════════════════════════════
-// 4. REAL FIRESTORE PRODUCT FETCHING
-// ═══════════════════════════════════════════════
+// FETCH PRODUCTS
 function loadProducts() {
   var grid = $('productsGrid');
 
-  // Fetch newest 8 products from Firestore
   db.collection('products')
     .orderBy('createdAt', 'desc')
-    .limit(8)
+    .limit(4)
     .get()
     .then(function(snapshot) {
       
-      // If database is empty
       if (snapshot.empty) {
         grid.innerHTML = `
           <div class="empty-state">
             <i data-lucide="ghost"></i>
             <h3>No mysteries found yet</h3>
-            <p>The forest is empty. Be the first to <a href="seller-studio.html" style="color:var(--bright-lime); text-decoration:underline;">upload a product</a> to Firestore!</p>
+            <p>The forest is empty. Be the first to <a href="seller-studio.html" style="color:var(--bright-lime); text-decoration:underline;">upload a product</a>!</p>
           </div>
         `;
         refreshIcons();
         return;
       }
 
-      grid.innerHTML = ''; // Clear skeletons
+      grid.innerHTML = ''; 
       var index = 0;
 
       snapshot.forEach(function(doc) {
@@ -409,18 +447,11 @@ function loadProducts() {
         
         var card = document.createElement('div');
         card.className = 'card-item';
-        // Stagger the fade-in animation
         card.style.animationDelay = (index * 0.05) + 's';
 
         var badgeHTML = p.badge ? `<span class="card-badge ${p.badge.toLowerCase()==='sale'?'sale':''}">${p.badge}</span>` : '';
-        
-        // Handle old price formatting
         var priceHTML = p.oldPrice ? `<del>${money(p.oldPrice)}</del> ${money(p.price)}` : money(p.price);
         
-        // Default rating if none exists
-        var rating = p.rating || 5.0;
-        var reviews = p.reviews || 0;
-
         card.innerHTML = `
           <div class="card-img" style="background-image:url('${p.imageUrl || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop'}')">
             ${badgeHTML}
@@ -428,7 +459,7 @@ function loadProducts() {
           <div class="card-body">
             <div class="card-title">${p.name || 'Unnamed Product'}</div>
             <div class="card-rating">
-              <i data-lucide="star"></i> ${rating} <span>(${reviews})</span>
+              <i data-lucide="star"></i> ${p.rating || 5.0} <span>(${p.reviews || 0})</span>
             </div>
             <div class="card-foot">
               <span class="price">${priceHTML}</span>
@@ -439,7 +470,6 @@ function loadProducts() {
           </div>
         `;
 
-        // Click to view product details page (passing ID in URL)
         card.addEventListener('click', function(e) {
           if(e.target.tagName !== 'BUTTON') {
             window.location.href = 'product.html?id=' + id;
@@ -454,26 +484,15 @@ function loadProducts() {
     })
     .catch(function(error) {
       console.error("Error fetching products: ", error);
-      grid.innerHTML = `
-        <div class="empty-state">
-          <i data-lucide="alert-circle" style="color: #DC2626;"></i>
-          <h3>Failed to load the forest</h3>
-          <p>Check your Firebase security rules or internet connection.</p>
-        </div>
-      `;
-      refreshIcons();
     });
 }
 
-// ═══════════════════════════════════════════════
-// 5. INIT
-// ═══════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function(){
   refreshIcons();
   initCarousel();
-  loadProducts(); // Fires the Firestore fetch
+  loadProducts(); 
 });
 })();
 </script>
 </body>
-  </html>
+                                                           </html>
