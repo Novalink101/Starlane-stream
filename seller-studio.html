@@ -79,7 +79,6 @@
   .form-group textarea { resize: vertical; min-height: 100px; }
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--bright-lime); background: #fff; box-shadow: 0 0 0 3px rgba(163,255,18,0.15); }
 
-  /* IMAGE UPLOAD ZONE */
   .upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 32px; text-align: center; background: var(--surface-2); cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
   .upload-zone:hover { border-color: var(--bright-lime); background: #fff; }
   .upload-zone input[type="file"] { display: none; }
@@ -106,8 +105,13 @@
   .status-shipped { background: #DBEAFE; color: #2563EB; }
   .status-cancelled { background: #FEF2F2; color: #DC2626; }
 
-  .btn-action { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: var(--bright-lime); color: var(--ink-black); transition: 0.2s; }
+  .btn-action { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: var(--bright-lime); color: var(--ink-black); transition: 0.2s; display: inline-flex; align-items: center; gap: 4px; }
   .btn-action:hover { background: #BDFF53; }
+  .btn-map { background: #F3F4F6; color: var(--ink-black); }
+  .btn-map:hover { background: #E5E7EB; }
+  .btn-cancel { background: #FEF2F2; color: var(--danger); }
+  .btn-cancel:hover { background: var(--danger); color: #fff; }
+  
   .btn-icon-sm.delete { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: var(--surface-2); border: none; cursor: pointer; color: var(--text-muted); }
   .btn-icon-sm.delete:hover { background: #FEF2F2; color: var(--danger); }
 </style>
@@ -387,22 +391,36 @@
           if (order.status === 'shipped') statusClass = 'status-shipped';
           if (order.status === 'cancelled') statusClass = 'status-cancelled';
 
+          // DELIVERY MAP LINK LOGIC
+          var mapLink = order.deliveryLat ? `
+            <a href="https://www.google.com/maps/search/?api=1&query=${order.deliveryLat},${order.deliveryLng}" target="_blank" class="btn-action btn-map">
+              <i data-lucide="map-pin" style="width:12px;"></i> View Map
+            </a>
+          ` : '';
+
           var tr = document.createElement('tr');
           tr.innerHTML = `
             <td style="font-family: var(--mono); font-weight:600;">#${doc.id.slice(0, 8).toUpperCase()}</td>
-            <td style="font-size: 13px;">${order.buyerEmail}</td>
+            <td style="font-size: 13px;">
+              ${order.buyerEmail}<br>
+              <span style="color:var(--text-muted); font-size:11px;">${order.deliveryPhone || ''}</span>
+            </td>
             <td>${itemsHtml}</td>
             <td style="font-family: var(--mono); font-weight:700;">${money(myTotal)}</td>
             <td><span class="status-badge ${statusClass}">${order.status || 'pending'}</span></td>
             <td>
-              ${order.status === 'paid' ? `
-                <button class="btn-action" onclick="markShipped('${doc.id}')">Mark Shipped</button>
-                <button class="btn-action" style="background:#FEF2F2; color:#DC2626; margin-top:4px;" onclick="cancelOrder('${doc.id}')">Cancel & Refund</button>
-              ` : ''}
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                ${mapLink}
+                ${order.status === 'paid' ? `
+                  <button class="btn-action" onclick="markShipped('${doc.id}')">Mark Shipped</button>
+                  <button class="btn-action btn-cancel" onclick="cancelOrder('${doc.id}')">Cancel & Refund</button>
+                ` : ''}
+              </div>
             </td>
           `;
           tbody.appendChild(tr);
         });
+        refreshIcons();
       });
   }
 
@@ -483,9 +501,9 @@
   };
 
   window.cancelOrder = function(orderId) {
-    if(confirm('Are you sure? This will cancel the order and trigger a refund to the buyer.')) {
+    if(confirm('Are you sure? This will cancel the order. You will need to refund the buyer manually via your Yoco dashboard.')) {
       db.collection('orders').doc(orderId).update({ status: 'cancelled' })
-        .then(function() { alert('Order cancelled. The buyer has been notified.'); });
+        .then(function() { alert('Order cancelled.'); });
     }
   };
 
