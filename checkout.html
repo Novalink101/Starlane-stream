@@ -14,7 +14,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-<!-- 🔥 YOUR GOOGLE MAPS API KEY HAS BEEN INSERTED HERE -->
+<!-- 🔥 YOUR GOOGLE MAPS API KEY IS INSERTED HERE -->
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDI_C25zBDgfadfvIuAoaVh-VZ7VAzzhX4&libraries=places"></script>
 
 <style>
@@ -232,13 +232,35 @@
     autocomplete = new google.maps.places.Autocomplete(input);
     autocomplete.bindTo('bounds', map);
 
+    // 🔥 FIX: Handle free-text search gracefully
     autocomplete.addListener('place_changed', function() {
       var place = autocomplete.getPlace();
+      var inputVal = document.getElementById('checkout-address').value;
+
+      // If the user just typed text and hit enter without selecting a dropdown item
       if (!place.geometry || !place.geometry.location) {
-        showToast('No details available for this address.', 'alert-circle');
+        geocoder.geocode({ address: inputVal }, function(results, status) {
+          if (status === 'OK' && results[0]) {
+            // We found a general location! Move the map there.
+            var loc = results[0].geometry.location;
+            map.setCenter(loc);
+            map.setZoom(15);
+            marker.setPosition(loc);
+            
+            document.getElementById('checkout-lat').value = loc.lat();
+            document.getElementById('checkout-lng').value = loc.lng();
+            document.getElementById('checkout-address').value = results[0].formatted_address;
+            hasSelectedLocation = true;
+            
+            showToast('Found general area. Please drag the pin to your exact house.', 'info');
+          } else {
+            showToast('Could not find this address. Please select from the dropdown or drag the pin manually.', 'alert-circle');
+          }
+        });
         return;
       }
 
+      // Normal flow: They selected a valid item from the dropdown
       map.setCenter(place.geometry.location);
       map.setZoom(16);
       marker.setPosition(place.geometry.location);
@@ -368,4 +390,4 @@
 })();
 </script>
 </body>
-  </html>
+</html>
