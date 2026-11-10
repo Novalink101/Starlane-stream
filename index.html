@@ -12,11 +12,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+<!-- UPDATED ICON & APPLE TOUCH ICON -->
+<link rel="icon" type="image/jpeg" href="https://img.sanishtech.com/u/729238290b7775f7cead61c077dfcf29.jpg" />
+<link rel="apple-touch-icon" href="https://img.sanishtech.com/u/729238290b7775f7cead61c077dfcf29.jpg">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 74'%3E%3Cpath d='M30 4 L54 46 H6 Z' fill='%23030407'/%3E%3Cpath d='M30 22 L44 46 H16 Z' fill='%23A3FF12'/%3E%3Cpath d='M10 52 H50 V64 H10 Z' fill='%23AAB0C4'/%3E%3Cpath d='M20 56 H40 V60 H20 Z' fill='%23030407'/%3E%3C/svg%3E" />
 
 <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.0/dist/confetti.browser.min.js"></script>
@@ -150,7 +152,7 @@ h1,h2,h3,.brand-text,.btn-accent,.hc-t,.auth-title,.nav-tab{font-family:var(--fo
 .btn-buy { background: var(--bright-lime); color: var(--ink-black); border: none; padding: 8px 12px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s; }
 .btn-buy:hover { background: #BDFF53; }
 
-/* 🔥 NEW: Card Quantity Controls */
+/* Card Quantity Controls */
 .card-qty-controls { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: #fff; }
 .card-qty-btn { padding: 6px 10px; border: none; background: var(--surface-2); cursor: pointer; font-weight: 700; font-size: 12px; color: var(--ink-black); transition: 0.2s; }
 .card-qty-btn:hover { background: var(--line); }
@@ -521,7 +523,6 @@ function initCarousel(){
   setInterval(function(){ var next = (heroIndex + 1) % slides.length; slides.forEach(function(s, idx){ s.classList.toggle('active', idx === next); }); heroIndex = next; }, 4000);
 }
 
-// 🔥 UPDATED PRODUCT CARD (Sizes & +/- Controls)
 function createProductCard(p, index) {
   var card = document.createElement('div');
   card.className = 'card-item';
@@ -591,7 +592,6 @@ function loadProducts() {
   });
 }
 
-// 🔥 UPDATED quickAdd (accepts quantity)
 window.quickAdd = function(id, name, price, imageUrl, sellerId, qty) {
   var cart = JSON.parse(localStorage.getItem('forestbase_cart') || '[]'); 
   var existing = cart.find(item => item.id === id && !item.size);
